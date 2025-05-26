@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+حذف گیرنده: {{ recipient.first_name }} {{ recipient.last_name }}
+{% endblock %}
+
+{% block page1 %}
+گیرندگان
+{% endblock %}
+
+{% block page2 %}
+حذف گیرنده: {{ recipient.first_name }} {{ recipient.last_name }}
+{% endblock %}
+
+{% block contain %}
+<div class="row" style="text-align: center; padding-top: 50px;">
+    <h5 style="color: #f97316;">
+        آیا از حذف گیرنده: {{ recipient.first_name }} {{ recipient.last_name }} با کد ملی {{ recipient.national_code }} اطمینان
+        دارید؟
+    </h5>
+
+    <form method="post"> {% csrf_token %}
+        <br>
+        <br>
+        <button class="btn btn-netcopy_net" style="margin-left: 10px; color: red;">تایید و حذف</button>
+        <a href="{% url 'recipient_list' %}">بیخیال!</a>
+    </form>
+</div>
+{% endblock %}

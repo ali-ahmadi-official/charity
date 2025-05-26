@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+جزئیات گیرنده: {{ recipient.first_name }} {{ recipient.last_name }}
+{% endblock %}
+
+{% block page1 %}
+گیرندگان
+{% endblock %}
+
+{% block page2 %}
+جزئیات گیرنده: {{ recipient.first_name }} {{ recipient.last_name }}
+{% endblock %}
+
+{% block contain %}
+<div class="row">
+    <h3 style="margin-bottom: 20px;">جزئیات</h3>
+
+    <div class="my-grid">
+        <div>
+            <label>نام و نام خانوادگی</label>
+            <input class="form-control" value="{{ recipient.first_name }} {{ recipient.last_name }}" disabled>
+        </div>
+        <div>
+            <label>شماره تماس</label>
+            <input class="form-control" value="{{ recipient.phone_number }}" disabled>
+        </div>
+        <div>
+            <label>کد ملی</label>
+            <input class="form-control" value="{{ recipient.national_code }}" disabled>
+        </div>
+        <div>
+            <label>سن</label>
+            <input class="form-control" value="{{ recipient.age }}" disabled>
+        </div>
+        <div>
+            <label>گروه خونی</label>
+            <input class="form-control" value="{{ recipient.blood_group }}" disabled>
+        </div>
+    </div>
+    <div class="second-grid">
+        <div class="points"><h5 style="color: #f97316;">Scoring matrix</h5></div>
+        <div class="form-control">matrix</div>
+        <div class="form-control">value</div>
+        <div class="form-control">point</div>
+        <div class="form-control">matrix</div>
+        <div class="form-control">value</div>
+        <div class="form-control">point</div>
+        <div class="form-control">Waiting list</div>
+        <div class="form-control">{{ recipient.waiting_list }}</div>
+        <div class="form-control">{{ recipient.waiting_list }}</div>
+        <div class="form-control">Dialysis duration</div>
+        <div class="form-control">{{ recipient.dialysis_duration }}</div>
+        <div class="form-control">{{ dialysis_duration_p }}</div>
+        <div class="form-control">Medical urgency</div>
+        <div class="form-control">{{ recipient.get_medical_urgency_display }}</div>
+        <div class="form-control">3</div>
+        <div class="form-control">Previous donation</div>
+        <div class="form-control">{{ recipient.get_previous_donation_display }}</div>
+        <div class="form-control">{{ previous_donation_p }}</div>
+        <div class="form-control">Candidate for 2 kidney TX</div>
+        <div class="form-control">{{ recipient.get_candidate_for_2_kidney_TX_display }}</div>
+        <div class="form-control">{{ candidate_for_2_kidney_TX_p }}</div>
+        <div class="form-control">Candidate for kidney after other organ TX</div>
+        <div class="form-control">{{ recipient.get_candidate_for_kidney_after_other_organ_TX_display }}</div>
+        <div class="form-control">{{ candidate_for_kidney_after_other_organ_TX_p }}</div>
+        <div class="form-control">Cpra</div>
+        <div class="form-control">{{ recipient.get_cpra_display }}</div>
+        <div class="form-control">{{ cpra_p }}</div>
+        <div class="form-control" style="color: #f97316; font-size: large;">Point</div>
+        <div class="form-control point" style="color: #f97316; font-size: large;">{{ recipient.point }}</div>
+    </div>
+</div>
+{% endblock %}
