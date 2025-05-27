@@ -64,6 +64,7 @@ class Recipient(models.Model):
     candidate_for_2_kidney_TX = models.CharField(max_length=3, choices=previous_donation_candidate_choices)
     candidate_for_kidney_after_other_organ_TX = models.CharField(max_length=3, choices=previous_donation_candidate_choices)
     cpra = models.CharField(max_length=1, choices=cpra_choices)
+    hla_matching_and_mismatch_score = models.IntegerField(verbose_name='HLA matching and mismatch score', default=0)
     point = models.FloatField(verbose_name='امتیاز')
 
     class Meta:

@@ -207,6 +207,17 @@
                 {% endfor %}
                 {% endif %}
             </div>
+            <div>
+                <label>{{ form.hla_matching_and_mismatch_score.label }}</label>
+                <div class="mb-3">
+                    <input type="number" name="hla_matching_and_mismatch_score" class="form-control" value="{{ form.hla_matching_and_mismatch_score.value }}">
+                </div>
+                {% if form.hla_matching_and_mismatch_score.errors %}
+                {% for error in form.hla_matching_and_mismatch_score.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
         </div>
         <div class="text-center">
             <button type="submit" class="btn bg-gradient-info w-100 mt-4 mb-0">ثبت جزئیات گیرنده</button>

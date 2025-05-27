@@ -29,7 +29,7 @@
             <div>
                 <label>{{ form.first_name.label }}</label>
                 <div class="mb-3">
-                    <input type="text" name="first_name" class="form-control">
+                    <input type="text" name="first_name" class="form-control" value="{{ form.first_name.value|default:'' }}">
                 </div>
                 {% if form.first_name.errors %}
                 {% for error in form.first_name.errors %}
@@ -40,7 +40,7 @@
             <div>
                 <label>{{ form.last_name.label }}</label>
                 <div class="mb-3">
-                    <input type="text" name="last_name" class="form-control">
+                    <input type="text" name="last_name" class="form-control" value="{{ form.last_name.value|default:'' }}">
                 </div>
                 {% if form.last_name.errors %}
                 {% for error in form.last_name.errors %}
@@ -51,7 +51,7 @@
             <div>
                 <label>{{ form.national_code.label }}</label>
                 <div class="mb-3">
-                    <input type="number" name="national_code" class="form-control">
+                    <input type="number" name="national_code" class="form-control" value="{{ form.national_code.value|default:'' }}">
                 </div>
                 {% if form.national_code.errors %}
                 {% for error in form.national_code.errors %}
@@ -62,7 +62,7 @@
             <div>
                 <label>{{ form.phone_number.label }}</label>
                 <div class="mb-3">
-                    <input type="number" name="phone_number" class="form-control">
+                    <input type="number" name="phone_number" class="form-control" value="{{ form.phone_number.value|default:'' }}">
                 </div>
                 {% if form.phone_number.errors %}
                 {% for error in form.phone_number.errors %}
@@ -73,7 +73,7 @@
             <div>
                 <label>{{ form.age.label }}</label>
                 <div class="mb-3">
-                    <input type="number" name="age" class="form-control">
+                    <input type="number" name="age" class="form-control" value="{{ form.age.value|default:'' }}">
                 </div>
                 {% if form.age.errors %}
                 {% for error in form.age.errors %}
@@ -86,7 +86,7 @@
                 <div class="mb-3">
                     <select name="blood_group" class="form-control">
                         {% for choice in form.blood_group.field.choices %}
-                        <option value="{{ choice.0 }}">
+                        <option value="{{ choice.0 }}" {% if form.blood_group.value == choice.0 %}selected{% endif %}>
                             {{ choice.1 }}
                         </option>
                         {% endfor %}
@@ -102,7 +102,7 @@
                 <label>{{ form.waiting_list.label }}</label>
                 <span style="font-size: small;">{{ form.waiting_list.help_text }}</span>
                 <div class="mb-3">
-                    <input type="number" name="waiting_list" class="form-control">
+                    <input type="number" name="waiting_list" class="form-control" value="{{ form.waiting_list.value|default:'' }}">
                 </div>
                 {% if form.waiting_list.errors %}
                 {% for error in form.waiting_list.errors %}
@@ -114,7 +114,7 @@
                 <label>{{ form.dialysis_duration.label }}</label>
                 <span style="font-size: small;">{{ form.dialysis_duration.help_text }}</span>
                 <div class="mb-3">
-                    <input type="number" name="dialysis_duration" class="form-control">
+                    <input type="number" name="dialysis_duration" class="form-control" value="{{ form.dialysis_duration.value|default:'' }}">
                 </div>
                 {% if form.dialysis_duration.errors %}
                 {% for error in form.dialysis_duration.errors %}
@@ -127,7 +127,7 @@
                 <div class="mb-3">
                     <select name="previous_donation" class="form-control">
                         {% for choice in form.previous_donation.field.choices %}
-                        <option value="{{ choice.0 }}">
+                        <option value="{{ choice.0 }}" {% if form.previous_donation.value == choice.0 %}selected{% endif %}>
                             {{ choice.1 }}
                         </option>
                         {% endfor %}
@@ -144,7 +144,7 @@
                 <div class="mb-3">
                     <select name="medical_urgency" class="form-control">
                         {% for choice in form.medical_urgency.field.choices %}
-                        <option value="{{ choice.0 }}">
+                        <option value="{{ choice.0 }}" {% if form.medical_urgency.value == choice.0 %}selected{% endif %}>
                             {{ choice.1 }}
                         </option>
                         {% endfor %}
@@ -161,7 +161,7 @@
                 <div class="mb-3">
                     <select name="candidate_for_2_kidney_TX" class="form-control">
                         {% for choice in form.candidate_for_2_kidney_TX.field.choices %}
-                        <option value="{{ choice.0 }}">
+                        <option value="{{ choice.0 }}" {% if form.candidate_for_2_kidney_TX.value == choice.0 %}selected{% endif %}>
                             {{ choice.1 }}
                         </option>
                         {% endfor %}
@@ -178,7 +178,7 @@
                 <div class="mb-3">
                     <select name="candidate_for_kidney_after_other_organ_TX" class="form-control">
                         {% for choice in form.candidate_for_kidney_after_other_organ_TX.field.choices %}
-                        <option value="{{ choice.0 }}">
+                        <option value="{{ choice.0 }}" {% if form.candidate_for_kidney_after_other_organ_TX.value == choice.0 %}selected{% endif %}>
                             {{ choice.1 }}
                         </option>
                         {% endfor %}
@@ -195,7 +195,7 @@
                 <div class="mb-3">
                     <select name="cpra" class="form-control">
                         {% for choice in form.cpra.field.choices %}
-                        <option value="{{ choice.0 }}">
+                        <option value="{{ choice.0 }}" {% if form.cpra.value == choice.0 %}selected{% endif %}>
                             {{ choice.1 }}
                         </option>
                         {% endfor %}
@@ -203,6 +203,17 @@
                 </div>
                 {% if form.cpra.errors %}
                 {% for error in form.cpra.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>
+                <label>{{ form.hla_matching_and_mismatch_score.label }}</label>
+                <div class="mb-3">
+                    <input type="number" name="hla_matching_and_mismatch_score" class="form-control" value="{{ form.hla_matching_and_mismatch_score.value|default:'' }}">
+                </div>
+                {% if form.hla_matching_and_mismatch_score.errors %}
+                {% for error in form.hla_matching_and_mismatch_score.errors %}
                 <p class="error">{{ error }}</p>
                 {% endfor %}
                 {% endif %}

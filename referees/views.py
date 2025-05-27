@@ -190,6 +190,7 @@ class RecipientCreateView(LoginRequiredMixin, CreateView):
         candidate_for_2_kidney_TX = form.cleaned_data['candidate_for_2_kidney_TX']
         candidate_for_kidney_after_other_organ_TX = form.cleaned_data['candidate_for_kidney_after_other_organ_TX']
         cpra = form.cleaned_data['cpra']
+        hla = form.cleaned_data['hla_matching_and_mismatch_score']
 
         if 0 <= age <= 10:
             age_p = 4
@@ -218,70 +219,69 @@ class RecipientCreateView(LoginRequiredMixin, CreateView):
         else:
             cpra_p = 4
 
-        point = waiting_list + (dialysis_duration * 0.5) + age_p + previous_donation_p + 3 + candidate_for_2_kidney_TX_p + candidate_for_kidney_after_other_organ_TX_p + cpra_p
+        point = waiting_list + (dialysis_duration * 0.5) + age_p + previous_donation_p + 3 + candidate_for_2_kidney_TX_p + candidate_for_kidney_after_other_organ_TX_p + cpra_p + hla
 
         form.instance.point = point
 
         return super().form_valid(form)
 
-class RecipientDetailView(LoginRequiredMixin, DetailView):
-    model = Recipient
-    template_name = 'recipient_detail.html'
-    context_object_name = 'recipient'
+@login_required
+def recipient_detail(request, pk):
+    recipient = get_object_or_404(Recipient, pk=pk)
 
-    def get_success_url(self):
-        return reverse('recipient_detail', kwargs={'pk': self.object.id})
+    dialysis_duration_p = (recipient.dialysis_duration) * 0.5
+    age = recipient.age
+    previous_donation = recipient.previous_donation
+    candidate_for_2_kidney_TX = recipient.candidate_for_2_kidney_TX
+    candidate_for_kidney_after_other_organ_TX = recipient.candidate_for_kidney_after_other_organ_TX
+    cpra = recipient.cpra
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        recipient = self.get_object()
-        dialysis_duration_p = (recipient.dialysis_duration) * 0.5
-        age = recipient.age
-        previous_donation = recipient.previous_donation
-        candidate_for_2_kidney_TX = recipient.candidate_for_2_kidney_TX
-        candidate_for_kidney_after_other_organ_TX = recipient.candidate_for_kidney_after_other_organ_TX
-        cpra = recipient.cpra
-
-        if 0 <= age <= 10:
-            age_p = 4
-        elif 11 <= age <= 17:
-            age_p = 3
-        else:
-            age_p = 0
+    if 0 <= age <= 10:
+        age_p = 4
+    elif 11 <= age <= 17:
+        age_p = 3
+    else:
+        age_p = 0
         
-        if previous_donation == 'yes':
-            previous_donation_p = 3
-        else:
-            previous_donation_p = 0
+    if previous_donation == 'yes':
+        previous_donation_p = 3
+    else:
+        previous_donation_p = 0
         
-        if candidate_for_2_kidney_TX == 'yes':
-            candidate_for_2_kidney_TX_p = 2
-        else:
-            candidate_for_2_kidney_TX_p = 0
+    if candidate_for_2_kidney_TX == 'yes':
+        candidate_for_2_kidney_TX_p = 2
+    else:
+        candidate_for_2_kidney_TX_p = 0
 
-        if candidate_for_kidney_after_other_organ_TX == 'yes':
-            candidate_for_kidney_after_other_organ_TX_p = 2
-        else:
-            candidate_for_kidney_after_other_organ_TX_p = 0
+    if candidate_for_kidney_after_other_organ_TX == 'yes':
+        candidate_for_kidney_after_other_organ_TX_p = 2
+    else:
+        candidate_for_kidney_after_other_organ_TX_p = 0
 
-        if cpra == '1' or cpra == '3':
-            cpra_p = 10
-        else:
-            cpra_p = 4
+    if cpra == '1' or cpra == '3':
+        cpra_p = 10
+    else:
+        cpra_p = 4
 
-        context['dialysis_duration_p'] = dialysis_duration_p
-        context['age_p'] = age_p
-        context['previous_donation_p'] = previous_donation_p
-        context['candidate_for_2_kidney_TX_p'] = candidate_for_2_kidney_TX_p
-        context['candidate_for_kidney_after_other_organ_TX_p'] = candidate_for_kidney_after_other_organ_TX_p
-        context['cpra_p'] = cpra_p
+    context = {
+        'recipient': recipient,
+        'dialysis_duration_p': dialysis_duration_p,
+        'age_p': age_p,
+        'previous_donation_p': previous_donation_p,
+        'candidate_for_2_kidney_TX_p': candidate_for_2_kidney_TX_p,
+        'candidate_for_kidney_after_other_organ_TX_p': candidate_for_kidney_after_other_organ_TX_p,
+        'cpra_p': cpra_p,
+    }
 
-        return context
+    return render(request, 'recipient_detail.html', context)
 
 class RecipientUpdateView(LoginRequiredMixin, UpdateView):
     model = Recipient
     form_class = RecipientForm
     template_name = 'recipient_form.html'
+
+    def get_success_url(self):
+        return reverse('recipient_detail', kwargs={'pk': self.object.id})
 
     def form_valid(self, form):
         waiting_list = form.cleaned_data['waiting_list']
@@ -291,6 +291,7 @@ class RecipientUpdateView(LoginRequiredMixin, UpdateView):
         candidate_for_2_kidney_TX = form.cleaned_data['candidate_for_2_kidney_TX']
         candidate_for_kidney_after_other_organ_TX = form.cleaned_data['candidate_for_kidney_after_other_organ_TX']
         cpra = form.cleaned_data['cpra']
+        hla = form.cleaned_data['hla_matching_and_mismatch_score']
 
         if 0 <= age <= 10:
             age_p = 4
@@ -319,7 +320,7 @@ class RecipientUpdateView(LoginRequiredMixin, UpdateView):
         else:
             cpra_p = 4
 
-        point = waiting_list + (dialysis_duration * 0.5) + age_p + previous_donation_p + 3 + candidate_for_2_kidney_TX_p + candidate_for_kidney_after_other_organ_TX_p + cpra_p
+        point = waiting_list + (dialysis_duration * 0.5) + age_p + previous_donation_p + 3 + candidate_for_2_kidney_TX_p + candidate_for_kidney_after_other_organ_TX_p + cpra_p + hla
 
         form.instance.point = point
 

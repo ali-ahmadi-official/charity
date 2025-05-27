@@ -29,7 +29,7 @@
             <div>
                 <label>{{ form.first_name.label }}</label>
                 <div class="mb-3">
-                    <input type="text" name="first_name" class="form-control">
+                    <input type="text" name="first_name" class="form-control" value="{{ form.first_name.value|default:'' }}">
                 </div>
                 {% if form.first_name.errors %}
                 {% for error in form.first_name.errors %}
@@ -40,7 +40,7 @@
             <div>
                 <label>{{ form.last_name.label }}</label>
                 <div class="mb-3">
-                    <input type="text" name="last_name" class="form-control">
+                    <input type="text" name="last_name" class="form-control" value="{{ form.last_name.value|default:'' }}">
                 </div>
                 {% if form.last_name.errors %}
                 {% for error in form.last_name.errors %}
@@ -51,7 +51,7 @@
             <div>
                 <label>{{ form.national_code.label }}</label>
                 <div class="mb-3">
-                    <input type="number" name="national_code" class="form-control">
+                    <input type="number" name="national_code" class="form-control" value="{{ form.national_code.value|default:'' }}">
                 </div>
                 {% if form.national_code.errors %}
                 {% for error in form.national_code.errors %}
@@ -62,7 +62,7 @@
             <div>
                 <label>{{ form.phone_number.label }}</label>
                 <div class="mb-3">
-                    <input type="number" name="phone_number" class="form-control">
+                    <input type="number" name="phone_number" class="form-control" value="{{ form.phone_number.value|default:'' }}">
                 </div>
                 {% if form.phone_number.errors %}
                 {% for error in form.phone_number.errors %}
@@ -73,7 +73,7 @@
             <div>
                 <label>{{ form.age.label }}</label>
                 <div class="mb-3">
-                    <input type="number" name="age" class="form-control">
+                    <input type="number" name="age" class="form-control" value="{{ form.age.value|default:'' }}">
                 </div>
                 {% if form.age.errors %}
                 {% for error in form.age.errors %}
@@ -85,7 +85,7 @@
                 <label>{{ form.blood_group.label }}</label>
                 <select name="blood_group" class="form-control">
                     {% for choice in form.blood_group.field.choices %}
-                    <option value="{{ choice.0 }}">
+                    <option value="{{ choice.0 }}" {% if form.blood_group.value == choice.0 %}selected{% endif %}>
                         {{ choice.1 }}
                     </option>
                     {% endfor %}
@@ -100,7 +100,7 @@
                 <label>{{ form.kdpi.label }}</label>
                 <span style="font-size: small;">{{ form.kdpi.help_text }}</span>
                 <div class="mb-3">
-                    <input type="number" name="kdpi" class="form-control">
+                    <input type="number" name="kdpi" class="form-control" value="{{ form.kdpi.value|default:'' }}">
                 </div>
                 {% if form.kdpi.errors %}
                 {% for error in form.kdpi.errors %}
