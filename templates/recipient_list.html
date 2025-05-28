@@ -18,6 +18,10 @@
     <div class="col-12">
         <h5>فیلتر گیرندگان <span style="font-size: small; color: #f97316;">پر کردن تمامی موارد الزامی نیست</span></h5>
         <form method="get" class="my-form">
+            <input title="کد ملی" type="number" name="national_code" class="form-control w-40" placeholder="کد ملی" style="width: 100% !important;"
+                value="{{ request.GET.national_code }}">
+            <input title="نام و نام خانوادگی" type="text" name="q" class="form-control w-40" placeholder="نام و نام خانوادگی" style="width: 100% !important;"
+                value="{{ request.GET.q }}">
             <select name="blood_group" class="form-control" title="گروه خونی">
                 <option value="">گروه خونی</option>
                 <option value="A" {% if request.GET.blood_group == "A" %}selected{% endif %}>
@@ -33,12 +37,8 @@
                     O
                 </option>
             </select>
-            <input title="نام و نام خانوادگی" type="text" name="q" class="form-control w-40" placeholder="نام و نام خانوادگی" style="width: 100% !important;"
-                value="{{ request.GET.q }}">
             <input title="سن" type="number" name="age" class="form-control w-40" placeholder="سن" style="width: 100% !important;"
                 value="{{ request.GET.age }}">
-            <input title="کد ملی" type="number" name="national_code" class="form-control w-40" placeholder="کد ملی" style="width: 100% !important;"
-                value="{{ request.GET.national_code }}">
             <button class="my-btn" style="background-color: #fff; border: 1px solid #f97316; border-radius: 0.5rem; color: #f97316; padding: 8px 32px; font-size: 0.75rem; font-weight: 700;">جستجو</button>
         </form>
     </div>
