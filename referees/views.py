@@ -187,9 +187,11 @@ class RecipientCreateView(LoginRequiredMixin, CreateView):
         dialysis_duration = form.cleaned_data['dialysis_duration']
         age = form.cleaned_data['age']
         previous_donation = form.cleaned_data['previous_donation']
+        medical_urgency = form.cleaned_data['medical_urgency']
         candidate_for_2_kidney_TX = form.cleaned_data['candidate_for_2_kidney_TX']
         candidate_for_kidney_after_other_organ_TX = form.cleaned_data['candidate_for_kidney_after_other_organ_TX']
         cpra = form.cleaned_data['cpra']
+        desensitized = form.cleaned_data['desensitized']
         hla = form.cleaned_data['hla_matching_and_mismatch_score']
 
         if 0 <= age <= 10:
@@ -204,6 +206,11 @@ class RecipientCreateView(LoginRequiredMixin, CreateView):
         else:
             previous_donation_p = 0
         
+        if medical_urgency == '3':
+            medical_urgency_p = 0
+        else:
+            medical_urgency_p = 3
+        
         if candidate_for_2_kidney_TX == 'yes':
             candidate_for_2_kidney_TX_p = 2
         else:
@@ -214,12 +221,19 @@ class RecipientCreateView(LoginRequiredMixin, CreateView):
         else:
             candidate_for_kidney_after_other_organ_TX_p = 0
 
-        if cpra == '1' or cpra == '3':
+        if cpra == '1':
             cpra_p = 10
-        else:
+        elif cpra == '2':
             cpra_p = 4
+        else:
+            cpra_p = 0
+        
+        if desensitized == 'yes':
+            desensitized_p = 10
+        else:
+            desensitized_p = 0
 
-        point = waiting_list + (dialysis_duration * 0.5) + age_p + previous_donation_p + 3 + candidate_for_2_kidney_TX_p + candidate_for_kidney_after_other_organ_TX_p + cpra_p + hla
+        point = waiting_list + (dialysis_duration * 0.5) + age_p + previous_donation_p + medical_urgency_p + candidate_for_2_kidney_TX_p + candidate_for_kidney_after_other_organ_TX_p + cpra_p + desensitized_p + hla
 
         form.instance.point = point
 
@@ -232,9 +246,11 @@ def recipient_detail(request, pk):
     dialysis_duration_p = (recipient.dialysis_duration) * 0.5
     age = recipient.age
     previous_donation = recipient.previous_donation
+    medical_urgency = recipient.medical_urgency
     candidate_for_2_kidney_TX = recipient.candidate_for_2_kidney_TX
     candidate_for_kidney_after_other_organ_TX = recipient.candidate_for_kidney_after_other_organ_TX
     cpra = recipient.cpra
+    desensitized = recipient.desensitized
 
     if 0 <= age <= 10:
         age_p = 4
@@ -247,6 +263,11 @@ def recipient_detail(request, pk):
         previous_donation_p = 3
     else:
         previous_donation_p = 0
+    
+    if medical_urgency == '3':
+        medical_urgency_p = 0
+    else:
+        medical_urgency_p = 3
         
     if candidate_for_2_kidney_TX == 'yes':
         candidate_for_2_kidney_TX_p = 2
@@ -258,19 +279,28 @@ def recipient_detail(request, pk):
     else:
         candidate_for_kidney_after_other_organ_TX_p = 0
 
-    if cpra == '1' or cpra == '3':
+    if cpra == '1':
         cpra_p = 10
-    else:
+    elif cpra == '2':
         cpra_p = 4
+    else:
+        cpra_p = 0
+
+    if desensitized == 'yes':
+        desensitized_p = 10
+    else:
+        desensitized_p = 0
 
     context = {
         'recipient': recipient,
         'dialysis_duration_p': dialysis_duration_p,
         'age_p': age_p,
         'previous_donation_p': previous_donation_p,
+        'medical_urgency_p': medical_urgency_p,
         'candidate_for_2_kidney_TX_p': candidate_for_2_kidney_TX_p,
         'candidate_for_kidney_after_other_organ_TX_p': candidate_for_kidney_after_other_organ_TX_p,
         'cpra_p': cpra_p,
+        'desensitized_p': desensitized_p,
     }
 
     return render(request, 'recipient_detail.html', context)
@@ -288,9 +318,11 @@ class RecipientUpdateView(LoginRequiredMixin, UpdateView):
         dialysis_duration = form.cleaned_data['dialysis_duration']
         age = form.cleaned_data['age']
         previous_donation = form.cleaned_data['previous_donation']
+        medical_urgency = form.cleaned_data['medical_urgency']
         candidate_for_2_kidney_TX = form.cleaned_data['candidate_for_2_kidney_TX']
         candidate_for_kidney_after_other_organ_TX = form.cleaned_data['candidate_for_kidney_after_other_organ_TX']
         cpra = form.cleaned_data['cpra']
+        desensitized = form.cleaned_data['desensitized']
         hla = form.cleaned_data['hla_matching_and_mismatch_score']
 
         if 0 <= age <= 10:
@@ -305,6 +337,11 @@ class RecipientUpdateView(LoginRequiredMixin, UpdateView):
         else:
             previous_donation_p = 0
         
+        if medical_urgency == '3':
+            medical_urgency_p = 0
+        else:
+            medical_urgency_p = 3
+        
         if candidate_for_2_kidney_TX == 'yes':
             candidate_for_2_kidney_TX_p = 2
         else:
@@ -315,12 +352,19 @@ class RecipientUpdateView(LoginRequiredMixin, UpdateView):
         else:
             candidate_for_kidney_after_other_organ_TX_p = 0
 
-        if cpra == '1' or cpra == '3':
+        if cpra == '1':
             cpra_p = 10
-        else:
+        elif cpra == '2':
             cpra_p = 4
+        else:
+            cpra_p = 0
+        
+        if desensitized == 'yes':
+            desensitized_p = 10
+        else:
+            desensitized_p = 0
 
-        point = waiting_list + (dialysis_duration * 0.5) + age_p + previous_donation_p + 3 + candidate_for_2_kidney_TX_p + candidate_for_kidney_after_other_organ_TX_p + cpra_p + hla
+        point = waiting_list + (dialysis_duration * 0.5) + age_p + previous_donation_p + medical_urgency_p + candidate_for_2_kidney_TX_p + candidate_for_kidney_after_other_organ_TX_p + cpra_p + desensitized_p + hla
 
         form.instance.point = point
 

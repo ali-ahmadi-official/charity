@@ -208,6 +208,23 @@
                 {% endif %}
             </div>
             <div>
+                <label>{{ form.desensitized.label }}</label>
+                <div class="mb-3">
+                    <select name="desensitized" class="form-control">
+                        {% for choice in form.desensitized.field.choices %}
+                        <option value="{{ choice.0 }}" {% if form.desensitized.value|default:'' == choice.0|default:'' %} selected="selected" {% endif %}>
+                            {{ choice.1 }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% if form.desensitized.errors %}
+                {% for error in form.desensitized.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>
                 <label>{{ form.hla_matching_and_mismatch_score.label }}</label>
                 <div class="mb-3">
                     <input type="number" name="hla_matching_and_mismatch_score" class="form-control" value="{{ form.hla_matching_and_mismatch_score.value }}">

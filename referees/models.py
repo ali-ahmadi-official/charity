@@ -43,12 +43,13 @@ class Recipient(models.Model):
     medical_urgency_choices = [
         ('1', 'no access'),
         ('2', 'cardiomyopathy'),
+        ('3', 'none'),
     ]
 
     cpra_choices = [
         ('1', '≥ 98%'),
         ('2', '95-97%'),
-        ('3', 'desensitized'),
+        ('3', 'none'),
     ]
 
     first_name = models.CharField(verbose_name='نام', max_length=100)
@@ -64,7 +65,8 @@ class Recipient(models.Model):
     candidate_for_2_kidney_TX = models.CharField(max_length=3, choices=previous_donation_candidate_choices)
     candidate_for_kidney_after_other_organ_TX = models.CharField(max_length=3, choices=previous_donation_candidate_choices)
     cpra = models.CharField(max_length=1, choices=cpra_choices)
-    hla_matching_and_mismatch_score = models.IntegerField(verbose_name='HLA matching and mismatch score', default=0)
+    desensitized = models.CharField(max_length=3, choices=previous_donation_candidate_choices)
+    hla_matching_and_mismatch_score = models.IntegerField(verbose_name='HLA matching and mismatch score')
     point = models.FloatField(verbose_name='امتیاز')
 
     class Meta:
