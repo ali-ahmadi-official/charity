@@ -102,7 +102,7 @@
                 <label>{{ form.waiting_list.label }}</label>
                 <span style="font-size: small;">{{ form.waiting_list.help_text }}</span>
                 <div class="mb-3">
-                    <input type="number" name="waiting_list" class="form-control" value="{{ form.waiting_list.value|default:'' }}">
+                    <input data-jdp type="text" name="waiting_list" class="form-control" value="{{ form.waiting_list.value|default:'' }}" autocomplete="off">
                 </div>
                 {% if form.waiting_list.errors %}
                 {% for error in form.waiting_list.errors %}
@@ -114,7 +114,7 @@
                 <label>{{ form.dialysis_duration.label }}</label>
                 <span style="font-size: small;">{{ form.dialysis_duration.help_text }}</span>
                 <div class="mb-3">
-                    <input type="number" name="dialysis_duration" class="form-control" value="{{ form.dialysis_duration.value|default:'' }}">
+                    <input data-jdp type="text" name="dialysis_duration" class="form-control" value="{{ form.dialysis_duration.value|default:'' }}" autocomplete="off">
                 </div>
                 {% if form.dialysis_duration.errors %}
                 {% for error in form.dialysis_duration.errors %}
@@ -224,13 +224,97 @@
                 {% endfor %}
                 {% endif %}
             </div>
+        </div>
+
+        <h5 style="margin-top: 20px;">HLA:</h5>
+
+        <div class="my-grid">
             <div>
-                <label>{{ form.hla_matching_and_mismatch_score.label }}</label>
-                <div class="mb-3">
-                    <input type="number" name="hla_matching_and_mismatch_score" class="form-control" value="{{ form.hla_matching_and_mismatch_score.value|default:'' }}">
-                </div>
-                {% if form.hla_matching_and_mismatch_score.errors %}
-                {% for error in form.hla_matching_and_mismatch_score.errors %}
+                <label>{{ form.hla_a_1.label }}</label>
+                {{ form.hla_a_1 }}
+                {% if form.hla_a_1.errors %}
+                {% for error in form.hla_a_1.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>
+                <label>{{ form.hla_a_2.label }}</label>
+                {{ form.hla_a_2 }}
+                {% if form.hla_a_2.errors %}
+                {% for error in form.hla_a_2.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>
+                <label>{{ form.hla_b_1.label }}</label>
+                {{ form.hla_b_1 }}
+                {% if form.hla_b_1.errors %}
+                {% for error in form.hla_b_1.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>
+                <label>{{ form.hla_b_2.label }}</label>
+                {{ form.hla_b_2 }}
+                {% if form.hla_b_2.errors %}
+                {% for error in form.hla_b_2.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>
+                <label>{{ form.hla_drb1_1.label }}</label>
+                {{ form.hla_drb1_1 }}
+                {% if form.hla_drb1_1.errors %}
+                {% for error in form.hla_drb1_1.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>
+                <label>{{ form.hla_drb1_2.label }}</label>
+                {{ form.hla_drb1_2 }}
+                {% if form.hla_drb1_2.errors %}
+                {% for error in form.hla_drb1_2.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>
+                <label>{{ form.hla_drb_1.label }}</label>
+                {{ form.hla_drb_1 }}
+                {% if form.hla_drb_1.errors %}
+                {% for error in form.hla_drb_1.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>
+                <label>{{ form.hla_drb_2.label }}</label>
+                {{ form.hla_drb_2 }}
+                {% if form.hla_drb_2.errors %}
+                {% for error in form.hla_drb_2.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>
+                <label>{{ form.hla_dqb1_1.label }}</label>
+                {{ form.hla_dqb1_1 }}
+                {% if form.hla_dqb1_1.errors %}
+                {% for error in form.hla_dqb1_1.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>
+                <label>{{ form.hla_dqb1_2.label }}</label>
+                {{ form.hla_dqb1_2 }}
+                {% if form.hla_dqb1_2.errors %}
+                {% for error in form.hla_dqb1_2.errors %}
                 <p class="error">{{ error }}</p>
                 {% endfor %}
                 {% endif %}
@@ -241,4 +325,21 @@
         </div>
     </form>
 </div>
+
+<script>
+    jalaliDatepicker.startWatch();
+
+    const inputFile = document.getElementById('profile_image_input');
+    const previewImage = document.getElementById('profile_image_preview');
+    inputFile.addEventListener('change', function () {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                previewImage.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+    }); 
+</script>
 {% endblock %}

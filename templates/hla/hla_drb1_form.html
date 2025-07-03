@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+HLA DRB1
+{% endblock %}
+
+{% block page1 %}
+HLA
+{% endblock %}
+
+{% block page2 %}
+HLA DRB1
+{% endblock %}
+
+{% block contain %}
+<div class="row">
+    <form method="post">
+        {% csrf_token %}
+        <h3 style="margin-bottom: 20px;">HLA DRB1 Form</h3>
+
+        {% if form.non_field_errors %}
+        {% for error in form.non_field_errors %}
+        <p class="error">{{ error }}</p>
+        {% endfor %}
+        {% endif %}
+
+        <div class="my-grid">
+            <div>
+                <label>{{ form.value.label }}</label>
+                <div class="mb-3">
+                    <input type="text" name="value" class="form-control" value="{{ form.value.value|default:'' }}" placeholder="for example DRB1*01">
+                </div>
+                {% if form.value.errors %}
+                {% for error in form.value.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>
+                <label>{{ form.type.label }}</label>
+                <select name="type" class="form-control">
+                    {% for choice in form.type.field.choices %}
+                    <option value="{{ choice.0 }}" {% if form.type.value|default:'' == choice.0|default:'' %} selected="selected" {% endif %}>
+                        {{ choice.1 }}
+                    </option>
+                    {% endfor %}
+                </select>
+                {% if form.type.errors %}
+                {% for error in form.type.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+        <div class="text-center">
+            <button type="submit" class="btn bg-gradient-info w-100 mt-4 mb-0">Send Detail</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

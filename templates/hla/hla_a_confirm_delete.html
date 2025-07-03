@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+HLA A
+{% endblock %}
+
+{% block page1 %}
+HLA
+{% endblock %}
+
+{% block page2 %}
+HLA A
+{% endblock %}
+
+{% block contain %}
+<div class="row" style="text-align: center; padding-top: 50px;">
+    <h5 style="color: #f97316;">
+        آیا از حذف این HLA A اطمینان
+        دارید؟
+    </h5>
+
+    <form method="post"> {% csrf_token %}
+        <br>
+        <br>
+        <button class="btn btn-netcopy_net" style="margin-left: 10px; color: red;">تایید و حذف</button>
+        <a href="{% url 'hla_lists' %}">بیخیال!</a>
+    </form>
+</div>
+{% endblock %}

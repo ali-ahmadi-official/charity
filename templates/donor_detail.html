@@ -67,6 +67,35 @@
             {% endif %}
         </button>
     </div>
+    <div class="hla-grid">
+        <div class="form-control c1">HLA A</div>
+        <div class="form-control c2">HLA B</div>
+        <div class="form-control c3">HLA DRB1</div>
+        <div class="form-control c4">HLA DRB</div>
+        <div class="form-control c5">HLA DQB1</div>
+
+        <div class="form-control" id="hla_a_first_donor">{{ donor.hla_a_1 }}</div>
+        <div class="form-control" id="hla_a_second_donor">{{ donor.hla_a_2 }}</div>
+        <div class="form-control" id="hla_b_first_donor">{{ donor.hla_b_1 }}</div>
+        <div class="form-control" id="hla_b_second_donor">{{ donor.hla_b_2 }}</div>
+        <div class="form-control" id="hla_drb1_first_donor">{{ donor.hla_drb1_1 }}</div>
+        <div class="form-control" id="hla_drb1_second_donor">{{ donor.hla_drb1_2 }}</div>
+        <div class="form-control" id="hla_drb_first_donor">{{ donor.hla_drb_1 }}</div>
+        <div class="form-control" id="hla_drb_second_donor">{{ donor.hla_drb_2 }}</div>
+        <div class="form-control" id="hla_dqb1_first_donor">{{ donor.hla_dqb1_1 }}</div>
+        <div class="form-control" id="hla_dqb1_second_donor">{{ donor.hla_dqb1_2 }}</div>
+
+        <div class="form-control" style="display: none;" id="hla_a_first_donor_type">{{ donor.hla_a_1.get_type_display }}</div>
+        <div class="form-control" style="display: none;" id="hla_a_second_donor_type">{{ donor.hla_a_2.get_type_display }}</div>
+        <div class="form-control" style="display: none;" id="hla_b_first_donor_type">{{ donor.hla_b_1.get_type_display }}</div>
+        <div class="form-control" style="display: none;" id="hla_b_second_donor_type">{{ donor.hla_b_2.get_type_display }}</div>
+        <div class="form-control" style="display: none;" id="hla_drb1_first_donor_type">{{ donor.hla_drb1_1.get_type_display }}</div>
+        <div class="form-control" style="display: none;" id="hla_drb1_second_donor_type">{{ donor.hla_drb1_2.get_type_display }}</div>
+        <div class="form-control" style="display: none;" id="hla_drb_first_donor_type">{{ donor.hla_drb_1.get_type_display }}</div>
+        <div class="form-control" style="display: none;" id="hla_drb_second_donor_type">{{ donor.hla_drb_2.get_type_display }}</div>
+        <div class="form-control" style="display: none;" id="hla_dqb1_first_donor_type">{{ donor.hla_dqb1_1.get_type_display }}</div>
+        <div class="form-control" style="display: none;" id="hla_dqb1_second_donor_type">{{ donor.hla_dqb1_2.get_type_display }}</div>
+    </div>
     <div class="col-12" style="margin-top: 40px;">
         <div class="card mb-4">
             <div class="card-header pb-0" style="display: flex; justify-content: space-between;">
@@ -75,7 +104,7 @@
             </div>
             <div class="card-body px-0 pt-0 pb-2">
                 <div class="table-responsive p-0">
-                    <table class="table align-items-center mb-0">
+                    <table class="table align-items-center mb-0" id="myTable">
                         <thead>
                             <tr>
                                 <th
@@ -95,7 +124,14 @@
                                     سن</th>
                                 <th
                                     class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
-                                    امتیاز</th>
+                                    Point Without HLA</th>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    HLA Point</th>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                                    style="color: red !important;">
+                                    Total Point</th>
                                 <th
                                     class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
                                     اکشن</th>
@@ -104,7 +140,7 @@
                         <tbody>
                             {% if recipients %}
                             {% for recipient in recipients %}
-                            <tr>
+                            <tr id="tr">
                                 <td class="align-middle text-center">
                                     <span class="text-secondary text-xs font-weight-bold">{{ recipient.id }}</span>
                                 </td>
@@ -123,6 +159,34 @@
                                 <td class="align-middle text-center">
                                     <span class="text-secondary text-xs font-weight-bold">{{ recipient.point }}</span>
                                 </td>
+                                <td class="align-middle text-center">
+                                    <span class="text-secondary text-xs font-weight-bold"></span>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <span class="text-secondary text-xs font-weight-bold"></span>
+                                </td>
+                                <div id="recipient_{{ recipient.id }}" style="display: none; visibility: hidden;">
+                                    <div id="hla_a_first_{{ recipient.id }}">{{ recipient.hla_a_1 }}</div>
+                                    <div id="hla_a_second_{{ recipient.id }}">{{ recipient.hla_a_2 }}</div>
+                                    <div id="hla_b_first_{{ recipient.id }}">{{ recipient.hla_b_1 }}</div>
+                                    <div id="hla_b_second_{{ recipient.id }}">{{ recipient.hla_b_2 }}</div>
+                                    <div id="hla_drb1_first_{{ recipient.id }}">{{ recipient.hla_drb1_1 }}</div>
+                                    <div id="hla_drb1_second_{{ recipient.id }}">{{ recipient.hla_drb1_2 }}</div>
+                                    <div id="hla_drb_first_{{ recipient.id }}">{{ recipient.hla_drb_1 }}</div>
+                                    <div id="hla_drb_second_{{ recipient.id }}">{{ recipient.hla_drb_2 }}</div>
+                                    <div id="hla_dqb1_first_{{ recipient.id }}">{{ recipient.hla_dqb1_1 }}</div>
+                                    <div id="hla_dqb1_second_{{ recipient.id }}">{{ recipient.hla_dqb1_2 }}</div>
+                                    <div id="hla_a_first_{{ recipient.id }}_type">{{ recipient.hla_a_1.get_type_display }}</div>
+                                    <div id="hla_a_second_{{ recipient.id }}_type">{{ recipient.hla_a_2.get_type_display }}</div>
+                                    <div id="hla_b_first_{{ recipient.id }}_type">{{ recipient.hla_b_1.get_type_display }}</div>
+                                    <div id="hla_b_second_{{ recipient.id }}_type">{{ recipient.hla_b_2.get_type_display }}</div>
+                                    <div id="hla_drb1_first_{{ recipient.id }}_type">{{ recipient.hla_drb1_1.get_type_display }}</div>
+                                    <div id="hla_drb1_second_{{ recipient.id }}_type">{{ recipient.hla_drb1_2.get_type_display }}</div>
+                                    <div id="hla_drb_first_{{ recipient.id }}_type">{{ recipient.hla_drb_1.get_type_display }}</div>
+                                    <div id="hla_drb_second_{{ recipient.id }}_type">{{ recipient.hla_drb_2.get_type_display }}</div>
+                                    <div id="hla_dqb1_first_{{ recipient.id }}_type">{{ recipient.hla_dqb1_1.get_type_display }}</div>
+                                    <div id="hla_dqb1_second_{{ recipient.id }}_type">{{ recipient.hla_dqb1_2.get_type_display }}</div>
+                                </div>
                                 <td class="align-middle text-center">
                                     <a href="{% url 'recipient_detail' recipient.id %}" title="جزئیات" style="padding: 0 4px;">
                                         <span class="text-secondary text-xs font-weight-bold">
@@ -151,7 +215,7 @@
                             {% endfor %}
                             {% else %}
                             <tr>
-                                <td colspan="6" class="align-middle text-center">
+                                <td colspan="7" class="align-middle text-center">
                                     <span class="text-secondary text-xs font-weight-bold">موردی یافت نشد</span>
                                 </td>
                             </tr>
@@ -163,4 +227,6 @@
         </div>
     </div>
 </div>
+
+<script src="{% static 'js/hla.js' %}"></script>
 {% endblock %}

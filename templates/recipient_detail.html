@@ -49,6 +49,24 @@
             <input class="form-control" value="{{ recipient.blood_group }}" disabled>
         </div>
     </div>
+    <div class="hla-grid">
+        <div class="form-control c1">HLA A</div>
+        <div class="form-control c2">HLA B</div>
+        <div class="form-control c3">HLA DRB1</div>
+        <div class="form-control c4">HLA DRB</div>
+        <div class="form-control c5">HLA DQB1</div>
+
+        <div class="form-control">{{ recipient.hla_a_1 }}</div>
+        <div class="form-control">{{ recipient.hla_a_2 }}</div>
+        <div class="form-control">{{ recipient.hla_b_1 }}</div>
+        <div class="form-control">{{ recipient.hla_b_2 }}</div>
+        <div class="form-control">{{ recipient.hla_drb1_1 }}</div>
+        <div class="form-control">{{ recipient.hla_drb1_2 }}</div>
+        <div class="form-control">{{ recipient.hla_drb_1 }}</div>
+        <div class="form-control">{{ recipient.hla_drb_2 }}</div>
+        <div class="form-control">{{ recipient.hla_dqb1_1 }}</div>
+        <div class="form-control">{{ recipient.hla_dqb1_2 }}</div>
+    </div>
     <div class="second-grid">
         <div class="points"><h5 style="color: #f97316;">Scoring matrix</h5></div>
         <div class="form-control">matrix</div>
@@ -57,10 +75,10 @@
         <div class="form-control">matrix</div>
         <div class="form-control">value</div>
         <div class="form-control">point</div>
-        <div class="form-control">Waiting list</div>
+        <div class="form-control">Waiting list date</div>
         <div class="form-control">{{ recipient.waiting_list }}</div>
-        <div class="form-control">{{ recipient.waiting_list }}</div>
-        <div class="form-control">Dialysis duration</div>
+        <div class="form-control">{{ waiting_list_p }}</div>
+        <div class="form-control">Dialysis duration date</div>
         <div class="form-control">{{ recipient.dialysis_duration }}</div>
         <div class="form-control">{{ dialysis_duration_p }}</div>
         <div class="form-control">Medical urgency</div>
@@ -82,8 +100,8 @@
         <div class="form-control">{{ recipient.get_desensitized_display }}</div>
         <div class="form-control">{{ desensitized_p }}</div>
         <div class="form-control">HLA matching and mismatch score</div>
-        <div class="form-control">{{ recipient.hla_matching_and_mismatch_score }}</div>
-        <div class="form-control">{{ recipient.hla_matching_and_mismatch_score }}</div>
+        <div class="form-control">---</div>
+        <div class="form-control">---</div>
         <div class="form-control" style="color: #f97316; font-size: large;">Point</div>
         <div class="form-control point" style="color: #f97316; font-size: large;">{{ recipient.point }}</div>
     </div>
