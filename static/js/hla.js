@@ -143,7 +143,7 @@ trs.forEach(tr => {
     const hla_drb_point = scoreHlaDrb(recipient.hla_drb_first, recipient.hla_drb_second, donor.hla_drb_first, donor.hla_drb_second);
     const hla_dqb1_point = calculateLocusScore(recipient.hla_dqb1_first, recipient.hla_dqb1_first_type, recipient.hla_dqb1_second, recipient.hla_dqb1_second_type, hal_dqb1_list, "hla_dqb1");
 
-    const total_point = hla_a_point + hla_b_point + hla_drb1_point + hla_dqb1_point + hla_drb_point;
+    const total_point = ((hla_a_point + hla_b_point + hla_drb1_point + hla_dqb1_point + hla_drb_point) / 5).toFixed(2);
 
     // نمایش در جدول HTML — ستون ششم با تگ <span>
     const withouthla = parseFloat(tr.querySelector('td:nth-child(6) span').innerText);
