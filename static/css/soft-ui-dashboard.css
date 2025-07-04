@@ -27987,6 +27987,27 @@ pre[class*=language-] {
   grid-template-columns: repeat(10, 1fr);
   margin-top: 40px;
   gap: 20px;
+  text-align: center;
+}
+
+.close-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  padding: 10px;
+  right: -18px;
+  top: -18px;
+  border-radius: 40px;
+  outline: none;
+  border: none;
+  background-color: #FF3F33;
+}
+
+.hla-grid-two {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 20px;
 }
 
 .c1 {
@@ -28007,6 +28028,10 @@ pre[class*=language-] {
 
 .c5 {
   grid-column: 9 / span 2;
+}
+
+.c6 {
+  grid-column: 11 / span 2;
 }
 
 .second-grid {
@@ -28044,4 +28069,17 @@ pre[class*=language-] {
   .my-grid {
     grid-template-columns: auto auto auto auto;
   }
+}
+
+.fixed-div {
+  width: auto;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  background-color: #FFFCFB;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
 }

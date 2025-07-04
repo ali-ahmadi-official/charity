@@ -177,3 +177,13 @@ tbody.innerHTML = '';
 
 // اضافه کردن ردیف‌ها مرتب شده به tbody
 rows.forEach(row => tbody.appendChild(row));
+
+function showDiv(id) {
+    hideAllDivs();
+    document.getElementById(id).style.display = 'grid';
+}
+
+function hideAllDivs() {
+    const divs = document.querySelectorAll('.hidden-div');
+    divs.forEach(div => div.style.display = 'none');
+}
