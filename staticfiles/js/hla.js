@@ -155,7 +155,7 @@ trs.forEach(tr => {
 
     const totalCell = tr.querySelector('td:nth-child(8) span');
     if (totalCell) {
-        totalCell.innerText = total_point + withouthla;
+        totalCell.innerText = (parseFloat(total_point) + withouthla).toFixed(2);
     }
 });
 
