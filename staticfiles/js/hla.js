@@ -178,12 +178,15 @@ tbody.innerHTML = '';
 // اضافه کردن ردیف‌ها مرتب شده به tbody
 rows.forEach(row => tbody.appendChild(row));
 
+const black = document.querySelector('.black');
 function showDiv(id) {
     hideAllDivs();
     document.getElementById(id).style.display = 'grid';
+    black.style.display = 'flex';
 }
 
 function hideAllDivs() {
     const divs = document.querySelectorAll('.hidden-div');
     divs.forEach(div => div.style.display = 'none');
+    black.style.display = 'none';
 }
