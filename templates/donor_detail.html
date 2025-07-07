@@ -96,11 +96,19 @@
         <div class="form-control" style="display: none;" id="hla_dqb1_first_donor_type">{{ donor.hla_dqb1_1.get_type_display }}</div>
         <div class="form-control" style="display: none;" id="hla_dqb1_second_donor_type">{{ donor.hla_dqb1_2.get_type_display }}</div>
     </div>
+
+    <div class="col-12" style="margin-top: 40px; margin-bottom: -20px;">
+        <h6>مرتب سازی گیرندگان</h6>
+        <div class="my-form" style="grid-template-columns: repeat(3, 1fr);">
+            <button style="background-color: #fff; border: 1px solid #f97316; border-radius: 0.5rem; color: #f97316; padding: 8px 32px; font-size: 0.75rem; font-weight: 700;" onclick="sortTableByColumn(5)">Sort by Matrix Score</button>
+            <button style="background-color: #fff; border: 1px solid #f97316; border-radius: 0.5rem; color: #f97316; padding: 8px 32px; font-size: 0.75rem; font-weight: 700;" onclick="sortTableByColumn(6)">Sort by HLA Point</button>
+            <button style="background-color: #fff; border: 1px solid #f97316; border-radius: 0.5rem; color: #f97316; padding: 8px 32px; font-size: 0.75rem; font-weight: 700;" onclick="sortTableByColumn(7)">Sort by Total Point</button>
+        </div>
+    </div>
     <div class="col-12" style="margin-top: 40px;">
         <div class="card mb-4">
             <div class="card-header pb-0" style="display: flex; justify-content: space-between;">
                 <h6>لیست گیرندگان مناسب برای اهدا کننده فوق</h6>
-                <p style="font-size: small; color: #f97316;">به ترتیب اولویت</p>
             </div>
             <div class="card-body px-0 pt-0 pb-2">
                 <div class="table-responsive p-0">
@@ -124,7 +132,7 @@
                                     سن</th>
                                 <th
                                     class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
-                                    Point Without HLA</th>
+                                    Matrix Score</th>
                                 <th
                                     class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
                                     HLA Point</th>
@@ -201,6 +209,7 @@
                                     <div class="form-control" id="hla_dqb1_first_{{ recipient.id }}">{{ recipient.hla_dqb1_1 }}</div>
                                     <div class="form-control" id="hla_dqb1_second_{{ recipient.id }}">{{ recipient.hla_dqb1_2 }}</div>
                                     <div class="form-control c6">Recipient</div>
+
                                     <div style="display: none;" id="hla_a_first_{{ recipient.id }}_type">{{ recipient.hla_a_1.get_type_display }}</div>
                                     <div style="display: none;" id="hla_a_second_{{ recipient.id }}_type">{{ recipient.hla_a_2.get_type_display }}</div>
                                     <div style="display: none;" id="hla_b_first_{{ recipient.id }}_type">{{ recipient.hla_b_1.get_type_display }}</div>
@@ -211,6 +220,13 @@
                                     <div style="display: none;" id="hla_drb_second_{{ recipient.id }}_type">{{ recipient.hla_drb_2.get_type_display }}</div>
                                     <div style="display: none;" id="hla_dqb1_first_{{ recipient.id }}_type">{{ recipient.hla_dqb1_1.get_type_display }}</div>
                                     <div style="display: none;" id="hla_dqb1_second_{{ recipient.id }}_type">{{ recipient.hla_dqb1_2.get_type_display }}</div>
+
+                                    <div class="form-control c1" id="hla_a_{{ recipient.id }}_point"></div>
+                                    <div class="form-control c2" id="hla_b_{{ recipient.id }}_point"></div>
+                                    <div class="form-control c3" id="hla_drb1_{{ recipient.id }}_point"></div>
+                                    <div class="form-control c4" id="hla_drb_{{ recipient.id }}_point"></div>
+                                    <div class="form-control c5" id="hla_dqb1_{{ recipient.id }}_point"></div>
+                                    <div class="form-control c6">Point</div>
                                 </div>
                                 <td class="align-middle text-center">
                                     <a href="#" title="See HLA" style="padding: 0 4px;" onclick="showDiv('recipient_{{ recipient.id }}')">

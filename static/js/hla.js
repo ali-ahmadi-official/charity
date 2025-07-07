@@ -143,6 +143,18 @@ trs.forEach(tr => {
     const hla_drb_point = scoreHlaDrb(recipient.hla_drb_first, recipient.hla_drb_second, donor.hla_drb_first, donor.hla_drb_second);
     const hla_dqb1_point = calculateLocusScore(recipient.hla_dqb1_first, recipient.hla_dqb1_first_type, recipient.hla_dqb1_second, recipient.hla_dqb1_second_type, hal_dqb1_list, "hla_dqb1");
 
+    const self_hla_a_point_div = document.getElementById(`hla_a_${recipientId}_point`);
+    const self_hla_b_point_div = document.getElementById(`hla_b_${recipientId}_point`);
+    const self_hla_drb1_point_div = document.getElementById(`hla_drb1_${recipientId}_point`);
+    const self_hla_drb_point_div = document.getElementById(`hla_drb_${recipientId}_point`);
+    const self_hla_dqb1_point_div = document.getElementById(`hla_dqb1_${recipientId}_point`);
+
+    self_hla_a_point_div.innerText = hla_a_point;
+    self_hla_b_point_div.innerText = hla_b_point;
+    self_hla_drb1_point_div.innerText = hla_drb1_point;
+    self_hla_drb_point_div.innerText = hla_drb_point;
+    self_hla_dqb1_point_div.innerText = hla_dqb1_point;
+
     const total_point = ((hla_a_point + hla_b_point + hla_drb1_point + hla_dqb1_point + hla_drb_point) / 5).toFixed(2);
 
     // نمایش در جدول HTML — ستون ششم با تگ <span>
@@ -159,24 +171,30 @@ trs.forEach(tr => {
     }
 });
 
-const table = document.getElementById('myTable');
-const tbody = table.querySelector('tbody');
-// گرفتن تمام ردیف‌ها داخل tbody
-const rows = Array.from(tbody.querySelectorAll('tr'));
+function sortTableByColumn(columnIndex) {
+    const table = document.getElementById('myTable');
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
 
-// مرتب‌سازی ردیف‌ها بر اساس مقدار td هشتم (ایندکس 7)
-rows.sort((a, b) => {
-    // گرفتن مقدار td هشتم و تبدیل به عدد
-    const valA = parseFloat(a.cells[7].textContent) || 0;
-    const valB = parseFloat(b.cells[7].textContent) || 0;
-    return valB - valA; // از بیشتر به کمتر
-});
+    rows.sort((a, b) => {
+        const valA = a.cells[columnIndex].textContent.trim();
+        const valB = b.cells[columnIndex].textContent.trim();
 
-// پاک کردن tbody
-tbody.innerHTML = '';
+        // اگر مقدار عددی بود، به عدد تبدیل کن و مقایسه عددی انجام بده
+        const numA = parseFloat(valA);
+        const numB = parseFloat(valB);
+        if (!isNaN(numA) && !isNaN(numB)) {
+            return numB - numA; // از بیشتر به کمتر
+        }
 
-// اضافه کردن ردیف‌ها مرتب شده به tbody
-rows.forEach(row => tbody.appendChild(row));
+        // در غیر این صورت، مقایسه رشته‌ای انجام بده
+        return valA.localeCompare(valB, 'fa'); // مرتب‌سازی فارسی
+    });
+
+    // پاک کردن tbody و اضافه‌کردن ردیف‌ها
+    tbody.innerHTML = '';
+    rows.forEach(row => tbody.appendChild(row));
+}
 
 const black = document.querySelector('.black');
 function showDiv(id) {
