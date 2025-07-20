@@ -1,0 +1,295 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+لیست مراجعه کنندگان تستی
+{% endblock %}
+
+{% block page1 %}
+بخش تست
+{% endblock %}
+
+{% block page2 %}
+لیست مراجعه کنندگان تستی
+{% endblock %}
+
+{% block contain %}
+<div class="row">
+    <div class="col-12">
+        <h5>انتخاب مراجعه کنندگان تستی</h5>
+        <form method="get" class="my-time">
+            <select name="donor_test_selected" class="form-control">
+                <option value="">انتخاب اهدا کننده تستی</option>
+                {% for donor_test in donor_tests %}
+                    <option value="{{ donor_test.id }}" {% if request.GET.donor_test_selected == donor_test.id|stringformat:"s" %} selected {% endif %}>اهدا کننده تستی با شناسه {{ donor_test.id }}</option>
+                {% endfor %}
+            </select>
+            <select name="recipient_test_selected" class="form-control">
+                <option value="">انتخاب گیرنده تستی</option>
+                {% for recipient_test in recipient_tests %}
+                    <option value="{{ recipient_test.id }}" {% if request.GET.recipient_test_selected == recipient_test.id|stringformat:"s" %} selected {% endif %}>گیرنده تستی با شناسه {{ recipient_test.id }}</option>
+                {% endfor %}
+            </select>
+            <button class="my-btn-time" style="background-color: #fff; border: 1px solid #f97316; border-radius: 0.5rem; color: #f97316; padding: 8px 32px; font-size: 0.75rem; font-weight: 700;">تست و بررسی</button>
+        </form>
+    </div>
+    <div class="col-12">
+        {% if donor and recipient %}
+        <span style="display: none;" id="recipient_id">{{ recipient.id }}</span>
+        <div class="hla-grid" id="recipient_{{ recipient.id }}" style="padding-bottom: 60px;">
+            <div style="color: #f97316;" class="form-control c1">HLA A</div>
+            <div style="color: #f97316;" class="form-control c2">HLA B</div>
+            <div style="color: #f97316;" class="form-control c3">HLA DRB1</div>
+            <div style="color: #f97316;" class="form-control c4">HLA DRB</div>
+            <div style="color: #f97316;" class="form-control c5">HLA DQB1</div>
+            <div style="color: #f97316;" class="form-control c6">Person</div>
+
+            <div class="form-control" id="hla_a_first_{{ recipient.id }}">{{ recipient.hla_a_1 }}</div>
+            <div class="form-control" id="hla_a_second_{{ recipient.id }}">{{ recipient.hla_a_2 }}</div>
+            <div class="form-control" id="hla_b_first_{{ recipient.id }}">{{ recipient.hla_b_1 }}</div>
+            <div class="form-control" id="hla_b_second_{{ recipient.id }}">{{ recipient.hla_b_2 }}</div>
+            <div class="form-control" id="hla_drb1_first_{{ recipient.id }}">{{ recipient.hla_drb1_1 }}</div>
+            <div class="form-control" id="hla_drb1_second_{{ recipient.id }}">{{ recipient.hla_drb1_2 }}</div>
+            <div class="form-control" id="hla_drb_first_{{ recipient.id }}">{{ recipient.hla_drb_1 }}</div>
+            <div class="form-control" id="hla_drb_second_{{ recipient.id }}">{{ recipient.hla_drb_2 }}</div>
+            <div class="form-control" id="hla_dqb1_first_{{ recipient.id }}">{{ recipient.hla_dqb1_1 }}</div>
+            <div class="form-control" id="hla_dqb1_second_{{ recipient.id }}">{{ recipient.hla_dqb1_2 }}</div>
+            <div class="form-control c6">Recipient</div>
+
+            <div style="display: none;" id="hla_a_first_{{ recipient.id }}_type">{{ recipient.hla_a_1.get_type_display }}</div>
+            <div style="display: none;" id="hla_a_second_{{ recipient.id }}_type">{{ recipient.hla_a_2.get_type_display }}</div>
+            <div style="display: none;" id="hla_b_first_{{ recipient.id }}_type">{{ recipient.hla_b_1.get_type_display }}</div>
+            <div style="display: none;" id="hla_b_second_{{ recipient.id }}_type">{{ recipient.hla_b_2.get_type_display }}</div>
+            <div style="display: none;" id="hla_drb1_first_{{ recipient.id }}_type">{{ recipient.hla_drb1_1.get_type_display }}</div>
+            <div style="display: none;" id="hla_drb1_second_{{ recipient.id }}_type">{{ recipient.hla_drb1_2.get_type_display }}</div>
+            <div style="display: none;" id="hla_drb_first_{{ recipient.id }}_type">{{ recipient.hla_drb_1.get_type_display }}</div>
+            <div style="display: none;" id="hla_drb_second_{{ recipient.id }}_type">{{ recipient.hla_drb_2.get_type_display }}</div>
+            <div style="display: none;" id="hla_dqb1_first_{{ recipient.id }}_type">{{ recipient.hla_dqb1_1.get_type_display }}</div>
+            <div style="display: none;" id="hla_dqb1_second_{{ recipient.id }}_type">{{ recipient.hla_dqb1_2.get_type_display }}</div>
+
+            <div class="form-control" id="hla_a_first_donor">{{ donor.hla_a_1 }}</div>
+            <div class="form-control" id="hla_a_second_donor">{{ donor.hla_a_2 }}</div>
+            <div class="form-control" id="hla_b_first_donor">{{ donor.hla_b_1 }}</div>
+            <div class="form-control" id="hla_b_second_donor">{{ donor.hla_b_2 }}</div>
+            <div class="form-control" id="hla_drb1_first_donor">{{ donor.hla_drb1_1 }}</div>
+            <div class="form-control" id="hla_drb1_second_donor">{{ donor.hla_drb1_2 }}</div>
+            <div class="form-control" id="hla_drb_first_donor">{{ donor.hla_drb_1 }}</div>
+            <div class="form-control" id="hla_drb_second_donor">{{ donor.hla_drb_2 }}</div>
+            <div class="form-control" id="hla_dqb1_first_donor">{{ donor.hla_dqb1_1 }}</div>
+            <div class="form-control" id="hla_dqb1_second_donor">{{ donor.hla_dqb1_2 }}</div>
+            <div class="form-control c6">Donor</div>
+
+            <div class="form-control" style="display: none;" id="hla_a_first_donor_type">{{ donor.hla_a_1.get_type_display }}</div>
+            <div class="form-control" style="display: none;" id="hla_a_second_donor_type">{{ donor.hla_a_2.get_type_display }}</div>
+            <div class="form-control" style="display: none;" id="hla_b_first_donor_type">{{ donor.hla_b_1.get_type_display }}</div>
+            <div class="form-control" style="display: none;" id="hla_b_second_donor_type">{{ donor.hla_b_2.get_type_display }}</div>
+            <div class="form-control" style="display: none;" id="hla_drb1_first_donor_type">{{ donor.hla_drb1_1.get_type_display }}</div>
+            <div class="form-control" style="display: none;" id="hla_drb1_second_donor_type">{{ donor.hla_drb1_2.get_type_display }}</div>
+            <div class="form-control" style="display: none;" id="hla_drb_first_donor_type">{{ donor.hla_drb_1.get_type_display }}</div>
+            <div class="form-control" style="display: none;" id="hla_drb_second_donor_type">{{ donor.hla_drb_2.get_type_display }}</div>
+            <div class="form-control" style="display: none;" id="hla_dqb1_first_donor_type">{{ donor.hla_dqb1_1.get_type_display }}</div>
+            <div class="form-control" style="display: none;" id="hla_dqb1_second_donor_type">{{ donor.hla_dqb1_2.get_type_display }}</div>
+
+            <div class="form-control c1" id="hla_a_{{ recipient.id }}_point"></div>
+            <div class="form-control c2" id="hla_b_{{ recipient.id }}_point"></div>
+            <div class="form-control c3" id="hla_drb1_{{ recipient.id }}_point"></div>
+            <div class="form-control c4" id="hla_drb_{{ recipient.id }}_point"></div>
+            <div class="form-control c5" id="hla_dqb1_{{ recipient.id }}_point"></div>
+            <div class="form-control c6">Point</div>
+        </div>
+        {% endif %}
+    </div>
+    <div class="col-12">
+        <div class="card mb-4" style="background-color: #FFDCDC;">
+            <div class="card-header pb-0" style="display: flex; justify-content: space-between; background-color: #FFDCDC;">
+                <h6>لیست اهدا کنندگان تستی</h6>
+                <button
+                    style="background-color: #fff; border: 1px solid #f97316; border-radius: 0.5rem; color: #f97316; padding: 8px 32px; font-size: 0.75rem; font-weight: 700;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor"
+                        class="bi bi-plus" viewBox="0 0 16 16">
+                        <path
+                            d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4" />
+                    </svg>
+                    <a href="{% url 'donor_test_create' %}" style="color: #f97316;">افزودن اهدا کننده تستی</a>
+                </button>
+            </div>
+            <div class="card-body px-0 pt-0 pb-2">
+                <div class="table-responsive p-0">
+                    <table class="table align-items-center mb-0">
+                        <thead>
+                            <tr>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    شناسه</th>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    HLA A</th>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    HLA B</th>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    HLA DRB1</th>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    HLA DRB</th>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    HLA DQB1</th>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    اکشن</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if donor_tests %}
+                            {% for donor_test in donor_tests %}
+                            <tr>
+                                <td class="align-middle text-center">
+                                    <span class="text-secondary text-xs font-weight-bold">{{ donor_test.id }}</span>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <span class="text-secondary text-xs font-weight-bold">{{ donor_test.hla_a_1 }}, {{ donor_test.hla_a_2 }}</span>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <span class="text-secondary text-xs font-weight-bold">{{ donor_test.hla_b_1 }}, {{ donor_test.hla_b_2 }}</span>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <span class="text-secondary text-xs font-weight-bold">{{ donor_test.hla_drb1_1 }}, {{ donor_test.hla_drb1_2 }}</span>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <span class="text-secondary text-xs font-weight-bold">{{ donor_test.hla_drb_1 }}, {{ donor_test.hla_drb_2 }}</span>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <span class="text-secondary text-xs font-weight-bold">{{ donor_test.hla_dqb1_1 }}, {{ donor_test.hla_dqb1_2 }}</span>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <a href="{% url 'donor_test_update' donor_test.id %}" title="ویرایش" style="padding: 0 4px;">
+                                        <span class="text-secondary text-xs font-weight-bold">
+                                            <svg style="color: #16C47F; cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
+                                                <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
+                                            </svg>
+                                        </span>
+                                    </a>
+                                    <a href="{% url 'donor_test_delete' donor_test.id %}" title="حذف" style="padding: 0 4px;">
+                                        <span class="text-secondary text-xs font-weight-bold">
+                                            <svg style="color: #C5172E; cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+                                                <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
+                                            </svg>
+                                        </span>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="7" class="align-middle text-center">
+                                    <span class="text-secondary text-xs font-weight-bold">موردی یافت نشد</span>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="card mb-4" style="background-color: #FFF2EB;">
+            <div class="card-header pb-0" style="display: flex; justify-content: space-between; background-color: #FFF2EB;">
+                <h6>لیست گیرندگان تستی</h6>
+                <button
+                    style="background-color: #fff; border: 1px solid #f97316; border-radius: 0.5rem; color: #f97316; padding: 8px 32px; font-size: 0.75rem; font-weight: 700;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor"
+                        class="bi bi-plus" viewBox="0 0 16 16">
+                        <path
+                            d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4" />
+                    </svg>
+                    <a href="{% url 'recipient_test_create' %}" style="color: #f97316;">افزودن گیرنده تستی</a>
+                </button>
+            </div>
+            <div class="card-body px-0 pt-0 pb-2">
+                <div class="table-responsive p-0">
+                    <table class="table align-items-center mb-0">
+                        <thead>
+                            <tr>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    شناسه</th>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    HLA A</th>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    HLA B</th>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    HLA DRB1</th>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    HLA DRB</th>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    HLA DQB1</th>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    اکشن</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if recipient_tests %}
+                            {% for recipient_test in recipient_tests %}
+                            <tr>
+                                <td class="align-middle text-center">
+                                    <span class="text-secondary text-xs font-weight-bold">{{ recipient_test.id }}</span>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <span class="text-secondary text-xs font-weight-bold">{{ recipient_test.hla_a_1 }}, {{ recipient_test.hla_a_2 }}</span>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <span class="text-secondary text-xs font-weight-bold">{{ recipient_test.hla_b_1 }}, {{ recipient_test.hla_b_2 }}</span>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <span class="text-secondary text-xs font-weight-bold">{{ recipient_test.hla_drb1_1 }}, {{ recipient_test.hla_drb1_2 }}</span>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <span class="text-secondary text-xs font-weight-bold">{{ recipient_test.hla_drb_1 }}, {{ recipient_test.hla_drb_2 }}</span>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <span class="text-secondary text-xs font-weight-bold">{{ recipient_test.hla_dqb1_1 }}, {{ recipient_test.hla_dqb1_2 }}</span>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <a href="{% url 'recipient_test_update' recipient_test.id %}" title="ویرایش" style="padding: 0 4px;">
+                                        <span class="text-secondary text-xs font-weight-bold">
+                                            <svg style="color: #16C47F; cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
+                                                <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
+                                            </svg>
+                                        </span>
+                                    </a>
+                                    <a href="{% url 'recipient_test_delete' recipient_test.id %}" title="حذف" style="padding: 0 4px;">
+                                        <span class="text-secondary text-xs font-weight-bold">
+                                            <svg style="color: #C5172E; cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+                                                <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
+                                            </svg>
+                                        </span>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% else %}
+                            <tr>
+                                <td colspan="7" class="align-middle text-center">
+                                    <span class="text-secondary text-xs font-weight-bold">موردی یافت نشد</span>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/hla-test.js' %}"></script>
+{% endblock %}

@@ -100,9 +100,9 @@
     <div class="col-12" style="margin-top: 40px; margin-bottom: -20px;">
         <h6>مرتب سازی گیرندگان</h6>
         <div class="my-form" style="grid-template-columns: repeat(3, 1fr);">
-            <button style="background-color: #fff; border: 1px solid #f97316; border-radius: 0.5rem; color: #f97316; padding: 8px 32px; font-size: 0.75rem; font-weight: 700;" onclick="sortTableByColumn(5)">Sort by Matrix Score</button>
-            <button style="background-color: #fff; border: 1px solid #f97316; border-radius: 0.5rem; color: #f97316; padding: 8px 32px; font-size: 0.75rem; font-weight: 700;" onclick="sortTableByColumn(6)">Sort by HLA Point</button>
-            <button style="background-color: #fff; border: 1px solid #f97316; border-radius: 0.5rem; color: #f97316; padding: 8px 32px; font-size: 0.75rem; font-weight: 700;" onclick="sortTableByColumn(7)">Sort by Total Point</button>
+            <button id="first_sort" class="active-sort" onclick="sortTableByColumn(5)">Sort by Matrix Score</button>
+            <button id="second_sort" onclick="sortTableByColumn(6)">Sort by HLA Point</button>
+            <button id="third_sort" onclick="sortTableByColumn(7)">Sort by Total Point</button>
         </div>
     </div>
     <div class="col-12" style="margin-top: 40px;">
@@ -186,18 +186,6 @@
                                     <div style="color: #f97316;" class="form-control c5">HLA DQB1</div>
                                     <div style="color: #f97316;" class="form-control c6">Person</div>
 
-                                    <div class="form-control">{{ donor.hla_a_1 }}</div>
-                                    <div class="form-control">{{ donor.hla_a_2 }}</div>
-                                    <div class="form-control">{{ donor.hla_b_1 }}</div>
-                                    <div class="form-control">{{ donor.hla_b_2 }}</div>
-                                    <div class="form-control">{{ donor.hla_drb1_1 }}</div>
-                                    <div class="form-control">{{ donor.hla_drb1_2 }}</div>
-                                    <div class="form-control">{{ donor.hla_drb_1 }}</div>
-                                    <div class="form-control">{{ donor.hla_drb_2 }}</div>
-                                    <div class="form-control">{{ donor.hla_dqb1_1 }}</div>
-                                    <div class="form-control">{{ donor.hla_dqb1_2 }}</div>
-                                    <div class="form-control c6">Donor</div>
-
                                     <div class="form-control" id="hla_a_first_{{ recipient.id }}">{{ recipient.hla_a_1 }}</div>
                                     <div class="form-control" id="hla_a_second_{{ recipient.id }}">{{ recipient.hla_a_2 }}</div>
                                     <div class="form-control" id="hla_b_first_{{ recipient.id }}">{{ recipient.hla_b_1 }}</div>
@@ -221,6 +209,18 @@
                                     <div style="display: none;" id="hla_dqb1_first_{{ recipient.id }}_type">{{ recipient.hla_dqb1_1.get_type_display }}</div>
                                     <div style="display: none;" id="hla_dqb1_second_{{ recipient.id }}_type">{{ recipient.hla_dqb1_2.get_type_display }}</div>
 
+                                    <div class="form-control">{{ donor.hla_a_1 }}</div>
+                                    <div class="form-control">{{ donor.hla_a_2 }}</div>
+                                    <div class="form-control">{{ donor.hla_b_1 }}</div>
+                                    <div class="form-control">{{ donor.hla_b_2 }}</div>
+                                    <div class="form-control">{{ donor.hla_drb1_1 }}</div>
+                                    <div class="form-control">{{ donor.hla_drb1_2 }}</div>
+                                    <div class="form-control">{{ donor.hla_drb_1 }}</div>
+                                    <div class="form-control">{{ donor.hla_drb_2 }}</div>
+                                    <div class="form-control">{{ donor.hla_dqb1_1 }}</div>
+                                    <div class="form-control">{{ donor.hla_dqb1_2 }}</div>
+                                    <div class="form-control c6">Donor</div>
+
                                     <div class="form-control c1" id="hla_a_{{ recipient.id }}_point"></div>
                                     <div class="form-control c2" id="hla_b_{{ recipient.id }}_point"></div>
                                     <div class="form-control c3" id="hla_drb1_{{ recipient.id }}_point"></div>
@@ -229,9 +229,9 @@
                                     <div class="form-control c6">Point</div>
                                 </div>
                                 <td class="align-middle text-center">
-                                    <a href="#" title="See HLA" style="padding: 0 4px;" onclick="showDiv('recipient_{{ recipient.id }}')">
+                                    <a title="See HLA" style="padding: 0 4px;" onclick="showDiv('recipient_{{ recipient.id }}')">
                                         <span class="text-secondary text-xs font-weight-bold">
-                                            <svg style="color: #163cf9;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                                            <svg style="color: #163cf9; cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
                                                 <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
                                             </svg>
                                         </span>
@@ -272,6 +272,46 @@
                     </table>
                 </div>
             </div>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="page">
+            {% if recipients.has_previous %}
+            <a href="?page={{ recipients.previous_page_number }}">
+                <div class="ago">
+                    <p>قبلی</p>
+                </div>
+            </a>
+            {% if recipients.number > 3 %}
+            <a href="?page=1" class="number">1</a>
+                {% if recipients.number > 4 %}
+                <span class="number">...</span>
+                {% endif %}
+            {% endif %}
+            {% endif %}
+            
+            {% for num in recipients.paginator.page_range %}
+            {% if recipients.number == num %}
+            <a href="?page={{ num }}" class="number">{{ num }}</a>
+            {% elif num > recipients.number|add:'-3' and num < recipients.number|add:'3' %} 
+            <a href="?page={{ num }}" class="number">{{ num }}</a>
+            {% endif %}
+            {% endfor %}
+            
+            {% if recipients.has_next %}
+            {% if recipients.number < recipients.paginator.num_pages|add:'-3' %}
+            <span class="number">...</span>
+            <a href="?page={{ recipients.paginator.num_pages }}" class="number">{{ recipients.paginator.num_pages }}</a>
+            {% elif recipients.number < recipients.paginator.num_pages|add:'-2' %} 
+            <a href="?page={{ recipients.paginator.num_pages }}" class="number">{{ recipients.paginator.num_pages }}</a>
+            {% endif %}
+            
+            <a href="?page={{ recipients.next_page_number }}">
+                <div class="next">
+                    <p>بعدی</p>
+                </div>
+            </a>
+            {% endif %}
         </div>
     </div>
 </div>

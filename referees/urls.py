@@ -10,6 +10,7 @@ from .views import (
     HlaDRB1Createview, HlaDRB1UpdateView, HlaDRB1DeleteView,
     HlaDRBCreateview, HlaDRBUpdateView, HlaDRBDeleteView,
     HlaDQB1Createview, HlaDQB1UpdateView, HlaDQB1DeleteView,
+    referees_test_lists, DonorTestCreateView, RecipientTestCreateView, DonorTestUpdateView, RecipientTestUpdateView, DonorTestDeleteView, RecipientTestDeleteView,
     auto_add_hla,
 )
 
@@ -51,6 +52,14 @@ urlpatterns = [
     path('hla-list/hla-dqb1/new/', HlaDQB1Createview.as_view(), name='hla_dqb1_create'),
     path('hla-list/hla-dqb1/<int:pk>/edit/', HlaDQB1UpdateView.as_view(), name='hla_dqb1_update'),
     path('hla-list/hla-dqb1/<int:pk>/delete/', HlaDQB1DeleteView.as_view(), name='hla_dqb1_delete'),
+
+    path('hla-test/', referees_test_lists, name='referees_test_lists'),
+    path('hla-test/donor/new/', DonorTestCreateView.as_view(), name='donor_test_create'),
+    path('hla-test/donor/<int:pk>/edit/', DonorTestUpdateView.as_view(), name='donor_test_update'),
+    path('hla-test/donor/<int:pk>/delete/', DonorTestDeleteView.as_view(), name='donor_test_delete'),
+    path('hla-test/recipient/new/', RecipientTestCreateView.as_view(), name='recipient_test_create'),
+    path('hla-test/recipient/<int:pk>/edit/', RecipientTestUpdateView.as_view(), name='recipient_test_update'),
+    path('hla-test/recipient/<int:pk>/delete/', RecipientTestDeleteView.as_view(), name='recipient_test_delete'),
 
     path('auto-add-hla/', auto_add_hla, name='auto_add_hla'),
 ]

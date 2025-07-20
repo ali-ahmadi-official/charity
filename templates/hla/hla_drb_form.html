@@ -29,7 +29,7 @@ HLA DRB
             <div>
                 <label>{{ form.value.label }}</label>
                 <div class="mb-3">
-                    <input type="text" name="value" class="form-control" value="{{ form.value.value|default:'' }}" placeholder="for example DRB*01">
+                    <input type="text" name="value" class="form-control" value="{{ form.value.value|default:'' }}" placeholder="for example DRB3">
                 </div>
                 {% if form.value.errors %}
                 {% for error in form.value.errors %}

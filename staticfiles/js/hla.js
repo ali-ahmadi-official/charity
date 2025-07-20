@@ -31,26 +31,41 @@ function calculateLocusScore(r1, r1_type, r2, r2_type, donorList, locus) {
 function scoreHlaDrb(rec1, rec2, donor1, donor2) {
     let score = 0;
 
-    const isNone = val => !val || val.trim().toLowerCase() === "None";
+    const isNone = val => !val || val.trim().toLowerCase() === "none";
 
     const donorEmpty1 = isNone(donor1);
     const donorEmpty2 = isNone(donor2);
 
-    // هر donor خالی = ۵ امتیاز
-    if (donorEmpty1) score += 5;
-    if (donorEmpty2) score += 5;
+    if (donorEmpty1 && donorEmpty2) {
+        score += 10;
+    } else if (donorEmpty1 || donorEmpty2) {
+        const donorNonEmpty = donorEmpty1 ? donor2 : donor1;
+        const matches = [rec1, rec2].filter(r => r === donorNonEmpty).length;
 
-    // اگر هر دو پر بودن → بررسی تطابق
-    if (!donorEmpty1 && !donorEmpty2) {
-        const matches = [rec1, rec2].filter(r => r === donor1 || r === donor2).length;
-        if (matches === 2) return 10;
-        if (matches === 1) return 5;
-        return 0;
+        if (matches >= 1) {
+            score += 10;
+        } else {
+            score += 5;
+        }
+    } else {
+        if (rec1 === donor1) {
+            if (rec2 === donor2) {
+                score += 10;
+            } else {
+                score += 5;
+            }
+        } else if (rec1 === donor2) {
+            if (rec2 === donor1) {
+                score += 10;
+            } else {
+                score += 5;
+            }
+        } else {
+            if (rec2 === donor1 || rec2 === donor2) {
+                score += 5;
+            }
+        }
     }
-
-    // اگه فقط یکی خالی و یکی match داریم → ۱۰ امتیاز
-    const matches = [rec1, rec2].filter(r => r === donor1 || r === donor2).length;
-    if ((donorEmpty1 || donorEmpty2) && matches === 1) return 10;
 
     return score;
 }
@@ -180,18 +195,15 @@ function sortTableByColumn(columnIndex) {
         const valA = a.cells[columnIndex].textContent.trim();
         const valB = b.cells[columnIndex].textContent.trim();
 
-        // اگر مقدار عددی بود، به عدد تبدیل کن و مقایسه عددی انجام بده
         const numA = parseFloat(valA);
         const numB = parseFloat(valB);
         if (!isNaN(numA) && !isNaN(numB)) {
             return numB - numA; // از بیشتر به کمتر
         }
 
-        // در غیر این صورت، مقایسه رشته‌ای انجام بده
         return valA.localeCompare(valB, 'fa'); // مرتب‌سازی فارسی
     });
 
-    // پاک کردن tbody و اضافه‌کردن ردیف‌ها
     tbody.innerHTML = '';
     rows.forEach(row => tbody.appendChild(row));
 }
@@ -208,3 +220,25 @@ function hideAllDivs() {
     divs.forEach(div => div.style.display = 'none');
     black.style.display = 'none';
 }
+
+const first_sort = document.getElementById('first_sort');
+const second_sort = document.getElementById('second_sort');
+const third_sort = document.getElementById('third_sort');
+
+first_sort.addEventListener('click', () => {
+    first_sort.classList.add('active-sort');
+    second_sort.classList.remove('active-sort');
+    third_sort.classList.remove('active-sort');
+});
+
+second_sort.addEventListener('click', () => {
+    second_sort.classList.add('active-sort');
+    third_sort.classList.remove('active-sort');
+    first_sort.classList.remove('active-sort');
+});
+
+third_sort.addEventListener('click', () => {
+    third_sort.classList.add('active-sort');
+    first_sort.classList.remove('active-sort');
+    second_sort.classList.remove('active-sort');
+});

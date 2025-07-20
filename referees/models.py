@@ -152,3 +152,35 @@ class Recipient(models.Model):
     
     def __str__(self):
         return f'گیرنده {self.first_name} {self.last_name}'
+
+class DonorTest(models.Model):
+    hla_a_1 = models.ForeignKey(HlaA, on_delete=models.DO_NOTHING, verbose_name='HLA A (allele 1)', related_name='hla_a_1_donor_test')
+    hla_a_2 = models.ForeignKey(HlaA, on_delete=models.DO_NOTHING, verbose_name='HLA A (allele 2)', related_name='hla_a_2_donor_test')
+    hla_b_1 = models.ForeignKey(HlaB, on_delete=models.DO_NOTHING, verbose_name='HLA B (allele 1)', related_name='hla_b_1_donor_test')
+    hla_b_2 = models.ForeignKey(HlaB, on_delete=models.DO_NOTHING, verbose_name='HLA B (allele 2)', related_name='hla_b_2_donor_test')
+    hla_drb1_1 = models.ForeignKey(HlaDRB1, on_delete=models.DO_NOTHING, verbose_name='HLA DRB1 (allele 1)', related_name='hla_drb1_1_donor_test')
+    hla_drb1_2 = models.ForeignKey(HlaDRB1, on_delete=models.DO_NOTHING, verbose_name='HLA DRB1 (allele 2)', related_name='hla_drb1_2_donor_test')
+    hla_drb_1 = models.ForeignKey(HlaDRB, on_delete=models.DO_NOTHING, verbose_name='HLA DRB (allele 1)', null=True, blank=True, related_name='hla_drb_1_donor_test')
+    hla_drb_2 = models.ForeignKey(HlaDRB, on_delete=models.DO_NOTHING, verbose_name='HLA DRB (allele 2)', null=True, blank=True, related_name='hla_drb_2_donor_test')
+    hla_dqb1_1 = models.ForeignKey(HlaDQB1, on_delete=models.DO_NOTHING, verbose_name='HLA DQB1 (allele 1)', related_name='hla_dqb1_1_donor_test')
+    hla_dqb1_2 = models.ForeignKey(HlaDQB1, on_delete=models.DO_NOTHING, verbose_name='HLA DQB1 (allele 2)', related_name='hla_dqb1_2_donor_test')
+
+    class Meta:
+        verbose_name = 'اهدا کننده تستی'
+        verbose_name_plural = 'اهدا کنندگان تستی'
+
+class RecipientTest(models.Model):
+    hla_a_1 = models.ForeignKey(HlaA, on_delete=models.DO_NOTHING, verbose_name='HLA A (allele 1)', related_name='hla_a_1_recipient_test')
+    hla_a_2 = models.ForeignKey(HlaA, on_delete=models.DO_NOTHING, verbose_name='HLA A (allele 2)', related_name='hla_a_2_recipient_test')
+    hla_b_1 = models.ForeignKey(HlaB, on_delete=models.DO_NOTHING, verbose_name='HLA B (allele 1)', related_name='hla_b_1_recipient_test')
+    hla_b_2 = models.ForeignKey(HlaB, on_delete=models.DO_NOTHING, verbose_name='HLA B (allele 2)', related_name='hla_b_2_recipient_test')
+    hla_drb1_1 = models.ForeignKey(HlaDRB1, on_delete=models.DO_NOTHING, verbose_name='HLA DRB1 (allele 1)', related_name='hla_drb1_1_recipient_test')
+    hla_drb1_2 = models.ForeignKey(HlaDRB1, on_delete=models.DO_NOTHING, verbose_name='HLA DRB1 (allele 2)', related_name='hla_drb1_2_recipient_test')
+    hla_drb_1 = models.ForeignKey(HlaDRB, on_delete=models.DO_NOTHING, verbose_name='HLA DRB (allele 1)', null=True, blank=True, related_name='hla_drb_1_recipient_test')
+    hla_drb_2 = models.ForeignKey(HlaDRB, on_delete=models.DO_NOTHING, verbose_name='HLA DRB (allele 2)', null=True, blank=True, related_name='hla_drb_2_recipient_test')
+    hla_dqb1_1 = models.ForeignKey(HlaDQB1, on_delete=models.DO_NOTHING, verbose_name='HLA DQB1 (allele 1)', related_name='hla_dqb1_1_recipient_test')
+    hla_dqb1_2 = models.ForeignKey(HlaDQB1, on_delete=models.DO_NOTHING, verbose_name='HLA DQB1 (allele 2)', related_name='hla_dqb1_2_recipient_test')
+
+    class Meta:
+        verbose_name = 'گیرنده تستی'
+        verbose_name_plural = 'گیرندگان تستی'

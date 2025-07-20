@@ -3,16 +3,17 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse, reverse_lazy
 from django.db.models import Q
+from django.core.paginator import Paginator
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from .models import Donor, Recipient, HlaA, HlaB, HlaDRB1, HlaDRB, HlaDQB1
-from .forms import DonorForm, RecipientForm
+from .models import Donor, Recipient, HlaA, HlaB, HlaDRB1, HlaDRB, HlaDQB1, DonorTest, RecipientTest
+from .forms import DonorForm, RecipientForm, DonorTestForm, RecipientTestForm
 from .jalali import Persian
 
 @login_required
 def main(request):
-    donors = Donor.objects.all().order_by('-id')[:5]
-    recipients = Recipient.objects.all().order_by('-id')[:5]
+    donors = Donor.objects.all().order_by('id')[:5]
+    recipients = Recipient.objects.all().order_by('id')[:5]
 
     context = {
         'donors': donors,
@@ -25,7 +26,8 @@ class DonorListView(LoginRequiredMixin, ListView):
     model = Donor
     template_name = 'donor_list.html'
     context_object_name = 'donors'
-    ordering = '-id'
+    ordering = 'id'
+    paginate_by = 100
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -92,10 +94,14 @@ class DonorCreateView(LoginRequiredMixin, CreateView):
 def donor_detail(request, pk):
     donor = get_object_or_404(Donor, pk=pk)
 
-    recipients = Recipient.objects.filter(
+    recipients_list = Recipient.objects.filter(
         Q(blood_group__in=donor.recipient_blood_group) &
         Q(age__gte=donor.min_recipient_age) & Q(age__lte=donor.max_recipient_age)
     ).order_by('-point')
+
+    paginator = Paginator(recipients_list, 50)
+    page_number = request.GET.get('page')
+    recipients = paginator.get_page(page_number)
 
     context = {
         'donor': donor,
@@ -153,7 +159,8 @@ class RecipientListView(LoginRequiredMixin, ListView):
     model = Recipient
     template_name = 'recipient_list.html'
     context_object_name = 'recipients'
-    ordering = '-id'
+    ordering = 'id'
+    paginate_by = 100
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -552,6 +559,72 @@ class HlaDQB1DeleteView(LoginRequiredMixin, DeleteView):
     model = HlaDQB1
     template_name = 'hla/hla_dqb1_confirm_delete.html'
     success_url = reverse_lazy('hla_lists')
+
+@login_required
+def referees_test_lists(request):
+    donor_tests = DonorTest.objects.all()
+    recipient_tests = RecipientTest.objects.all()
+
+    donor_test_selected = None
+    recipient_test_selected = None
+
+    rdts = request.GET.get('donor_test_selected')
+    rrts = request.GET.get('recipient_test_selected')
+
+    if rdts and rrts:
+        donor_test_selected = donor_tests.get(id=rdts)
+        recipient_test_selected = recipient_tests.get(id=rrts)
+
+    context = {
+        'donor_tests': donor_tests,
+        'recipient_tests': recipient_tests,
+        'donor': donor_test_selected,
+        'recipient': recipient_test_selected,
+    }
+
+    return render(request, 'test/referees_test_lists.html', context)
+
+class DonorTestCreateView(LoginRequiredMixin, CreateView):
+    model = DonorTest
+    form_class = DonorTestForm
+    template_name = 'test/donor_test_add.html'
+
+    def get_success_url(self):
+        return reverse('referees_test_lists')
+
+class RecipientTestCreateView(LoginRequiredMixin, CreateView):
+    model = RecipientTest
+    form_class = RecipientTestForm
+    template_name = 'test/recipient_test_add.html'
+
+    def get_success_url(self):
+        return reverse('referees_test_lists')
+
+class DonorTestUpdateView(LoginRequiredMixin, UpdateView):
+    model = DonorTest
+    form_class = DonorTestForm
+    template_name = 'test/donor_test_add.html'
+
+    def get_success_url(self):
+        return reverse('referees_test_lists')
+
+class RecipientTestUpdateView(LoginRequiredMixin, UpdateView):
+    model = RecipientTest
+    form_class = RecipientTestForm
+    template_name = 'test/recipient_test_add.html'
+
+    def get_success_url(self):
+        return reverse('referees_test_lists')
+    
+class DonorTestDeleteView(LoginRequiredMixin, DeleteView):
+    model = DonorTest
+    template_name = 'test/donor_test_confirm_delete.html'
+    success_url = reverse_lazy('referees_test_lists')
+
+class RecipientTestDeleteView(LoginRequiredMixin, DeleteView):
+    model = RecipientTest
+    template_name = 'test/recipient_test_confirm_delete.html'
+    success_url = reverse_lazy('referees_test_lists')
 
 @login_required
 def auto_add_hla(request):
