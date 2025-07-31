@@ -213,7 +213,7 @@
                                 <td class="align-middle text-center">
                                     <span class="text-secondary text-xs font-weight-bold"></span>
                                 </td>
-                                <div class="fixed-div hla-grid hidden-div" id="recipient_{{ recipient.id }}" style="display: none;">
+                                <div class="fixed-div hla-grid hidden-div" id="recipient_{{ donor.id }}_{{ donor.get_status_display }}" style="display: none;">
                                     <button class="close-btn" onclick="hideAllDivs()">
                                         <svg style="margin: 0; padding: 0;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
                                             <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>
@@ -226,28 +226,28 @@
                                     <div style="color: #f97316;" class="form-control c5">HLA DQB1</div>
                                     <div style="color: #f97316;" class="form-control c6">Person</div>
 
-                                    <div class="form-control" id="hla_a_first_{{ donor.id }}">{{ donor.hla_a_1 }}</div>
-                                    <div class="form-control" id="hla_a_second_{{ donor.id }}">{{ donor.hla_a_2 }}</div>
-                                    <div class="form-control" id="hla_b_first_{{ donor.id }}">{{ donor.hla_b_1 }}</div>
-                                    <div class="form-control" id="hla_b_second_{{ donor.id }}">{{ donor.hla_b_2 }}</div>
-                                    <div class="form-control" id="hla_drb1_first_{{ donor.id }}">{{ donor.hla_drb1_1 }}</div>
-                                    <div class="form-control" id="hla_drb1_second_{{ donor.id }}">{{ donor.hla_drb1_2 }}</div>
-                                    <div class="form-control" id="hla_drb_first_{{ donor.id }}">{{ donor.hla_drb_1 }}</div>
-                                    <div class="form-control" id="hla_drb_second_{{ donor.id }}">{{ donor.hla_drb_2 }}</div>
-                                    <div class="form-control" id="hla_dqb1_first_{{ donor.id }}">{{ donor.hla_dqb1_1 }}</div>
-                                    <div class="form-control" id="hla_dqb1_second_{{ donor.id }}">{{ donor.hla_dqb1_2 }}</div>
+                                    <div class="form-control" id="hla_a_first_{{ donor.id }}_{{ donor.get_status_display }}">{{ donor.hla_a_1 }}</div>
+                                    <div class="form-control" id="hla_a_second_{{ donor.id }}_{{ donor.get_status_display }}">{{ donor.hla_a_2 }}</div>
+                                    <div class="form-control" id="hla_b_first_{{ donor.id }}_{{ donor.get_status_display }}">{{ donor.hla_b_1 }}</div>
+                                    <div class="form-control" id="hla_b_second_{{ donor.id }}_{{ donor.get_status_display }}">{{ donor.hla_b_2 }}</div>
+                                    <div class="form-control" id="hla_drb1_first_{{ donor.id }}_{{ donor.get_status_display }}">{{ donor.hla_drb1_1 }}</div>
+                                    <div class="form-control" id="hla_drb1_second_{{ donor.id }}_{{ donor.get_status_display }}">{{ donor.hla_drb1_2 }}</div>
+                                    <div class="form-control" id="hla_drb_first_{{ donor.id }}_{{ donor.get_status_display }}">{{ donor.hla_drb_1 }}</div>
+                                    <div class="form-control" id="hla_drb_second_{{ donor.id }}_{{ donor.get_status_display }}">{{ donor.hla_drb_2 }}</div>
+                                    <div class="form-control" id="hla_dqb1_first_{{ donor.id }}_{{ donor.get_status_display }}">{{ donor.hla_dqb1_1 }}</div>
+                                    <div class="form-control" id="hla_dqb1_second_{{ donor.id }}_{{ donor.get_status_display }}">{{ donor.hla_dqb1_2 }}</div>
                                     <div class="form-control c6">Donor</div>
 
-                                    <div style="display: none;" id="hla_a_first_{{ donor.id }}_type">{{ donor.hla_a_1.get_type_display }}</div>
-                                    <div style="display: none;" id="hla_a_second_{{ donor.id }}_type">{{ donor.hla_a_2.get_type_display }}</div>
-                                    <div style="display: none;" id="hla_b_first_{{ donor.id }}_type">{{ donor.hla_b_1.get_type_display }}</div>
-                                    <div style="display: none;" id="hla_b_second_{{ donor.id }}_type">{{ donor.hla_b_2.get_type_display }}</div>
-                                    <div style="display: none;" id="hla_drb1_first_{{ donor.id }}_type">{{ donor.hla_drb1_1.get_type_display }}</div>
-                                    <div style="display: none;" id="hla_drb1_second_{{ donor.id }}_type">{{ donor.hla_drb1_2.get_type_display }}</div>
-                                    <div style="display: none;" id="hla_drb_first_{{ donor.id }}_type">{{ donor.hla_drb_1.get_type_display }}</div>
-                                    <div style="display: none;" id="hla_drb_second_{{ donor.id }}_type">{{ donor.hla_drb_2.get_type_display }}</div>
-                                    <div style="display: none;" id="hla_dqb1_first_{{ donor.id }}_type">{{ donor.hla_dqb1_1.get_type_display }}</div>
-                                    <div style="display: none;" id="hla_dqb1_second_{{ donor.id }}_type">{{ donor.hla_dqb1_2.get_type_display }}</div>
+                                    <div style="display: none;" id="hla_a_first_{{ donor.id }}_{{ donor.get_status_display }}_type">{{ donor.hla_a_1.get_type_display }}</div>
+                                    <div style="display: none;" id="hla_a_second_{{ donor.id }}_{{ donor.get_status_display }}_type">{{ donor.hla_a_2.get_type_display }}</div>
+                                    <div style="display: none;" id="hla_b_first_{{ donor.id }}_{{ donor.get_status_display }}_type">{{ donor.hla_b_1.get_type_display }}</div>
+                                    <div style="display: none;" id="hla_b_second_{{ donor.id }}_{{ donor.get_status_display }}_type">{{ donor.hla_b_2.get_type_display }}</div>
+                                    <div style="display: none;" id="hla_drb1_first_{{ donor.id }}_{{ donor.get_status_display }}_type">{{ donor.hla_drb1_1.get_type_display }}</div>
+                                    <div style="display: none;" id="hla_drb1_second_{{ donor.id }}_{{ donor.get_status_display }}_type">{{ donor.hla_drb1_2.get_type_display }}</div>
+                                    <div style="display: none;" id="hla_drb_first_{{ donor.id }}_{{ donor.get_status_display }}_type">{{ donor.hla_drb_1.get_type_display }}</div>
+                                    <div style="display: none;" id="hla_drb_second_{{ donor.id }}_{{ donor.get_status_display }}_type">{{ donor.hla_drb_2.get_type_display }}</div>
+                                    <div style="display: none;" id="hla_dqb1_first_{{ donor.id }}_{{ donor.get_status_display }}_type">{{ donor.hla_dqb1_1.get_type_display }}</div>
+                                    <div style="display: none;" id="hla_dqb1_second_{{ donor.id }}_{{ donor.get_status_display }}_type">{{ donor.hla_dqb1_2.get_type_display }}</div>
 
                                     <div class="form-control">{{ recipient.hla_a_1 }}</div>
                                     <div class="form-control">{{ recipient.hla_a_2 }}</div>
@@ -261,15 +261,15 @@
                                     <div class="form-control">{{ recipient.hla_dqb1_2 }}</div>
                                     <div class="form-control c6">Recipient</div>
 
-                                    <div class="form-control c1" id="hla_a_{{ donor.id }}_point"></div>
-                                    <div class="form-control c2" id="hla_b_{{ donor.id }}_point"></div>
-                                    <div class="form-control c3" id="hla_drb1_{{ donor.id }}_point"></div>
-                                    <div class="form-control c4" id="hla_drb_{{ donor.id }}_point"></div>
-                                    <div class="form-control c5" id="hla_dqb1_{{ donor.id }}_point"></div>
+                                    <div class="form-control c1" id="hla_a_{{ donor.id }}_{{ donor.get_status_display }}_point"></div>
+                                    <div class="form-control c2" id="hla_b_{{ donor.id }}_{{ donor.get_status_display }}_point"></div>
+                                    <div class="form-control c3" id="hla_drb1_{{ donor.id }}_{{ donor.get_status_display }}_point"></div>
+                                    <div class="form-control c4" id="hla_drb_{{ donor.id }}_{{ donor.get_status_display }}_point"></div>
+                                    <div class="form-control c5" id="hla_dqb1_{{ donor.id }}_{{ donor.get_status_display }}_point"></div>
                                     <div class="form-control c6">Point</div>
                                 </div>
                                 <td class="align-middle text-center">
-                                    <a title="See HLA" style="padding: 0 4px;" onclick="showDiv('recipient_{{ recipient.id }}')">
+                                    <a title="See HLA" style="padding: 0 4px;" onclick="showDiv('recipient_{{ donor.id }}_{{ donor.get_status_display }}')">
                                         <span class="text-secondary text-xs font-weight-bold">
                                             <svg style="color: #163cf9; cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
                                                 <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
