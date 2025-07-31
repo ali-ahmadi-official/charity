@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+اهدا کنندگان
+{% endblock %}
+
+{% block page1 %}
+اهدا کنندگان
+{% endblock %}
+
+{% block page2 %}
+اهدا کنندگان
+{% endblock %}
+
+{% block contain %}
+<div class="row">
+    <div class="col-12">
+        <h5>فیلتر اهدا کنندگان <span style="font-size: small; color: #f97316;">پر کردن تمامی موارد الزامی نیست</span></h5>
+        <form method="get" class="my-form">
+            <input title="کد ملی" type="number" name="national_code" class="form-control w-40" placeholder="کد ملی" style="width: 100% !important;"
+                value="{{ request.GET.national_code }}">
+            <input title="نام و نام خانوادگی" type="text" name="q" class="form-control w-40" placeholder="نام و نام خانوادگی" style="width: 100% !important;"
+                value="{{ request.GET.q }}">
+            <select name="blood_group" class="form-control" title="گروه خونی">
+                <option value="">گروه خونی</option>
+                <option value="A" {% if request.GET.blood_group == "A" %}selected{% endif %}>
+                    A
+                </option>
+                <option value="B" {% if request.GET.blood_group == "B" %}selected{% endif %}>
+                    B
+                </option>
+                <option value="AB" {% if request.GET.blood_group == "AB" %}selected{% endif %}>
+                    AB
+                </option>
+                <option value="O" {% if request.GET.blood_group == "O" %}selected{% endif %}>
+                    O
+                </option>
+            </select>
+            <input title="سن" type="number" name="age" class="form-control w-40" placeholder="سن" style="width: 100% !important;"
+                value="{{ request.GET.age }}">
+            <button class="my-btn" style="background-color: #fff; border: 1px solid #f97316; border-radius: 0.5rem; color: #f97316; padding: 8px 32px; font-size: 0.75rem; font-weight: 700;">جستجو</button>
+        </form>
+    </div>
+    <div class="col-12">
+        {% include "includes/donors_table_white.html" %}
+    </div>
+    <div class="col-12">
+        <div class="page">
+            {% if page_obj.has_previous %}
+            <a href="{% url 'donor_list' %}?page={{ page_obj.previous_page_number }}">
+                <div class="ago">
+                    <p>قبلی</p>
+                </div>
+            </a>
+            {% if page_obj.number > 3 %}
+            <a href="{% url 'donor_list' %}?page=1" class="number">1</a>
+                {% if page_obj.number > 4 %}
+                <span class="number">...</span>
+                {% endif %}
+            {% endif %}
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <a href="{% url 'donor_list' %}?page={{ num }}" class="number">{{ num }}</a>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %} 
+            <a href="{% url 'donor_list' %}?page={{ num }}" class="number">{{ num }}</a>
+            {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            {% if page_obj.number < page_obj.paginator.num_pages|add:'-3' %}
+            <span class="number">...</span>
+            <a href="{% url 'donor_list' %}?page={{ page_obj.paginator.num_pages }}" class="number">{{ page_obj.paginator.num_pages }}</a>
+            {% elif page_obj.number < page_obj.paginator.num_pages|add:'-2' %} 
+            <a href="{% url 'donor_list' %}?page={{ page_obj.paginator.num_pages }}" class="number">{{ page_obj.paginator.num_pages }}</a>
+            {% endif %}
+            
+            <a href="{% url 'donor_list' %}?page={{ page_obj.next_page_number }}">
+                <div class="next">
+                    <p>بعدی</p>
+                </div>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

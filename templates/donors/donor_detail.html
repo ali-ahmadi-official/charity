@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load custom_filters %}
 
 {% block title %}
 جزئیات اهدا کننده: {{ donor.first_name }} {{ donor.last_name }}
@@ -23,7 +24,11 @@
             <svg style="margin-left: 3px;" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
                 <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001m-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708z"/>
             </svg>
-            <a href="{% url 'donor_update' donor.id %}" style="color: #16C47F;">ویرایش {{ donor.first_name }} {{ donor.last_name }}</a>
+            {% if donor.status == '1' %}
+            <a href="{% url 'cadaver_donor_update' donor.id %}" style="color: #16C47F;">ویرایش {{ donor.first_name }} {{ donor.last_name }}</a>
+            {% else %}
+            <a href="{% url 'living_donor_update' donor.id %}" style="color: #16C47F;">ویرایش {{ donor.first_name }} {{ donor.last_name }}</a>
+            {% endif %}
         </button>
     </div>
 
@@ -50,11 +55,15 @@
         </div>
         <div>
             <label>KDPI</label>
+            {% if donor.kdpi %}
             <input class="form-control" value="{{ donor.kdpi }}" disabled>
+            {% else %}
+            <input class="form-control" value="تعریف نمی شود" disabled>
+            {% endif %}
         </div>
     </div>
     <div class="text-center">
-        <button
+        <div
             style="background-color: #fff; border: 1px solid #f97316; border-radius: 0.5rem; color: #f97316; padding: 8px 32px; font-size: 0.75rem; font-weight: 700; margin-top: 40px;">
             <svg style="margin-left: 8px; margin-bottom: 5px;" xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-clipboard2-heart-fill" viewBox="0 0 16 16">
                 <path fill-rule="evenodd" d="M10.058.501a.5.5 0 0 0-.5-.501h-2.98c-.276 0-.5.225-.5.501A.5.5 0 0 1 5.582 1a.497.497 0 0 0-.497.497V2a.5.5 0 0 0 .5.5h4.968a.5.5 0 0 0 .5-.5v-.503A.497.497 0 0 0 10.555 1a.5.5 0 0 1-.497-.499"/>
@@ -65,7 +74,7 @@
             {% elif donor.max_recipient_age == 200 %}
             <span style="font-size: large;">گروه (گروه های) خونی مناسب برای گیرنده این فرد {{ donor.recipient_blood_group }} و رده سنی مناسب نیز حداقل {{ donor.min_recipient_age }} سال خواهد بود.</span>
             {% endif %}
-        </button>
+        </div>
     </div>
     <div class="hla-grid">
         <div class="form-control c1">HLA A</div>
@@ -165,7 +174,7 @@
                                     <span class="text-secondary text-xs font-weight-bold">{{ recipient.age }}</span>
                                 </td>
                                 <td class="align-middle text-center">
-                                    <span class="text-secondary text-xs font-weight-bold">{{ recipient.point }}</span>
+                                    <span class="text-secondary text-xs font-weight-bold">{{ recipient.point|truncatechars_noellipsis:5 }}</span>
                                 </td>
                                 <td class="align-middle text-center">
                                     <span class="text-secondary text-xs font-weight-bold"></span>

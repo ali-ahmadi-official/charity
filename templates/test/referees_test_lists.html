@@ -21,13 +21,13 @@
             <select name="donor_test_selected" class="form-control">
                 <option value="">انتخاب اهدا کننده تستی</option>
                 {% for donor_test in donor_tests %}
-                    <option value="{{ donor_test.id }}" {% if request.GET.donor_test_selected == donor_test.id|stringformat:"s" %} selected {% endif %}>اهدا کننده تستی با شناسه {{ donor_test.id }}</option>
+                    <option value="{{ donor_test.id }}" {% if request.GET.donor_test_selected == donor_test.id|stringformat:"s" %} selected {% endif %}>{{ donor_test.first_name }} {{ donor_test.last_name }}</option>
                 {% endfor %}
             </select>
             <select name="recipient_test_selected" class="form-control">
                 <option value="">انتخاب گیرنده تستی</option>
                 {% for recipient_test in recipient_tests %}
-                    <option value="{{ recipient_test.id }}" {% if request.GET.recipient_test_selected == recipient_test.id|stringformat:"s" %} selected {% endif %}>گیرنده تستی با شناسه {{ recipient_test.id }}</option>
+                    <option value="{{ recipient_test.id }}" {% if request.GET.recipient_test_selected == recipient_test.id|stringformat:"s" %} selected {% endif %}>{{ recipient_test.first_name }} {{ recipient_test.last_name }}</option>
                 {% endfor %}
             </select>
             <button class="my-btn-time" style="background-color: #fff; border: 1px solid #f97316; border-radius: 0.5rem; color: #f97316; padding: 8px 32px; font-size: 0.75rem; font-weight: 700;">تست و بررسی</button>
@@ -120,7 +120,7 @@
                             <tr>
                                 <th
                                     class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
-                                    شناسه</th>
+                                    نام و نام خانوادگی</th>
                                 <th
                                     class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
                                     HLA A</th>
@@ -146,7 +146,9 @@
                             {% for donor_test in donor_tests %}
                             <tr>
                                 <td class="align-middle text-center">
-                                    <span class="text-secondary text-xs font-weight-bold">{{ donor_test.id }}</span>
+                                    <span class="text-secondary text-xs font-weight-bold">
+                                        {{ donor_test.first_name }} {{ donor_test.last_name }}
+                                    </span>
                                 </td>
                                 <td class="align-middle text-center">
                                     <span class="text-secondary text-xs font-weight-bold">{{ donor_test.hla_a_1 }}, {{ donor_test.hla_a_2 }}</span>
@@ -215,7 +217,7 @@
                             <tr>
                                 <th
                                     class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
-                                    شناسه</th>
+                                    نام و نام خانوادگی</th>
                                 <th
                                     class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
                                     HLA A</th>
@@ -241,7 +243,9 @@
                             {% for recipient_test in recipient_tests %}
                             <tr>
                                 <td class="align-middle text-center">
-                                    <span class="text-secondary text-xs font-weight-bold">{{ recipient_test.id }}</span>
+                                    <span class="text-secondary text-xs font-weight-bold">
+                                        {{ recipient_test.first_name }} {{ recipient_test.last_name }}
+                                    </span>
                                 </td>
                                 <td class="align-middle text-center">
                                     <span class="text-secondary text-xs font-weight-bold">{{ recipient_test.hla_a_1 }}, {{ recipient_test.hla_a_2 }}</span>

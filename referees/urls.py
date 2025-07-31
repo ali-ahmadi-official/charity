@@ -1,8 +1,11 @@
 from django.urls import path
 from django.contrib.auth.views import LoginView, LogoutView
 from .views import (
+    SignUpView,
     main,
-    DonorListView, DonorCreateView, donor_detail, DonorUpdateView, DonorDeleteView,
+    DonorListView, 
+    CadaverDonorCreateView, cadaver_donor_detail, CadaverDonorUpdateView, CadaverDonorDeleteView,
+    LivingDonorCreateView, living_donor_detail, LivingDonorUpdateView, LivingDonorDeleteView,
     RecipientListView, RecipientCreateView, recipient_detail, RecipientUpdateView, RecipientDeleteView,
     hla_lists, 
     HlaACreateview, HlaAUpdateView, HlaADeleteView,
@@ -15,15 +18,23 @@ from .views import (
 )
 
 urlpatterns = [
-    path('', main, name='main'),
-    path('login/', LoginView.as_view(template_name='login.html'), name='login'),
+    path('signup/', SignUpView.as_view(), name='signup'),
+    path('login/', LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
 
+    path('', main, name='main'),
+
     path('donors/', DonorListView.as_view(), name='donor_list'),
-    path('donors/new/', DonorCreateView.as_view(), name='donor_create'),
-    path('donors/<int:pk>/', donor_detail, name='donor_detail'),
-    path('donors/<int:pk>/edit/', DonorUpdateView.as_view(), name='donor_update'),
-    path('donors/<int:pk>/delete/', DonorDeleteView.as_view(), name='donor_delete'),
+
+    path('cadaver-donors/new/', CadaverDonorCreateView.as_view(), name='cadaver_donor_create'),
+    path('cadaver-donors/<int:pk>/', cadaver_donor_detail, name='cadaver_donor_detail'),
+    path('cadaver-donors/<int:pk>/edit/', CadaverDonorUpdateView.as_view(), name='cadaver_donor_update'),
+    path('cadaver-donors/<int:pk>/delete/', CadaverDonorDeleteView.as_view(), name='cadaver_donor_delete'),
+
+    path('living-donors/new/', LivingDonorCreateView.as_view(), name='living_donor_create'),
+    path('living-donors/<int:pk>/', living_donor_detail, name='living_donor_detail'),
+    path('living-donors/<int:pk>/edit/', LivingDonorUpdateView.as_view(), name='living_donor_update'),
+    path('living-donors/<int:pk>/delete/', LivingDonorDeleteView.as_view(), name='living_donor_delete'),
 
     path('recipients/', RecipientListView.as_view(), name='recipient_list'),
     path('recipients/new/', RecipientCreateView.as_view(), name='recipient_create'),

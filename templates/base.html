@@ -10,14 +10,14 @@
     <title>
         {% block title %} {% endblock %}
     </title>
-    <link href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,800" rel="stylesheet" />
-    <link href="https://demos.creative-tim.com/soft-ui-dashboard/assets/css/nucleo-icons.css" rel="stylesheet" />
-    <link href="https://demos.creative-tim.com/soft-ui-dashboard/assets/css/nucleo-svg.css" rel="stylesheet" />
-    <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
+    <!-- <link href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700,800" rel="stylesheet" /> -->
+    <!-- <link href="https://demos.creative-tim.com/soft-ui-dashboard/assets/css/nucleo-icons.css" rel="stylesheet" /> -->
+    <!-- <link href="https://demos.creative-tim.com/soft-ui-dashboard/assets/css/nucleo-svg.css" rel="stylesheet" /> -->
+    <!-- <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script> -->
     <link type="text/css" rel="stylesheet" href="{% static 'css/jalalidatepicker.min.css' %}" />
     <script type="text/javascript" src="{% static 'js/jalalidatepicker.min.js' %}"></script>
     <link id="pagestyle" href="{% static 'css/soft-ui-dashboard.css' %}" rel="stylesheet" />
-    <script defer data-site="YOUR_DOMAIN_HERE" src="https://api.nepcha.com/js/nepcha-analytics.js"></script>
+    <!-- <script defer data-site="YOUR_DOMAIN_HERE" src="https://api.nepcha.com/js/nepcha-analytics.js"></script> -->
 </head>
 
 <body class="g-sidenav-show rtl bg-gray-100">
@@ -66,7 +66,7 @@ background: linear-gradient(157deg, rgba(255, 255, 255, 1) 0%, rgba(250, 142, 65
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if '/donors/' in request.path %} active {% endif %}" href="{% url 'donor_list' %}">
+                    <a class="nav-link {% if '/cadaver-donors/' in request.path or '/living-donors/' in request.path or '/donors/' in request.path %} active {% endif %}" href="{% url 'donor_list' %}">
                         <div
                             class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center ms-2 d-flex align-items-center justify-content-center">
                             <svg width="12px" height="12px" viewBox="0 0 40 44" version="1.1"
@@ -185,6 +185,17 @@ background: linear-gradient(157deg, rgba(255, 255, 255, 1) 0%, rgba(250, 142, 65
                 </nav>
                 <div class="collapse navbar-collapse mt-sm-0 mt-2 px-0" id="navbar">
                     <ul class="navbar-nav me-auto ms-0 justify-content-end">
+                        <div
+                            style="border: none; outline: none; margin-left: 20px; border-bottom: 1px solid #f97316; color: #f97316; padding: 8px 0; font-size: 0.75rem; font-weight: 500;">
+                            <svg xmlns="http://www.w3.org/2000/svg" style="margin-bottom: 3px;" width="16" height="16" fill="currentColor" class="bi bi-person" viewBox="0 0 16 16">
+                                <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
+                            </svg>
+                            {% if user.get_full_name %}
+                            {{ user.get_full_name }}
+                            {% else %}
+                            {{ user.username }}
+                            {% endif %}
+                        </div>
                         <li class="nav-item d-flex align-items-center">
                             <form action="{% url 'logout' %}" method="post">
                             {% csrf_token %}
@@ -213,8 +224,8 @@ background: linear-gradient(157deg, rgba(255, 255, 255, 1) 0%, rgba(250, 142, 65
     <script src="{% static 'js/core/bootstrap.min.js' %}"></script>
     <script src="{% static 'js/plugins/perfect-scrollbar.min.js' %}"></script>
     <script src="{% static 'js/plugins/smooth-scrollbar.min.js' %}"></script>
-    <script src="{% static 'js/plugins/fullcalendar.min.js' %}"></script>
-    <script src="{% static 'js/plugins/choices.min.js' %}"></script>
+    <!-- <script src="{% static 'js/plugins/fullcalendar.min.js' %}"></script> -->
+    <!-- <script src="{% static 'js/plugins/choices.min.js' %}"></script> -->
     <script src="{% static 'js/plugins/chartjs.min.js' %}"></script>
     <script>
         var win = navigator.platform.indexOf('Win') > -1;
@@ -225,7 +236,7 @@ background: linear-gradient(157deg, rgba(255, 255, 255, 1) 0%, rgba(250, 142, 65
             Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
         }
     </script>
-    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <!-- <script async defer src="https://buttons.github.io/buttons.js"></script> -->
     <script src="{% static 'js/soft-ui-dashboard.min.js' %}"></script>
 </body>
 

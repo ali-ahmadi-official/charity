@@ -2,21 +2,21 @@
 {% load static %}
 
 {% block title %}
-حذف گیرنده تستی: {{ recipienttest.first_name }} {{ recipienttest.last_name }}
+حذف اهدا کننده: {{ donor.first_name }} {{ donor.last_name }}
 {% endblock %}
 
 {% block page1 %}
-بخش تست
+اهدا کنندگان
 {% endblock %}
 
 {% block page2 %}
-حذف گیرنده تستی: {{ recipienttest.first_name }} {{ recipienttest.last_name }}
+حذف اهدا کننده: {{ donor.first_name }} {{ donor.last_name }}
 {% endblock %}
 
 {% block contain %}
 <div class="row" style="text-align: center; padding-top: 50px;">
     <h5 style="color: #f97316;">
-        آیا از حذف گیرنده تستی: {{ recipienttest.first_name }} {{ recipienttest.last_name }} اطمینان
+        آیا از حذف اهدا کننده: {{ donor.first_name }} {{ donor.last_name }} با کد ملی {{ donor.national_code }} اطمینان
         دارید؟
     </h5>
 
@@ -24,7 +24,7 @@
         <br>
         <br>
         <button class="btn btn-netcopy_net" style="margin-left: 10px; color: red;">تایید و حذف</button>
-        <a href="{% url 'referees_test_lists' %}">بیخیال!</a>
+        <a href="{% url 'donor_list' %}">بیخیال!</a>
     </form>
 </div>
 {% endblock %}

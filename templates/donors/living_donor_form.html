@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+فرم اهدا کننده
+{% endblock %}
+
+{% block page1 %}
+اهدا کنندگان
+{% endblock %}
+
+{% block page2 %}
+فرم اهدا کننده
+{% endblock %}
+
+{% block contain %}
+<div class="row">
+    <form method="post">
+        {% csrf_token %}
+        <h3 style="margin-bottom: 20px;">فرم اهدا کننده</h3>
+
+        {% if form.non_field_errors %}
+        {% for error in form.non_field_errors %}
+        <p class="error">{{ error }}</p>
+        {% endfor %}
+        {% endif %}
+
+        <div class="my-grid">
+            <div>
+                <label>{{ form.first_name.label }}</label>
+                <div class="mb-3">
+                    <input type="text" name="first_name" class="form-control" value="{{ form.first_name.value }}">
+                </div>
+                {% if form.first_name.errors %}
+                {% for error in form.first_name.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>
+                <label>{{ form.last_name.label }}</label>
+                <div class="mb-3">
+                    <input type="text" name="last_name" class="form-control" value="{{ form.last_name.value }}">
+                </div>
+                {% if form.last_name.errors %}
+                {% for error in form.last_name.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>
+                <label>{{ form.national_code.label }}</label>
+                <div class="mb-3">
+                    <input type="number" name="national_code" class="form-control"
+                        value="{{ form.national_code.value }}">
+                </div>
+                {% if form.national_code.errors %}
+                {% for error in form.national_code.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>
+                <label>{{ form.phone_number.label }}</label>
+                <div class="mb-3">
+                    <input type="number" name="phone_number" class="form-control" value="{{ form.phone_number.value }}">
+                </div>
+                {% if form.phone_number.errors %}
+                {% for error in form.phone_number.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>
+                <label>{{ form.age.label }}</label>
+                <div class="mb-3">
+                    <input type="number" name="age" class="form-control" value="{{ form.age.value }}">
+                </div>
+                {% if form.age.errors %}
+                {% for error in form.age.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>
+                <label>{{ form.blood_group.label }}</label>
+                <select name="blood_group" class="form-control">
+                    {% for choice in form.blood_group.field.choices %}
+                    <option value="{{ choice.0 }}" {% if form.blood_group.value|default:'' == choice.0|default:'' %} selected="selected" {% endif %}>
+                        {{ choice.1 }}
+                    </option>
+                    {% endfor %}
+                </select>
+                {% if form.blood_group.errors %}
+                {% for error in form.blood_group.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+
+        {% include "includes/hla_form.html" %}
+
+        <div class="text-center">
+            <button type="submit" class="btn bg-gradient-info w-100 mt-4 mb-0">ثبت جزئیات اهدا کننده</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,4 +1,5 @@
 from datetime import datetime
+from itertools import chain
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse, reverse_lazy
@@ -6,14 +7,22 @@ from django.db.models import Q
 from django.core.paginator import Paginator
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from .models import Donor, Recipient, HlaA, HlaB, HlaDRB1, HlaDRB, HlaDQB1, DonorTest, RecipientTest
-from .forms import DonorForm, RecipientForm, DonorTestForm, RecipientTestForm
+from .models import CadaverDonor, LivingDonor, Recipient, HlaA, HlaB, HlaDRB1, HlaDRB, HlaDQB1, DonorTest, RecipientTest
+from .forms import CustomUserCreationForm, CadaverDonorForm, LivingDonorForm, RecipientForm, DonorTestForm, RecipientTestForm
+from .mixins import SuperUserRequiredMixin
 from .jalali import Persian
+
+class SignUpView(LoginRequiredMixin, SuperUserRequiredMixin, CreateView):
+    form_class = CustomUserCreationForm
+    template_name = 'registration/signup.html'
+    success_url = reverse_lazy('main')
 
 @login_required
 def main(request):
-    donors = Donor.objects.all().order_by('id')[:5]
-    recipients = Recipient.objects.all().order_by('id')[:5]
+    cadaver_donors = CadaverDonor.objects.all()
+    living_donors = LivingDonor.objects.all()
+    donors = list(chain(cadaver_donors, living_donors))[:5]
+    recipients = Recipient.objects.all()[:5]
 
     context = {
         'donors': donors,
@@ -23,83 +32,58 @@ def main(request):
     return render(request, 'main.html', context=context)
 
 class DonorListView(LoginRequiredMixin, ListView):
-    model = Donor
-    template_name = 'donor_list.html'
-    context_object_name = 'donors'
-    ordering = 'id'
+    template_name = 'donors/donor_list.html'
     paginate_by = 100
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        search_query = self.request.GET.get('q')
-        blood_group = self.request.GET.get('blood_group')
-        national_code = self.request.GET.get('national_code')
-        age = self.request.GET.get('age')
+    def get(self, request):
+        search_query = request.GET.get('q')
+        blood_group = request.GET.get('blood_group')
+        national_code = request.GET.get('national_code')
+        age = request.GET.get('age')
+
+        cadaver_donors = CadaverDonor.objects.all()
+        living_donors = LivingDonor.objects.all()
+
+        filters = {}
+        if blood_group:
+            filters['blood_group'] = blood_group
+        if national_code:
+            filters['national_code'] = national_code
+        if age:
+            filters['age'] = age
 
         if search_query:
-            queryset = queryset.filter(
-                Q(first_name__icontains=search_query) | 
-                Q(last_name__icontains=search_query)
-            )
-        if blood_group:
-            queryset = queryset.filter(blood_group=blood_group)
-        if national_code:
-            queryset = queryset.filter(national_code=national_code)
-        if age:
-            queryset = queryset.filter(age=age)
+            cadaver_donors = cadaver_donors.filter(
+                Q(first_name__icontains=search_query) | Q(last_name__icontains=search_query)
+            ).filter(**filters)
+            living_donors = living_donors.filter(
+                Q(first_name__icontains=search_query) | Q(last_name__icontains=search_query)
+            ).filter(**filters)
+        else:
+            cadaver_donors = cadaver_donors.filter(**filters)
+            living_donors = living_donors.filter(**filters)
 
-        return queryset
+        donors = list(chain(cadaver_donors, living_donors))
+        return render(request, self.template_name, {'donors': donors})
 
-class DonorCreateView(LoginRequiredMixin, CreateView):
-    model = Donor
-    form_class = DonorForm
-    template_name = 'donor_add.html'
+class CadaverDonorCreateView(LoginRequiredMixin, CreateView):
+    model = CadaverDonor
+    form_class = CadaverDonorForm
+    template_name = 'donors/cadaver_donor_add.html'
 
     def get_success_url(self):
-        return reverse('donor_detail', kwargs={'pk': self.object.id})
-
-    def form_valid(self, form):
-        blood_group = form.cleaned_data['blood_group']
-        age = form.cleaned_data['age']
-        kdpi = form.cleaned_data['kdpi']
-
-        compatibility_map = {
-            'A': ['A', 'AB'],
-            'B': ['B', 'AB'],
-            'AB': ['AB'],
-            'O': ['O', 'A', 'B', 'AB'],
-        }
-
-        if kdpi <= 20:
-            min_recipient_age = 0
-            max_recipient_age = age
-        elif 21 <= kdpi <= 75:
-            if age < 25:
-                min_recipient_age = 30
-                max_recipient_age = 200
-            else:
-                min_recipient_age = age + 5
-                max_recipient_age = 200
-        else:
-            min_recipient_age = age + 10
-            max_recipient_age = 200
-
-        form.instance.recipient_blood_group = compatibility_map.get(blood_group, [])
-        form.instance.min_recipient_age = min_recipient_age
-        form.instance.max_recipient_age = max_recipient_age
-
-        return super().form_valid(form)
+        return reverse('cadaver_donor_detail', kwargs={'pk': self.object.id})
 
 @login_required
-def donor_detail(request, pk):
-    donor = get_object_or_404(Donor, pk=pk)
+def cadaver_donor_detail(request, pk):
+    donor = get_object_or_404(CadaverDonor, pk=pk)
 
     recipients_list = Recipient.objects.filter(
         Q(blood_group__in=donor.recipient_blood_group) &
         Q(age__gte=donor.min_recipient_age) & Q(age__lte=donor.max_recipient_age)
     ).order_by('-point')
 
-    paginator = Paginator(recipients_list, 50)
+    paginator = Paginator(recipients_list, 100)
     page_number = request.GET.get('page')
     recipients = paginator.get_page(page_number)
 
@@ -108,56 +92,67 @@ def donor_detail(request, pk):
         'recipients': recipients,
     }
 
-    return render(request, 'donor_detail.html', context)
+    return render(request, 'donors/donor_detail.html', context)
 
-class DonorUpdateView(LoginRequiredMixin, UpdateView):
-    model = Donor
-    form_class = DonorForm
-    template_name = 'donor_form.html'
+class CadaverDonorUpdateView(LoginRequiredMixin, UpdateView):
+    model = CadaverDonor
+    form_class = CadaverDonorForm
+    template_name = 'donors/cadaver_donor_form.html'
 
     def get_success_url(self):
-        return reverse('donor_detail', kwargs={'pk': self.object.id})
+        return reverse('cadaver_donor_detail', kwargs={'pk': self.object.id})
 
-    def form_valid(self, form):
-        blood_group = form.cleaned_data['blood_group']
-        age = form.cleaned_data['age']
-        kdpi = form.cleaned_data['kdpi']
+class CadaverDonorDeleteView(LoginRequiredMixin, DeleteView):
+    model = CadaverDonor
+    context_object_name = 'donor'
+    template_name = 'donors/cadaver_donor_confirm_delete.html'
+    success_url = reverse_lazy('donor_list')
 
-        compatibility_map = {
-            'A': ['A', 'AB'],
-            'B': ['B', 'AB'],
-            'AB': ['AB'],
-            'O': ['O', 'A', 'B', 'AB'],
-        }
+class LivingDonorCreateView(LoginRequiredMixin, CreateView):
+    model = LivingDonor
+    form_class = LivingDonorForm
+    template_name = 'donors/living_donor_add.html'
 
-        if kdpi <= 20:
-            min_recipient_age = 0
-            max_recipient_age = age
-        elif 21 <= kdpi <= 75:
-            if age < 25:
-                min_recipient_age = 30
-                max_recipient_age = 200
-            else:
-                min_recipient_age = age + 5
-                max_recipient_age = 200
-        else:
-            min_recipient_age = age + 10
-            max_recipient_age = 200
+    def get_success_url(self):
+        return reverse('living_donor_detail', kwargs={'pk': self.object.id})
 
-        form.instance.recipient_blood_group = compatibility_map.get(blood_group, [])
-        form.instance.min_recipient_age = min_recipient_age
-        form.instance.max_recipient_age = max_recipient_age
+@login_required
+def living_donor_detail(request, pk):
+    donor = get_object_or_404(LivingDonor, pk=pk)
 
-        return super().form_valid(form)
+    recipients_list = Recipient.objects.filter(
+        Q(blood_group__in=donor.recipient_blood_group) &
+        Q(age__gte=donor.min_recipient_age) & Q(age__lte=donor.max_recipient_age)
+    ).order_by('-point')
 
-class DonorDeleteView(LoginRequiredMixin, DeleteView):
-    model = Donor
-    template_name = 'donor_confirm_delete.html'
+    paginator = Paginator(recipients_list, 100)
+    page_number = request.GET.get('page')
+    recipients = paginator.get_page(page_number)
+
+    context = {
+        'donor': donor,
+        'recipients': recipients,
+    }
+
+    return render(request, 'donors/donor_detail.html', context)
+
+class LivingDonorUpdateView(LoginRequiredMixin, UpdateView):
+    model = LivingDonor
+    form_class = LivingDonorForm
+    template_name = 'donors/living_donor_form.html'
+
+    def get_success_url(self):
+        return reverse('living_donor_detail', kwargs={'pk': self.object.id})
+
+class LivingDonorDeleteView(LoginRequiredMixin, DeleteView):
+    model = LivingDonor
+    context_object_name = 'donor'
+    template_name = 'donors/living_donor_confirm_delete.html'
     success_url = reverse_lazy('donor_list')
 
 class RecipientListView(LoginRequiredMixin, ListView):
     model = Recipient
-    template_name = 'recipient_list.html'
+    template_name = 'recipients/recipient_list.html'
     context_object_name = 'recipients'
     ordering = 'id'
     paginate_by = 100
@@ -186,7 +181,7 @@ class RecipientListView(LoginRequiredMixin, ListView):
 class RecipientCreateView(LoginRequiredMixin, CreateView):
     model = Recipient
     form_class = RecipientForm
-    template_name = 'recipient_add.html'
+    template_name = 'recipients/recipient_add.html'
 
     def get_success_url(self):
         return reverse('recipient_detail', kwargs={'pk': self.object.id})
@@ -269,6 +264,22 @@ class RecipientCreateView(LoginRequiredMixin, CreateView):
 def recipient_detail(request, pk):
     recipient = get_object_or_404(Recipient, pk=pk)
 
+    cadaver_donor_list = CadaverDonor.objects.filter(
+        Q(blood_group__in=recipient.donor_blood_group) &
+        Q(age__gte=recipient.min_donor_age) & Q(age__lte=recipient.max_donor_age)
+    )
+
+    living_donors_list = LivingDonor.objects.filter(
+        Q(blood_group__in=recipient.donor_blood_group) &
+        Q(age__gte=recipient.min_donor_age) & Q(age__lte=recipient.max_donor_age)
+    )
+
+    donors_list = list(chain(cadaver_donor_list, living_donors_list))
+
+    paginator = Paginator(donors_list, 100)
+    page_number = request.GET.get('page')
+    donors = paginator.get_page(page_number)
+
     if isinstance(recipient.waiting_list, str):
         try:
             waiting_list_date = Persian(recipient.waiting_list).gregorian_datetime()
@@ -337,6 +348,7 @@ def recipient_detail(request, pk):
 
     context = {
         'recipient': recipient,
+        'donors': donors,
         'waiting_list_p': waiting_list_p,
         'dialysis_duration_p': dialysis_duration_p,
         'age_p': age_p,
@@ -348,12 +360,12 @@ def recipient_detail(request, pk):
         'desensitized_p': desensitized_p,
     }
 
-    return render(request, 'recipient_detail.html', context)
+    return render(request, 'recipients/recipient_detail.html', context)
 
 class RecipientUpdateView(LoginRequiredMixin, UpdateView):
     model = Recipient
     form_class = RecipientForm
-    template_name = 'recipient_form.html'
+    template_name = 'recipients/recipient_form.html'
 
     def get_success_url(self):
         return reverse('recipient_detail', kwargs={'pk': self.object.id})
@@ -434,7 +446,7 @@ class RecipientUpdateView(LoginRequiredMixin, UpdateView):
 
 class RecipientDeleteView(LoginRequiredMixin, DeleteView):
     model = Recipient
-    template_name = 'recipient_confirm_delete.html'
+    template_name = 'recipients/recipient_confirm_delete.html'
     success_url = reverse_lazy('recipient_list')
 
 @login_required

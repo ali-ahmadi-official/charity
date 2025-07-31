@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}
-حذف اهدا کننده تستی: {{ donortest.id }}
+حذف اهدا کننده تستی: {{ donortest.first_name }} {{ donortest.last_name }}
 {% endblock %}
 
 {% block page1 %}
@@ -10,13 +10,13 @@
 {% endblock %}
 
 {% block page2 %}
-حذف اهدا کننده تستی: {{ donortest.id }}
+حذف اهدا کننده تستی: {{ donortest.first_name }} {{ donortest.last_name }}
 {% endblock %}
 
 {% block contain %}
 <div class="row" style="text-align: center; padding-top: 50px;">
     <h5 style="color: #f97316;">
-        آیا از حذف اهدا کننده تستی: {{ donortest.id }} اطمینان
+        آیا از حذف اهدا کننده تستی: {{ donortest.first_name }} {{ donortest.last_name }} اطمینان
         دارید؟
     </h5>
 
