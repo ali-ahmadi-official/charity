@@ -104,6 +104,16 @@
         <div class="form-control" style="display: none;" id="hla_dqb1_first_donor_type">{{ recipient.hla_dqb1_1.get_type_display }}</div>
         <div class="form-control" style="display: none;" id="hla_dqb1_second_donor_type">{{ recipient.hla_dqb1_2.get_type_display }}</div>
     </div>
+    {% if is_recipient_hla_uams %}
+    <div class="points" style="margin-bottom: 0;">
+        <h5 style="color: #C5172E; margin-top: 40px; margin-bottom: 0;">HLA UAM List</h5>
+    </div>
+    <div class="hla-grid" style="margin-top: 20px;">
+        {% for recipient_hla_uam in recipient_hla_uams %}
+        <div class="form-control" style="border-color: #C5172E; color: #C5172E;">{{ recipient_hla_uam }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
     <div class="second-grid" style="margin-bottom: 40px;">
         <div class="points">
             <h5 style="color: #f97316;">Scoring matrix</h5>

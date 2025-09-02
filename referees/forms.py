@@ -66,6 +66,12 @@ class RecipientForm(forms.ModelForm):
             'hla_drb_2': forms.Select(attrs={'class': 'form-control'}),
             'hla_dqb1_1': forms.Select(attrs={'class': 'form-control'}),
             'hla_dqb1_2': forms.Select(attrs={'class': 'form-control'}),
+
+            'hla_a_uam': forms.CheckboxSelectMultiple(attrs={'class': 'checkbox-multiple uam_multi'}),
+            'hla_b_uam': forms.CheckboxSelectMultiple(attrs={'class': 'checkbox-multiple uam_multi'}),
+            'hla_drb1_uam': forms.CheckboxSelectMultiple(attrs={'class': 'checkbox-multiple uam_multi'}),
+            'hla_drb_uam': forms.CheckboxSelectMultiple(attrs={'class': 'checkbox-multiple uam_multi'}),
+            'hla_dqb1_uam': forms.CheckboxSelectMultiple(attrs={'class': 'checkbox-multiple uam_multi'}),
         }
 
 class DonorTestForm(forms.ModelForm):

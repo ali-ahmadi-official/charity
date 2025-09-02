@@ -213,6 +213,12 @@ class Recipient(models.Model):
     min_donor_age = models.IntegerField(verbose_name='حداقل سن مناسب برای دهنده', help_text='این مقدار توسط سیستیم تعین می گردد', default=0)
     max_donor_age = models.IntegerField(verbose_name='حداکثر سن مناسب برای دهنده', help_text='این مقدار توسط سیستیم تعین می گردد')
 
+    hla_a_uam = models.ManyToManyField(HlaA, verbose_name='HLA A (UAM)', blank=True, related_name='hla_a_1_uam')
+    hla_b_uam = models.ManyToManyField(HlaB, verbose_name='HLA B (UAM)', blank=True, related_name='hla_b_1_uam')
+    hla_drb1_uam = models.ManyToManyField(HlaDRB1, verbose_name='HLA DRB1 (UAM)', blank=True, related_name='hla_drb1_1_uam')
+    hla_drb_uam = models.ManyToManyField(HlaDRB, verbose_name='HLA DRB (UAM)', blank=True, related_name='hla_drb_1_uam')
+    hla_dqb1_uam = models.ManyToManyField(HlaDQB1, verbose_name='HLA DQB1 (UAM)', blank=True, related_name='hla_dqb1_1_uam')
+
     class Meta:
         verbose_name = 'گیرنده'
         verbose_name_plural = 'گیرندگان'

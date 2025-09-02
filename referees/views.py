@@ -80,7 +80,21 @@ def cadaver_donor_detail(request, pk):
 
     recipients_list = Recipient.objects.filter(
         Q(blood_group__in=donor.recipient_blood_group) &
-        Q(age__gte=donor.min_recipient_age) & Q(age__lte=donor.max_recipient_age)
+        Q(age__gte=donor.min_recipient_age) &
+        Q(age__lte=donor.max_recipient_age)
+    )
+
+    recipients_list = recipients_list.exclude(
+        Q(hla_a_uam=donor.hla_a_1) |
+        Q(hla_a_uam=donor.hla_a_2) |
+        Q(hla_b_uam=donor.hla_b_1) |
+        Q(hla_b_uam=donor.hla_b_2) |
+        Q(hla_drb1_uam=donor.hla_drb1_1) |
+        Q(hla_drb1_uam=donor.hla_drb1_2) |
+        Q(hla_drb_uam=donor.hla_drb_1) |
+        Q(hla_drb_uam=donor.hla_drb_2) |
+        Q(hla_dqb1_uam=donor.hla_dqb1_1) |
+        Q(hla_dqb1_uam=donor.hla_dqb1_2)
     ).order_by('-point')
 
     paginator = Paginator(recipients_list, 100)
@@ -122,7 +136,21 @@ def living_donor_detail(request, pk):
 
     recipients_list = Recipient.objects.filter(
         Q(blood_group__in=donor.recipient_blood_group) &
-        Q(age__gte=donor.min_recipient_age) & Q(age__lte=donor.max_recipient_age)
+        Q(age__gte=donor.min_recipient_age) &
+        Q(age__lte=donor.max_recipient_age)
+    )
+
+    recipients_list = recipients_list.exclude(
+        Q(hla_a_uam=donor.hla_a_1) |
+        Q(hla_a_uam=donor.hla_a_2) |
+        Q(hla_b_uam=donor.hla_b_1) |
+        Q(hla_b_uam=donor.hla_b_2) |
+        Q(hla_drb1_uam=donor.hla_drb1_1) |
+        Q(hla_drb1_uam=donor.hla_drb1_2) |
+        Q(hla_drb_uam=donor.hla_drb_1) |
+        Q(hla_drb_uam=donor.hla_drb_2) |
+        Q(hla_dqb1_uam=donor.hla_dqb1_1) |
+        Q(hla_dqb1_uam=donor.hla_dqb1_2)
     ).order_by('-point')
 
     paginator = Paginator(recipients_list, 100)
@@ -266,12 +294,40 @@ def recipient_detail(request, pk):
 
     cadaver_donor_list = CadaverDonor.objects.filter(
         Q(blood_group__in=recipient.donor_blood_group) &
-        Q(age__gte=recipient.min_donor_age) & Q(age__lte=recipient.max_donor_age)
+        Q(age__gte=recipient.min_donor_age) &
+        Q(age__lte=recipient.max_donor_age)
     )
 
     living_donors_list = LivingDonor.objects.filter(
         Q(blood_group__in=recipient.donor_blood_group) &
-        Q(age__gte=recipient.min_donor_age) & Q(age__lte=recipient.max_donor_age)
+        Q(age__gte=recipient.min_donor_age) &
+        Q(age__lte=recipient.max_donor_age)
+    )
+
+    cadaver_donor_list = cadaver_donor_list.exclude(
+        Q(hla_a_1__in=recipient.hla_a_uam.all()) |
+        Q(hla_a_2__in=recipient.hla_a_uam.all()) |
+        Q(hla_b_1__in=recipient.hla_b_uam.all()) |
+        Q(hla_b_2__in=recipient.hla_b_uam.all()) |
+        Q(hla_drb1_1__in=recipient.hla_drb1_uam.all()) |
+        Q(hla_drb1_2__in=recipient.hla_drb1_uam.all()) |
+        Q(hla_drb_1__in=recipient.hla_drb_uam.all()) |
+        Q(hla_drb_2__in=recipient.hla_drb_uam.all()) |
+        Q(hla_dqb1_1__in=recipient.hla_dqb1_uam.all()) |
+        Q(hla_dqb1_2__in=recipient.hla_dqb1_uam.all())
+    )
+
+    living_donors_list = living_donors_list.exclude(
+        Q(hla_a_1__in=recipient.hla_a_uam.all()) |
+        Q(hla_a_2__in=recipient.hla_a_uam.all()) |
+        Q(hla_b_1__in=recipient.hla_b_uam.all()) |
+        Q(hla_b_2__in=recipient.hla_b_uam.all()) |
+        Q(hla_drb1_1__in=recipient.hla_drb1_uam.all()) |
+        Q(hla_drb1_2__in=recipient.hla_drb1_uam.all()) |
+        Q(hla_drb_1__in=recipient.hla_drb_uam.all()) |
+        Q(hla_drb_2__in=recipient.hla_drb_uam.all()) |
+        Q(hla_dqb1_1__in=recipient.hla_dqb1_uam.all()) |
+        Q(hla_dqb1_2__in=recipient.hla_dqb1_uam.all())
     )
 
     donors_list = list(chain(cadaver_donor_list, living_donors_list))
@@ -279,6 +335,19 @@ def recipient_detail(request, pk):
     paginator = Paginator(donors_list, 100)
     page_number = request.GET.get('page')
     donors = paginator.get_page(page_number)
+
+    recipient_hla_uams = list(chain(
+        recipient.hla_a_uam.all(),
+        recipient.hla_b_uam.all(),
+        recipient.hla_drb1_uam.all(),
+        recipient.hla_drb_uam.all(),
+        recipient.hla_dqb1_uam.all(),
+    ))
+
+    if recipient_hla_uams:
+        is_recipient_hla_uams = True
+    else:
+        is_recipient_hla_uams = False
 
     if isinstance(recipient.waiting_list, str):
         try:
@@ -348,6 +417,8 @@ def recipient_detail(request, pk):
 
     context = {
         'recipient': recipient,
+        'recipient_hla_uams': recipient_hla_uams,
+        'is_recipient_hla_uams': is_recipient_hla_uams,
         'donors': donors,
         'waiting_list_p': waiting_list_p,
         'dialysis_duration_p': dialysis_duration_p,
