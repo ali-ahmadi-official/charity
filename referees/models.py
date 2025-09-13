@@ -1,5 +1,8 @@
+from datetime import datetime
 from django.db import models
 from multiselectfield import MultiSelectField
+from .jalali import Persian
+from .extras import extract_combined_allele_risk, analyze_uam_status
 
 class HlaA(models.Model):
     type_choices = [
@@ -159,6 +162,11 @@ class LivingDonor(Donor):
         super().save(*args, **kwargs)
 
 class Recipient(models.Model):
+    read_uam_from_choices = [
+        ('1', 'از لیست های ارسالی'),
+        ('2', 'از فایل های ارسالی'),
+    ]
+
     blood_group_choices = [
         ('A', 'A'),
         ('B', 'B'),
@@ -183,6 +191,9 @@ class Recipient(models.Model):
         ('3', 'none'),
     ]
 
+    read_uam_from = models.CharField(verbose_name='تحلیل UAM از؟', choices=read_uam_from_choices, default='1')
+    class_i_pdf = models.FileField(verbose_name='Class I PDF', upload_to='recipient_pdf/', blank=True, null=True)
+    class_ii_pdf = models.FileField(verbose_name='Class II PDF', upload_to='recipient_pdf/', blank=True, null=True)
     first_name = models.CharField(verbose_name='نام', max_length=100)
     last_name = models.CharField(verbose_name='نام خانوادگی', max_length=100)
     national_code = models.IntegerField(verbose_name='کد ملی')
@@ -225,7 +236,7 @@ class Recipient(models.Model):
     
     def __str__(self):
         return f'گیرنده {self.first_name} {self.last_name}'
-    
+
     def save(self, *args, **kwargs):
         compatibility_map = {
             'A': ['O', 'A'],
@@ -237,7 +248,130 @@ class Recipient(models.Model):
 
         self.max_donor_age = self.age + 10
 
+        waiting_list = self.waiting_list
+        dialysis_duration = self.dialysis_duration
+        age = self.age
+        previous_donation = self.previous_donation
+        medical_urgency = self.medical_urgency
+        candidate_for_2_kidney_TX = self.candidate_for_2_kidney_TX
+        candidate_for_kidney_after_other_organ_TX = self.candidate_for_kidney_after_other_organ_TX
+        cpra = self.cpra
+        desensitized = self.desensitized
+
+        if isinstance(waiting_list, str):
+            try:
+                waiting_list_date = Persian(waiting_list).gregorian_datetime()
+                now_date = datetime.now().date()
+                delta_days = (now_date - waiting_list_date).days
+                waiting_list_p = round((delta_days / 365), 2)
+            except:
+                pass
+        
+        if isinstance(dialysis_duration, str):
+            try:
+                dialysis_duration_date = Persian(dialysis_duration).gregorian_datetime()
+                now_date = datetime.now().date()
+                delta_days = (now_date - dialysis_duration_date).days
+                dialysis_duration_p = (delta_days / 365)
+            except:
+                pass
+
+        if 0 <= age <= 10:
+            age_p = 4
+        elif 11 <= age <= 17:
+            age_p = 3
+        else:
+            age_p = 0
+        
+        if previous_donation == 'yes':
+            previous_donation_p = 3
+        else:
+            previous_donation_p = 0
+        
+        if medical_urgency == '3':
+            medical_urgency_p = 0
+        else:
+            medical_urgency_p = 3
+        
+        if candidate_for_2_kidney_TX == 'yes':
+            candidate_for_2_kidney_TX_p = 2
+        else:
+            candidate_for_2_kidney_TX_p = 0
+
+        if candidate_for_kidney_after_other_organ_TX == 'yes':
+            candidate_for_kidney_after_other_organ_TX_p = 2
+        else:
+            candidate_for_kidney_after_other_organ_TX_p = 0
+
+        if cpra == '1':
+            cpra_p = 10
+        elif cpra == '2':
+            cpra_p = 4
+        else:
+            cpra_p = 0
+        
+        if desensitized == 'yes':
+            desensitized_p = 10
+        else:
+            desensitized_p = 0
+
+        point = waiting_list_p + round((dialysis_duration_p * 0.5), 2) + age_p + previous_donation_p + medical_urgency_p + candidate_for_2_kidney_TX_p + candidate_for_kidney_after_other_organ_TX_p + cpra_p + desensitized_p
+
+        self.point = point
+
         super().save(*args, **kwargs)
+
+    def process_uam_data(self):
+        if self.class_i_pdf and self.class_ii_pdf:
+            result = extract_combined_allele_risk(self.class_i_pdf.path, self.class_ii_pdf.path)
+            uam_list, warning_list = analyze_uam_status(result)
+
+            self.hla_a_uam.clear()
+            self.hla_b_uam.clear()
+            self.hla_drb1_uam.clear()
+            self.hla_drb_uam.clear()
+            self.hla_dqb1_uam.clear()
+            self.uam_warnings.all().delete()
+
+            for hla in uam_list:
+                try:
+                    if hla.startswith("A*"):
+                        obj, created = HlaA.objects.get_or_create(value=hla, defaults={'type': '3'})
+                        self.hla_a_uam.add(obj)
+
+                    elif hla.startswith("B*"):
+                        obj, created = HlaB.objects.get_or_create(value=hla, defaults={'type': '3'})
+                        self.hla_b_uam.add(obj)
+
+                    elif hla.startswith("DRB1*"):
+                        obj, created = HlaDRB1.objects.get_or_create(value=hla, defaults={'type': '3'})
+                        self.hla_drb1_uam.add(obj)
+
+                    elif hla in ["DRB3", "DRB4", "DRB5"]:
+                        obj, created = HlaDRB.objects.get_or_create(value=hla)
+                        self.hla_drb_uam.add(obj)
+
+                    elif hla.startswith("DQB1*"):
+                        obj, created = HlaDQB1.objects.get_or_create(value=hla, defaults={'type': '3'})
+                        self.hla_dqb1_uam.add(obj)
+
+                except Exception:
+                    continue
+
+            for warning in warning_list:
+                UAMWarning.objects.create(
+                    recipient=self,
+                    hla_base=warning['HLA'],
+                    message=warning['message']
+                )
+
+class UAMWarning(models.Model):
+    recipient = models.ForeignKey(Recipient, on_delete=models.CASCADE, related_name='uam_warnings', verbose_name='گیرنده')
+    hla_base = models.CharField(verbose_name='HLA', max_length=30)
+    message = models.TextField(verbose_name='پیغام')
+
+    def __str__(self):
+        return f'اخطار برای {self.hla_base} گیرنده {self.recipient}'
 
 class DonorTest(models.Model):
     first_name = models.CharField(verbose_name='نام', max_length=100)

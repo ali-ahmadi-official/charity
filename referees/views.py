@@ -211,82 +211,16 @@ class RecipientCreateView(LoginRequiredMixin, CreateView):
     form_class = RecipientForm
     template_name = 'recipients/recipient_add.html'
 
+    def form_valid(self, form):
+        response = super().form_valid(form)
+
+        if form.cleaned_data.get('read_uam_from') == '2':
+            self.object.process_uam_data()
+
+        return response
+
     def get_success_url(self):
         return reverse('recipient_detail', kwargs={'pk': self.object.id})
-
-    def form_valid(self, form):
-        waiting_list = form.cleaned_data['waiting_list']
-        dialysis_duration = form.cleaned_data['dialysis_duration']
-        age = form.cleaned_data['age']
-        previous_donation = form.cleaned_data['previous_donation']
-        medical_urgency = form.cleaned_data['medical_urgency']
-        candidate_for_2_kidney_TX = form.cleaned_data['candidate_for_2_kidney_TX']
-        candidate_for_kidney_after_other_organ_TX = form.cleaned_data['candidate_for_kidney_after_other_organ_TX']
-        cpra = form.cleaned_data['cpra']
-        desensitized = form.cleaned_data['desensitized']
-
-        if isinstance(waiting_list, str):
-            try:
-                waiting_list_date = Persian(waiting_list).gregorian_datetime()
-                now_date = datetime.now().date()
-                delta_days = (now_date - waiting_list_date).days
-                waiting_list_p = round((delta_days / 365), 2)
-            except:
-                pass
-        
-        if isinstance(dialysis_duration, str):
-            try:
-                dialysis_duration_date = Persian(dialysis_duration).gregorian_datetime()
-                now_date = datetime.now().date()
-                delta_days = (now_date - dialysis_duration_date).days
-                dialysis_duration_p = (delta_days / 365)
-            except:
-                pass
-
-        if 0 <= age <= 10:
-            age_p = 4
-        elif 11 <= age <= 17:
-            age_p = 3
-        else:
-            age_p = 0
-        
-        if previous_donation == 'yes':
-            previous_donation_p = 3
-        else:
-            previous_donation_p = 0
-        
-        if medical_urgency == '3':
-            medical_urgency_p = 0
-        else:
-            medical_urgency_p = 3
-        
-        if candidate_for_2_kidney_TX == 'yes':
-            candidate_for_2_kidney_TX_p = 2
-        else:
-            candidate_for_2_kidney_TX_p = 0
-
-        if candidate_for_kidney_after_other_organ_TX == 'yes':
-            candidate_for_kidney_after_other_organ_TX_p = 2
-        else:
-            candidate_for_kidney_after_other_organ_TX_p = 0
-
-        if cpra == '1':
-            cpra_p = 10
-        elif cpra == '2':
-            cpra_p = 4
-        else:
-            cpra_p = 0
-        
-        if desensitized == 'yes':
-            desensitized_p = 10
-        else:
-            desensitized_p = 0
-
-        point = waiting_list_p + round((dialysis_duration_p * 0.5), 2) + age_p + previous_donation_p + medical_urgency_p + candidate_for_2_kidney_TX_p + candidate_for_kidney_after_other_organ_TX_p + cpra_p + desensitized_p
-
-        form.instance.point = point
-
-        return super().form_valid(form)
 
 @login_required
 def recipient_detail(request, pk):
@@ -438,82 +372,16 @@ class RecipientUpdateView(LoginRequiredMixin, UpdateView):
     form_class = RecipientForm
     template_name = 'recipients/recipient_form.html'
 
+    def form_valid(self, form):
+        response = super().form_valid(form)
+
+        if form.cleaned_data.get('read_uam_from') == '2':
+            self.object.process_uam_data()
+
+        return response
+
     def get_success_url(self):
         return reverse('recipient_detail', kwargs={'pk': self.object.id})
-
-    def form_valid(self, form):
-        waiting_list = form.cleaned_data['waiting_list']
-        dialysis_duration = form.cleaned_data['dialysis_duration']
-        age = form.cleaned_data['age']
-        previous_donation = form.cleaned_data['previous_donation']
-        medical_urgency = form.cleaned_data['medical_urgency']
-        candidate_for_2_kidney_TX = form.cleaned_data['candidate_for_2_kidney_TX']
-        candidate_for_kidney_after_other_organ_TX = form.cleaned_data['candidate_for_kidney_after_other_organ_TX']
-        cpra = form.cleaned_data['cpra']
-        desensitized = form.cleaned_data['desensitized']
-
-        if isinstance(waiting_list, str):
-            try:
-                waiting_list_date = Persian(waiting_list).gregorian_datetime()
-                now_date = datetime.now().date()
-                delta_days = (now_date - waiting_list_date).days
-                waiting_list_p = round((delta_days / 365), 2)
-            except:
-                pass
-        
-        if isinstance(dialysis_duration, str):
-            try:
-                dialysis_duration_date = Persian(dialysis_duration).gregorian_datetime()
-                now_date = datetime.now().date()
-                delta_days = (now_date - dialysis_duration_date).days
-                dialysis_duration_p = (delta_days / 365)
-            except:
-                pass
-
-        if 0 <= age <= 10:
-            age_p = 4
-        elif 11 <= age <= 17:
-            age_p = 3
-        else:
-            age_p = 0
-        
-        if previous_donation == 'yes':
-            previous_donation_p = 3
-        else:
-            previous_donation_p = 0
-        
-        if medical_urgency == '3':
-            medical_urgency_p = 0
-        else:
-            medical_urgency_p = 3
-        
-        if candidate_for_2_kidney_TX == 'yes':
-            candidate_for_2_kidney_TX_p = 2
-        else:
-            candidate_for_2_kidney_TX_p = 0
-
-        if candidate_for_kidney_after_other_organ_TX == 'yes':
-            candidate_for_kidney_after_other_organ_TX_p = 2
-        else:
-            candidate_for_kidney_after_other_organ_TX_p = 0
-
-        if cpra == '1':
-            cpra_p = 10
-        elif cpra == '2':
-            cpra_p = 4
-        else:
-            cpra_p = 0
-        
-        if desensitized == 'yes':
-            desensitized_p = 10
-        else:
-            desensitized_p = 0
-
-        point = waiting_list_p + round((dialysis_duration_p * 0.5), 2) + age_p + previous_donation_p + medical_urgency_p + candidate_for_2_kidney_TX_p + candidate_for_kidney_after_other_organ_TX_p + cpra_p + desensitized_p
-
-        form.instance.point = point
-
-        return super().form_valid(form)
 
 class RecipientDeleteView(LoginRequiredMixin, DeleteView):
     model = Recipient
@@ -730,7 +598,13 @@ def auto_add_hla(request):
         ('B*47', '3'), ('B*48', '3'), ('B*49', '3'), ('B*50', '2'),
         ('B*51', '1'), ('B*52', '3'), ('B*53', '3'), ('B*54', '3'),
         ('B*55', '3'), ('B*56', '3'), ('B*57', '3'), ('B*58', '3'),
-        ('B*73', '3'), ('B*78', '3'), ('B*81', '3'),
+        ('B*73', '3'), ('B*78', '3'), ('B*81', '3'), ('B*82', '3'),
+    ]
+
+    hla_drb_choices = [
+        'DRB3',
+        'DRB4',
+        'DRB5',
     ]
 
     hla_drb1_choices = [
@@ -749,6 +623,9 @@ def auto_add_hla(request):
 
     for value, type_ in hla_b_choices:
         HlaB.objects.create(value=value, type=type_)
+    
+    for value in hla_drb_choices:
+        HlaDRB.objects.create(value=value)
 
     for value, type_ in hla_drb1_choices:
         HlaDRB1.objects.create(value=value, type=type_)

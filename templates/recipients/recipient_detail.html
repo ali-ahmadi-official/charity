@@ -31,6 +31,22 @@
     </div>
 
     <div class="my-grid">
+        {% if recipient.class_i_pdf %}
+        <div>
+            <label>Class I PDF</label>
+            <a class="form-control" href="{{ recipient.class_i_pdf.url }}" target="_blank">
+                دیدن فایل انتخاب شده
+            </a>
+        </div>
+        {% endif %}
+        {% if recipient.class_ii_pdf %}
+        <div>
+            <label>Class II PDF</label>
+            <a class="form-control" href="{{ recipient.class_ii_pdf.url }}" target="_blank">
+                دیدن فایل انتخاب شده
+            </a>
+        </div>
+        {% endif %}
         <div>
             <label>نام و نام خانوادگی</label>
             <input class="form-control" value="{{ recipient.first_name }} {{ recipient.last_name }}" disabled>
@@ -55,23 +71,30 @@
     <div class="text-center">
         <div
             style="background-color: #fff; border: 1px solid #f97316; border-radius: 0.5rem; color: #f97316; padding: 8px 32px; font-size: 0.75rem; font-weight: 700; margin-top: 40px;">
-            <svg style="margin-left: 8px; margin-bottom: 5px;" xmlns="http://www.w3.org/2000/svg" width="25" height="25"
-                fill="currentColor" class="bi bi-clipboard2-heart-fill" viewBox="0 0 16 16">
-                <path fill-rule="evenodd"
-                    d="M10.058.501a.5.5 0 0 0-.5-.501h-2.98c-.276 0-.5.225-.5.501A.5.5 0 0 1 5.582 1a.497.497 0 0 0-.497.497V2a.5.5 0 0 0 .5.5h4.968a.5.5 0 0 0 .5-.5v-.503A.497.497 0 0 0 10.555 1a.5.5 0 0 1-.497-.499" />
-                <path fill-rule="evenodd"
-                    d="M4.174 1h-.57a1.5 1.5 0 0 0-1.5 1.5v12a1.5 1.5 0 0 0 1.5 1.5h9a1.5 1.5 0 0 0 1.5-1.5v-12a1.5 1.5 0 0 0-1.5-1.5h-.642q.084.236.085.5V2c0 .828-.668 1.5-1.492 1.5H5.581A1.496 1.496 0 0 1 4.09 2v-.5q.001-.264.085-.5Zm3.894 5.482c1.656-1.673 5.795 1.254 0 5.018-5.795-3.764-1.656-6.69 0-5.018" />
-            </svg>
             {% if recipient.min_donor_age == 0 %}
-            <span style="font-size: large;">گروه (گروه های) خونی مناسب برای اهداکننده این فرد 
-                {{ recipient.donor_blood_group }} و رده سنی مناسب نیز حداکثر {{ recipient.max_donor_age }} سال خواهد
-                بود.
-            </span>
+                <span dir="ltr" style="font-size: large;">
+                    <svg style="margin-right: 8px; margin-bottom: 5px;" xmlns="http://www.w3.org/2000/svg" width="25" height="25"
+                        fill="currentColor" class="bi bi-clipboard2-heart-fill" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd"
+                            d="M10.058.501a.5.5 0 0 0-.5-.501h-2.98c-.276 0-.5.225-.5.501A.5.5 0 0 1 5.582 1a.497.497 0 0 0-.497.497V2a.5.5 0 0 0 .5.5h4.968a.5.5 0 0 0 .5-.5v-.503A.497.497 0 0 0 10.555 1a.5.5 0 0 1-.497-.499" />
+                        <path fill-rule="evenodd"
+                            d="M4.174 1h-.57a1.5 1.5 0 0 0-1.5 1.5v12a1.5 1.5 0 0 0 1.5 1.5h9a1.5 1.5 0 0 0 1.5-1.5v-12a1.5 1.5 0 0 0-1.5-1.5h-.642q.084.236.085.5V2c0 .828-.668 1.5-1.492 1.5H5.581A1.496 1.496 0 0 1 4.09 2v-.5q.001-.264.085-.5Zm3.894 5.482c1.656-1.673 5.795 1.254 0 5.018-5.795-3.764-1.656-6.69 0-5.018" />
+                    </svg>
+                    Suitable blood group(s) for a donor to this individual is/are 
+                    {{ recipient.donor_blood_group }}, and the appropriate age range is up to {{ recipient.max_donor_age }} years old.
+                </span>
             {% elif recipient.max_donor_age == 200 %}
-            <span style="font-size: large;">گروه (گروه های) خونی مناسب برای اهداکننده این فرد 
-                {{ recipient.donor_blood_group }} و رده سنی مناسب نیز حداقل {{ recipient.min_donor_age }} سال خواهد
-                بود.
-            </span>
+                <span dir="ltr" style="font-size: large;">
+                    <svg style="margin-right: 8px; margin-bottom: 5px;" xmlns="http://www.w3.org/2000/svg" width="25" height="25"
+                        fill="currentColor" class="bi bi-clipboard2-heart-fill" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd"
+                            d="M10.058.501a.5.5 0 0 0-.5-.501h-2.98c-.276 0-.5.225-.5.501A.5.5 0 0 1 5.582 1a.497.497 0 0 0-.497.497V2a.5.5 0 0 0 .5.5h4.968a.5.5 0 0 0 .5-.5v-.503A.497.497 0 0 0 10.555 1a.5.5 0 0 1-.497-.499" />
+                        <path fill-rule="evenodd"
+                            d="M4.174 1h-.57a1.5 1.5 0 0 0-1.5 1.5v12a1.5 1.5 0 0 0 1.5 1.5h9a1.5 1.5 0 0 0 1.5-1.5v-12a1.5 1.5 0 0 0-1.5-1.5h-.642q.084.236.085.5V2c0 .828-.668 1.5-1.492 1.5H5.581A1.496 1.496 0 0 1 4.09 2v-.5q.001-.264.085-.5Zm3.894 5.482c1.656-1.673 5.795 1.254 0 5.018-5.795-3.764-1.656-6.69 0-5.018" />
+                    </svg>
+                    Suitable blood group(s) for a donor to this individual is/are 
+                    {{ recipient.donor_blood_group }}, and the appropriate age range starts from {{ recipient.min_donor_age }} years old.
+                </span>
             {% endif %}
         </div>
     </div>
@@ -114,6 +137,20 @@
         {% endfor %}
     </div>
     {% endif %}
+    <div class="text-center">
+        {% for uam_warning in recipient.uam_warnings.all %}
+        <div
+            style="background-color: #fff; border: 1px solid #C5172E; border-radius: 0.5rem; color: #C5172E; padding: 8px 32px; font-size: 0.75rem; font-weight: 700; margin-top: 40px;">
+            <span dir="ltr" style="font-size: large;">
+                <svg style="margin-right: 8px; margin-bottom: 5px;" xmlns="http://www.w3.org/2000/svg" width="25" height="25"
+                    fill="currentColor" class="bi bi-clipboard2-heart-fill" viewBox="0 0 16 16">
+                    <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
+                </svg>
+                {{ uam_warning.message }}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
     <div class="second-grid" style="margin-bottom: 40px;">
         <div class="points">
             <h5 style="color: #f97316;">Scoring matrix</h5>
@@ -364,7 +401,7 @@
                             {% endfor %}
                             {% else %}
                             <tr>
-                                <td colspan="7" class="align-middle text-center">
+                                <td colspan="8" class="align-middle text-center">
                                     <span class="text-secondary text-xs font-weight-bold">موردی یافت نشد</span>
                                 </td>
                             </tr>
