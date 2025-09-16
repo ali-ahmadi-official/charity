@@ -150,6 +150,34 @@
                 {% endif %}
             </div>
             <div>
+                <label>{{ form.gender.label }}</label>
+                <div class="mb-3">
+                    <select name="gender" class="form-control">
+                        {% for choice in form.gender.field.choices %}
+                        <option value="{{ choice.0 }}" {% if form.gender.value|default:'' == choice.0|default:'' %} selected="selected" {% endif %}>
+                            {{ choice.1 }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% if form.gender.errors %}
+                {% for error in form.gender.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>
+                <label>{{ form.pregnancies_number.label }}</label>
+                <div class="mb-3">
+                    <input type="number" name="pregnancies_number" class="form-control" value="{{ form.pregnancies_number.value }}">
+                </div>
+                {% if form.pregnancies_number.errors %}
+                {% for error in form.pregnancies_number.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>
                 <label>{{ form.age.label }}</label>
                 <div class="mb-3">
                     <input type="number" name="age" class="form-control" value="{{ form.age.value }}">

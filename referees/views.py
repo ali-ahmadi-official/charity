@@ -1,16 +1,19 @@
 from datetime import datetime
 from itertools import chain
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import JsonResponse
 from django.urls import reverse, reverse_lazy
 from django.db.models import Q
 from django.core.paginator import Paginator
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from .models import CadaverDonor, LivingDonor, Recipient, HlaA, HlaB, HlaDRB1, HlaDRB, HlaDQB1, DonorTest, RecipientTest
 from .forms import CustomUserCreationForm, CadaverDonorForm, LivingDonorForm, RecipientForm, DonorTestForm, RecipientTestForm
 from .mixins import SuperUserRequiredMixin
 from .jalali import Persian
+from .extras import extract_patient_info_from_pdf, map_pdf_data_to_form_fields
 
 class SignUpView(LoginRequiredMixin, SuperUserRequiredMixin, CreateView):
     form_class = CustomUserCreationForm
@@ -576,6 +579,15 @@ class RecipientTestDeleteView(LoginRequiredMixin, DeleteView):
     model = RecipientTest
     template_name = 'test/recipient_test_confirm_delete.html'
     success_url = reverse_lazy('referees_test_lists')
+
+@csrf_exempt
+def extract_pdf_data(request):
+    if request.method == 'POST' and request.FILES.get('file'):
+        pdf_file = request.FILES['file']
+        raw_data = extract_patient_info_from_pdf(pdf_file)
+        form_data = map_pdf_data_to_form_fields(raw_data)
+        return JsonResponse(form_data)
+    return JsonResponse({'error': 'فایل ارسال نشده'}, status=400)
 
 @login_required
 def auto_add_hla(request):

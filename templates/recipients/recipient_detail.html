@@ -60,6 +60,18 @@
             <input class="form-control" value="{{ recipient.national_code }}" disabled>
         </div>
         <div>
+            <label>جنسیت</label>
+            <input class="form-control" value="{{ recipient.get_gender_display }}" disabled>
+        </div>
+        <div>
+            <label>تعداد بارداری</label>
+            {% if recipient.pregnancies_number %}
+            <input class="form-control" value="{{ recipient.pregnancies_number }}" disabled>
+            {% else %}
+            <input class="form-control" value="---" disabled>
+            {% endif %}
+        </div>
+        <div>
             <label>سن</label>
             <input class="form-control" value="{{ recipient.age }}" disabled>
         </div>

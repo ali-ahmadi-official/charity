@@ -77,10 +77,15 @@
                     </svg>
                 </div>
             </div>
+            <div id="api-message" style="grid-column: 1 / span 4; display: none; justify-content: center; align-items: center;">
+                <p style="color: #f97316; margin: 0;">
+                    فیلد های استخراج شده از فایل pdf به این رنگ مشخص شدند.
+                </p>
+            </div>
             <div>
                 <label>{{ form.first_name.label }}</label>
                 <div class="mb-3">
-                    <input type="text" name="first_name" class="form-control" value="{{ form.first_name.value|default:'' }}">
+                    <input type="text" name="first_name" id="first_name" class="form-control" value="{{ form.first_name.value|default:'' }}">
                 </div>
                 {% if form.first_name.errors %}
                 {% for error in form.first_name.errors %}
@@ -91,7 +96,7 @@
             <div>
                 <label>{{ form.last_name.label }}</label>
                 <div class="mb-3">
-                    <input type="text" name="last_name" class="form-control" value="{{ form.last_name.value|default:'' }}">
+                    <input type="text" name="last_name" id="last_name" class="form-control" value="{{ form.last_name.value|default:'' }}">
                 </div>
                 {% if form.last_name.errors %}
                 {% for error in form.last_name.errors %}
@@ -102,7 +107,7 @@
             <div>
                 <label>{{ form.national_code.label }}</label>
                 <div class="mb-3">
-                    <input type="number" name="national_code" class="form-control" value="{{ form.national_code.value|default:'' }}">
+                    <input type="number" name="national_code" id="national_code" class="form-control" value="{{ form.national_code.value|default:'' }}">
                 </div>
                 {% if form.national_code.errors %}
                 {% for error in form.national_code.errors %}
@@ -122,9 +127,37 @@
                 {% endif %}
             </div>
             <div>
+                <label>{{ form.gender.label }}</label>
+                <div class="mb-3">
+                    <select name="gender" id="gender" class="form-control">
+                        {% for choice in form.gender.field.choices %}
+                        <option value="{{ choice.0 }}" {% if form.gender.value == choice.0 %}selected{% endif %}>
+                            {{ choice.1 }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% if form.gender.errors %}
+                {% for error in form.gender.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>
+                <label>{{ form.pregnancies_number.label }}</label>
+                <div class="mb-3">
+                    <input type="number" name="pregnancies_number" id="pregnancies_number" class="form-control" value="{{ form.pregnancies_number.value|default:'' }}">
+                </div>
+                {% if form.pregnancies_number.errors %}
+                {% for error in form.pregnancies_number.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>
                 <label>{{ form.age.label }}</label>
                 <div class="mb-3">
-                    <input type="number" name="age" class="form-control" value="{{ form.age.value|default:'' }}">
+                    <input type="number" name="age" id="age" class="form-control" value="{{ form.age.value|default:'' }}">
                 </div>
                 {% if form.age.errors %}
                 {% for error in form.age.errors %}
@@ -135,7 +168,7 @@
             <div>
                 <label>{{ form.blood_group.label }}</label>
                 <div class="mb-3">
-                    <select name="blood_group" class="form-control">
+                    <select name="blood_group" id="blood_group" class="form-control">
                         {% for choice in form.blood_group.field.choices %}
                         <option value="{{ choice.0 }}" {% if form.blood_group.value == choice.0 %}selected{% endif %}>
                             {{ choice.1 }}

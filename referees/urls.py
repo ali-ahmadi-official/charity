@@ -14,6 +14,7 @@ from .views import (
     HlaDRBCreateview, HlaDRBUpdateView, HlaDRBDeleteView,
     HlaDQB1Createview, HlaDQB1UpdateView, HlaDQB1DeleteView,
     referees_test_lists, DonorTestCreateView, RecipientTestCreateView, DonorTestUpdateView, RecipientTestUpdateView, DonorTestDeleteView, RecipientTestDeleteView,
+    extract_pdf_data,
     auto_add_hla,
 )
 
@@ -71,6 +72,8 @@ urlpatterns = [
     path('hla-test/recipient/new/', RecipientTestCreateView.as_view(), name='recipient_test_create'),
     path('hla-test/recipient/<int:pk>/edit/', RecipientTestUpdateView.as_view(), name='recipient_test_update'),
     path('hla-test/recipient/<int:pk>/delete/', RecipientTestDeleteView.as_view(), name='recipient_test_delete'),
+
+    path('api/extract/', extract_pdf_data),
 
     path('auto-add-hla/', auto_add_hla, name='auto_add_hla'),
 ]

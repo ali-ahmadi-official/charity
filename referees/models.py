@@ -167,6 +167,11 @@ class Recipient(models.Model):
         ('2', 'از فایل های ارسالی'),
     ]
 
+    gender_choices = [
+        ('1', 'مرد'),
+        ('2', 'زن'),
+    ]
+
     blood_group_choices = [
         ('A', 'A'),
         ('B', 'B'),
@@ -197,6 +202,8 @@ class Recipient(models.Model):
     first_name = models.CharField(verbose_name='نام', max_length=100)
     last_name = models.CharField(verbose_name='نام خانوادگی', max_length=100)
     national_code = models.IntegerField(verbose_name='کد ملی')
+    gender = models.CharField(verbose_name='جنسیت', choices=gender_choices)
+    pregnancies_number = models.IntegerField(verbose_name='تعداد بارداری (اختیاری)', null=True, blank=True)
     phone_number = models.IntegerField(verbose_name='شماره تماس')
     age = models.IntegerField(verbose_name='سن')
     blood_group = models.CharField(verbose_name='گروه خونی', max_length=2, choices=blood_group_choices)
