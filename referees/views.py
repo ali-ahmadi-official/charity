@@ -13,7 +13,7 @@ from .models import CadaverDonor, LivingDonor, Recipient, HlaA, HlaB, HlaDRB1, H
 from .forms import CustomUserCreationForm, CadaverDonorForm, LivingDonorForm, RecipientForm, DonorTestForm, RecipientTestForm
 from .mixins import SuperUserRequiredMixin
 from .jalali import Persian
-from .extras import extract_patient_info_from_pdf, map_pdf_data_to_form_fields
+from .pcr import extract_patient_info_from_pdf, extract_alleles_from_pdf
 
 class SignUpView(LoginRequiredMixin, SuperUserRequiredMixin, CreateView):
     form_class = CustomUserCreationForm
@@ -37,15 +37,13 @@ def main(request):
 class DonorListView(LoginRequiredMixin, ListView):
     template_name = 'donors/donor_list.html'
     paginate_by = 100
+    context_object_name = 'donors'
 
-    def get(self, request):
-        search_query = request.GET.get('q')
-        blood_group = request.GET.get('blood_group')
-        national_code = request.GET.get('national_code')
-        age = request.GET.get('age')
-
-        cadaver_donors = CadaverDonor.objects.all()
-        living_donors = LivingDonor.objects.all()
+    def get_queryset(self):
+        search_query = self.request.GET.get('q')
+        blood_group = self.request.GET.get('blood_group')
+        national_code = self.request.GET.get('national_code')
+        age = self.request.GET.get('age')
 
         filters = {}
         if blood_group:
@@ -55,19 +53,15 @@ class DonorListView(LoginRequiredMixin, ListView):
         if age:
             filters['age'] = age
 
-        if search_query:
-            cadaver_donors = cadaver_donors.filter(
-                Q(first_name__icontains=search_query) | Q(last_name__icontains=search_query)
-            ).filter(**filters)
-            living_donors = living_donors.filter(
-                Q(first_name__icontains=search_query) | Q(last_name__icontains=search_query)
-            ).filter(**filters)
-        else:
-            cadaver_donors = cadaver_donors.filter(**filters)
-            living_donors = living_donors.filter(**filters)
+        cadaver_donors = CadaverDonor.objects.filter(**filters)
+        living_donors = LivingDonor.objects.filter(**filters)
 
-        donors = list(chain(cadaver_donors, living_donors))
-        return render(request, self.template_name, {'donors': donors})
+        if search_query:
+            cadaver_donors = cadaver_donors.filter(Q(full_name__icontains=search_query))
+            living_donors = living_donors.filter(Q(full_name__icontains=search_query))
+
+        combined = list(chain(cadaver_donors, living_donors))
+        return combined
 
 class CadaverDonorCreateView(LoginRequiredMixin, CreateView):
     model = CadaverDonor
@@ -197,8 +191,7 @@ class RecipientListView(LoginRequiredMixin, ListView):
 
         if search_query:
             queryset = queryset.filter(
-                Q(first_name__icontains=search_query) | 
-                Q(last_name__icontains=search_query)
+                Q(full_name__icontains=search_query)
             )
         if blood_group:
             queryset = queryset.filter(blood_group=blood_group)
@@ -581,12 +574,19 @@ class RecipientTestDeleteView(LoginRequiredMixin, DeleteView):
     success_url = reverse_lazy('referees_test_lists')
 
 @csrf_exempt
-def extract_pdf_data(request):
+def extract_info_data(request):
     if request.method == 'POST' and request.FILES.get('file'):
         pdf_file = request.FILES['file']
-        raw_data = extract_patient_info_from_pdf(pdf_file)
-        form_data = map_pdf_data_to_form_fields(raw_data)
-        return JsonResponse(form_data)
+        data = extract_patient_info_from_pdf(pdf_file)
+        return JsonResponse(data)
+    return JsonResponse({'error': 'فایل ارسال نشده'}, status=400)
+
+@csrf_exempt
+def extract_hla_data(request):
+    if request.method == 'POST' and request.FILES.get('file'):
+        pdf_file = request.FILES['file']
+        data = extract_alleles_from_pdf(pdf_file)
+        return JsonResponse(data)
     return JsonResponse({'error': 'فایل ارسال نشده'}, status=400)
 
 @login_required

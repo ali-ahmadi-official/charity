@@ -15,7 +15,7 @@
 
 {% block contain %}
 <div class="row">
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <h3 style="margin-bottom: 20px;">فرم اهدا کننده</h3>
 
@@ -26,24 +26,35 @@
         {% endif %}
 
         <div class="my-grid">
-            <div>
-                <label>{{ form.first_name.label }}</label>
-                <div class="mb-3">
-                    <input type="text" name="first_name" class="form-control" value="{{ form.first_name.value|default:'' }}">
+            <div class="file-upload" style="grid-column: 1 / span 4;">
+                <label for="pcr_based_input" class="file-label" data-type="pcr_based">
+                    انتخاب فایل PCR Based
+                    <svg class="pdf-icon" width="20" height="20" viewBox="0 0 16 16" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M14 4.5V14a2 2 0 0 1-2 2h-1v-1h1a1 1 0 0 0 1-1V4.5h-2A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v9H2V2a2 2 0 0 1 2-2h5.5zM1.6 11.85H0v3.999h.791v-1.342h.803q.43 0 .732-.173.305-.175.463-.474a1.4 1.4 0 0 0 .161-.677q0-.375-.158-.677a1.2 1.2 0 0 0-.46-.477q-.3-.18-.732-.179m.545 1.333a.8.8 0 0 1-.085.38.57.57 0 0 1-.238.241.8.8 0 0 1-.375.082H.788V12.48h.66q.327 0 .512.181.185.183.185.522m1.217-1.333v3.999h1.46q.602 0 .998-.237a1.45 1.45 0 0 0 .595-.689q.196-.45.196-1.084 0-.63-.196-1.075a1.43 1.43 0 0 0-.589-.68q-.396-.234-1.005-.234zm.791.645h.563q.371 0 .609.152a.9.9 0 0 1 .354.454q.118.302.118.753a2.3 2.3 0 0 1-.068.592 1.1 1.1 0 0 1-.196.422.8.8 0 0 1-.334.252 1.3 1.3 0 0 1-.483.082h-.563zm3.743 1.763v1.591h-.79V11.85h2.548v.653H7.896v1.117h1.606v.638z" />
+                    </svg>
+                </label>
+                <input type="file" name="pcr_based_pdf" id="pcr_based_input" class="file-input" data-type="pcr_based" accept=".pdf">
+                <div class="file-info" data-type="pcr_based" style="display: none;">
+                    <span class="file-name" data-type="pcr_based"></span>
+                    <svg class="trash-icon remove-file" data-type="pcr_based" viewBox="0 0 16 16" fill="currentColor">
+                        <path
+                            d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0" />
+                    </svg>
                 </div>
-                {% if form.first_name.errors %}
-                {% for error in form.first_name.errors %}
-                <p class="error">{{ error }}</p>
-                {% endfor %}
-                {% endif %}
+            </div>
+            <div id="api-message" style="grid-column: 1 / span 4; display: none; justify-content: center; align-items: center;">
+                <p style="color: #f97316; margin: 0;">
+                    فیلد های استخراج شده از فایل pdf به این رنگ مشخص شدند.
+                </p>
             </div>
             <div>
-                <label>{{ form.last_name.label }}</label>
+                <label>{{ form.full_name.label }}</label>
                 <div class="mb-3">
-                    <input type="text" name="last_name" class="form-control" value="{{ form.last_name.value|default:'' }}">
+                    <input type="text" id="full_name" name="full_name" class="form-control" value="{{ form.full_name.value|default:'' }}">
                 </div>
-                {% if form.last_name.errors %}
-                {% for error in form.last_name.errors %}
+                {% if form.full_name.errors %}
+                {% for error in form.full_name.errors %}
                 <p class="error">{{ error }}</p>
                 {% endfor %}
                 {% endif %}
@@ -51,7 +62,7 @@
             <div>
                 <label>{{ form.national_code.label }}</label>
                 <div class="mb-3">
-                    <input type="number" name="national_code" class="form-control" value="{{ form.national_code.value|default:'' }}">
+                    <input type="text" id="national_code" name="national_code" class="form-control" value="{{ form.national_code.value|default:'' }}">
                 </div>
                 {% if form.national_code.errors %}
                 {% for error in form.national_code.errors %}
@@ -71,9 +82,37 @@
                 {% endif %}
             </div>
             <div>
+                <label>{{ form.gender.label }}</label>
+                <div class="mb-3">
+                    <select name="gender" id="gender" class="form-control">
+                        {% for choice in form.gender.field.choices %}
+                        <option value="{{ choice.0 }}" {% if form.gender.value == choice.0 %}selected{% endif %}>
+                            {{ choice.1 }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% if form.gender.errors %}
+                {% for error in form.gender.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>
+                <label>{{ form.pregnancies_number.label }}</label>
+                <div class="mb-3">
+                    <input type="number" name="pregnancies_number" id="pregnancies_number" class="form-control" value="{{ form.pregnancies_number.value|default:'' }}">
+                </div>
+                {% if form.pregnancies_number.errors %}
+                {% for error in form.pregnancies_number.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>
                 <label>{{ form.age.label }}</label>
                 <div class="mb-3">
-                    <input type="number" name="age" class="form-control" value="{{ form.age.value|default:'' }}">
+                    <input type="number" id="age" name="age" class="form-control" value="{{ form.age.value|default:'' }}">
                 </div>
                 {% if form.age.errors %}
                 {% for error in form.age.errors %}
@@ -83,7 +122,7 @@
             </div>
             <div>
                 <label>{{ form.blood_group.label }}</label>
-                <select name="blood_group" class="form-control">
+                <select name="blood_group" id="blood_group" class="form-control">
                     {% for choice in form.blood_group.field.choices %}
                     <option value="{{ choice.0 }}" {% if form.blood_group.value == choice.0 %}selected{% endif %}>
                         {{ choice.1 }}
@@ -117,4 +156,5 @@
         </div>
     </form>
 </div>
+<script src="{% static 'js/hla-uam-pdf.js' %}"></script>
 {% endblock %}

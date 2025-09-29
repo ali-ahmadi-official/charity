@@ -1,6 +1,6 @@
 <div class="card mb-4">
     <div class="card-header pb-0" style="display: flex; justify-content: space-between;">
-        <h6>لیست اهدا کنندگان <span><a href="{% url 'donor_list' %}" style="font-size: small; color: #f97316;">مشاهده همه</a></span></h6>
+        <h6>لیست اهدا کنندگان</h6>
         <button
             style="background-color: #fff; border: 1px solid #f97316; border-radius: 0.5rem; color: #f97316; padding: 8px 32px; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center;">
             <a id="donorLink" href="{% url 'cadaver_donor_create' %}" style="color: #f97316;">
@@ -49,7 +49,7 @@
                             <span class="text-secondary text-xs font-weight-bold">{{ donor.get_status_display }}</span>
                         </td>
                         <td class="align-middle text-center">
-                            <span class="text-secondary text-xs font-weight-bold">{{ donor.first_name }} {{ donor.last_name }}</span>
+                            <span class="text-secondary text-xs font-weight-bold">{{ donor.full_name }}</span>
                         </td>
                         <td class="align-middle text-center">
                             <span class="text-secondary text-xs font-weight-bold">{{ donor.phone_number }}</span>

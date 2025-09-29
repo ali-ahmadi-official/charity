@@ -2,7 +2,7 @@ from datetime import datetime
 from django.db import models
 from multiselectfield import MultiSelectField
 from .jalali import Persian
-from .extras import extract_combined_allele_risk, analyze_uam_status
+from .igg import extract_combined_allele_risk, analyze_uam_status
 
 class HlaA(models.Model):
     type_choices = [
@@ -63,6 +63,11 @@ class HlaDQB1(models.Model):
         return self.value
 
 class Donor(models.Model):
+    gender_choices = [
+        ('1', 'مرد'),
+        ('2', 'زن'),
+    ]
+    
     blood_group_choices = [
         ('A', 'A'),
         ('B', 'B'),
@@ -75,10 +80,12 @@ class Donor(models.Model):
         ('2', 'Living Donor'),
     ]
 
-    first_name = models.CharField(verbose_name='نام', max_length=100)
-    last_name = models.CharField(verbose_name='نام خانوادگی', max_length=100)
-    national_code = models.IntegerField(verbose_name='کد ملی')
+    pcr_based_pdf = models.FileField(verbose_name='PCR Based PDF', upload_to='donor_pdf/', blank=True, null=True)
+    full_name = models.CharField(verbose_name='نام و نام خانوادگی', max_length=200)
+    national_code = models.CharField(verbose_name='کد ملی', max_length=15)
     phone_number = models.IntegerField(verbose_name='شماره تماس')
+    gender = models.CharField(verbose_name='جنسیت', choices=gender_choices)
+    pregnancies_number = models.IntegerField(verbose_name='تعداد بارداری (اختیاری)', null=True, blank=True)
     age = models.IntegerField(verbose_name='سن')
     blood_group = models.CharField(verbose_name='گروه خونی', max_length=2, choices=blood_group_choices)
     recipient_blood_group = MultiSelectField(verbose_name='گروه خونی مناسب برای گیرنده', help_text='این مقدار توسط سیستیم تعین می گردد', max_length=2, choices=blood_group_choices)
@@ -103,7 +110,7 @@ class Donor(models.Model):
         abstract = True
 
     def __str__(self):
-        return f'اهدا کننده {self.first_name} {self.last_name}'
+        return f'اهدا کننده {self.full_name}'
 
     def save(self, *args, **kwargs):
         compatibility_map = {
@@ -124,7 +131,7 @@ class CadaverDonor(Donor):
         verbose_name_plural = 'اهدا کنندگان مرگ مغزی'
 
     def __str__(self):
-        return f'اهدا کننده مرگ مغزی {self.first_name} {self.last_name}'
+        return f'اهدا کننده مرگ مغزی {self.full_name}'
 
     def save(self, *args, **kwargs):
         self.status = '1'
@@ -151,7 +158,7 @@ class LivingDonor(Donor):
         verbose_name_plural = 'اهدا کنندگان زنده'
 
     def __str__(self):
-        return f'اهدا کننده زنده {self.first_name} {self.last_name}'
+        return f'اهدا کننده زنده {self.full_name}'
 
     def save(self, *args, **kwargs):
         self.status = '2'
@@ -197,11 +204,11 @@ class Recipient(models.Model):
     ]
 
     read_uam_from = models.CharField(verbose_name='تحلیل UAM از؟', choices=read_uam_from_choices, default='1')
+    pcr_based_pdf = models.FileField(verbose_name='PCR Based PDF', upload_to='recipient_pdf/', blank=True, null=True)
     class_i_pdf = models.FileField(verbose_name='Class I PDF', upload_to='recipient_pdf/', blank=True, null=True)
     class_ii_pdf = models.FileField(verbose_name='Class II PDF', upload_to='recipient_pdf/', blank=True, null=True)
-    first_name = models.CharField(verbose_name='نام', max_length=100)
-    last_name = models.CharField(verbose_name='نام خانوادگی', max_length=100)
-    national_code = models.IntegerField(verbose_name='کد ملی')
+    full_name = models.CharField(verbose_name='نام و نام خانوادگی', max_length=200)
+    national_code = models.CharField(verbose_name='کد ملی', max_length=15)
     gender = models.CharField(verbose_name='جنسیت', choices=gender_choices)
     pregnancies_number = models.IntegerField(verbose_name='تعداد بارداری (اختیاری)', null=True, blank=True)
     phone_number = models.IntegerField(verbose_name='شماره تماس')
