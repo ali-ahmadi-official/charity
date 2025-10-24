@@ -3,6 +3,7 @@ from itertools import chain
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
@@ -10,15 +11,17 @@ from django.urls import reverse, reverse_lazy
 from django.db.models import Q
 from django.core.paginator import Paginator
 from .models import CadaverDonor, LivingDonor, Recipient, HlaA, HlaB, HlaDRB1, HlaDRB, HlaDQB1, DonorTest, RecipientTest
-from .forms import CustomUserCreationForm, CadaverDonorForm, LivingDonorForm, RecipientForm, DonorTestForm, RecipientTestForm
-from .mixins import SuperUserRequiredMixin
+from .forms import CustomUserCreationForm, CustomUserChangeForm, CadaverDonorForm, LivingDonorForm, RecipientForm, DonorTestForm, RecipientTestForm
+from .mixins import SuperAdminRequiredMixin, superadmin_required
 from .jalali import Persian
 from .pcr import extract_patient_info_from_pdf, extract_alleles_from_pdf
 
-class SignUpView(LoginRequiredMixin, SuperUserRequiredMixin, CreateView):
+CustomUser = get_user_model()
+
+class SignUpView(LoginRequiredMixin, SuperAdminRequiredMixin, CreateView):
     form_class = CustomUserCreationForm
     template_name = 'registration/signup.html'
-    success_url = reverse_lazy('main')
+    success_url = reverse_lazy('user_list')
 
 @login_required
 def main(request):
@@ -105,7 +108,7 @@ def cadaver_donor_detail(request, pk):
 
     return render(request, 'donors/donor_detail.html', context)
 
-class CadaverDonorUpdateView(LoginRequiredMixin, UpdateView):
+class CadaverDonorUpdateView(LoginRequiredMixin, SuperAdminRequiredMixin, UpdateView):
     model = CadaverDonor
     form_class = CadaverDonorForm
     template_name = 'donors/cadaver_donor_form.html'
@@ -113,7 +116,7 @@ class CadaverDonorUpdateView(LoginRequiredMixin, UpdateView):
     def get_success_url(self):
         return reverse('cadaver_donor_detail', kwargs={'pk': self.object.id})
 
-class CadaverDonorDeleteView(LoginRequiredMixin, DeleteView):
+class CadaverDonorDeleteView(LoginRequiredMixin, SuperAdminRequiredMixin, DeleteView):
     model = CadaverDonor
     context_object_name = 'donor'
     template_name = 'donors/cadaver_donor_confirm_delete.html'
@@ -161,7 +164,7 @@ def living_donor_detail(request, pk):
 
     return render(request, 'donors/donor_detail.html', context)
 
-class LivingDonorUpdateView(LoginRequiredMixin, UpdateView):
+class LivingDonorUpdateView(LoginRequiredMixin, SuperAdminRequiredMixin, UpdateView):
     model = LivingDonor
     form_class = LivingDonorForm
     template_name = 'donors/living_donor_form.html'
@@ -169,7 +172,7 @@ class LivingDonorUpdateView(LoginRequiredMixin, UpdateView):
     def get_success_url(self):
         return reverse('living_donor_detail', kwargs={'pk': self.object.id})
 
-class LivingDonorDeleteView(LoginRequiredMixin, DeleteView):
+class LivingDonorDeleteView(LoginRequiredMixin, SuperAdminRequiredMixin, DeleteView):
     model = LivingDonor
     context_object_name = 'donor'
     template_name = 'donors/living_donor_confirm_delete.html'
@@ -279,70 +282,91 @@ def recipient_detail(request, pk):
     else:
         is_recipient_hla_uams = False
 
-    if isinstance(recipient.waiting_list, str):
-        try:
-            waiting_list_date = Persian(recipient.waiting_list).gregorian_datetime()
-            now_date = datetime.now().date()
-            delta_days = (now_date - waiting_list_date).days
-            waiting_list_p = round((delta_days / 365), 2)
-        except:
-            pass
+    if all(value is not None for value in [
+        recipient.waiting_list,
+        recipient.dialysis_duration,
+        recipient.age,
+        recipient.previous_donation,
+        recipient.medical_urgency,
+        recipient.candidate_for_2_kidney_TX,
+        recipient.candidate_for_kidney_after_other_organ_TX,
+        recipient.cpra,
+        recipient.desensitized
+    ]):
+        if isinstance(recipient.waiting_list, str):
+            try:
+                waiting_list_date = Persian(recipient.waiting_list).gregorian_datetime()
+                now_date = datetime.now().date()
+                delta_days = (now_date - waiting_list_date).days
+                waiting_list_p = round((delta_days / 365), 2)
+            except:
+                pass
+            
+        if isinstance(recipient.dialysis_duration, str):
+            try:
+                dialysis_duration_date = Persian(recipient.dialysis_duration).gregorian_datetime()
+                now_date = datetime.now().date()
+                delta_days = (now_date - dialysis_duration_date).days
+                dialysis_duration_p = (delta_days / 365)
+            except:
+                pass
+
+        dialysis_duration_p = round((dialysis_duration_p * 0.5), 2)
+        age = recipient.age
+        previous_donation = recipient.previous_donation
+        medical_urgency = recipient.medical_urgency
+        candidate_for_2_kidney_TX = recipient.candidate_for_2_kidney_TX
+        candidate_for_kidney_after_other_organ_TX = recipient.candidate_for_kidney_after_other_organ_TX
+        cpra = recipient.cpra
+        desensitized = recipient.desensitized
+
+        if 0 <= age <= 10:
+            age_p = 4
+        elif 11 <= age <= 17:
+            age_p = 3
+        else:
+            age_p = 0
+            
+        if previous_donation == 'yes':
+            previous_donation_p = 3
+        else:
+            previous_donation_p = 0
         
-    if isinstance(recipient.dialysis_duration, str):
-        try:
-            dialysis_duration_date = Persian(recipient.dialysis_duration).gregorian_datetime()
-            now_date = datetime.now().date()
-            delta_days = (now_date - dialysis_duration_date).days
-            dialysis_duration_p = (delta_days / 365)
-        except:
-            pass
+        if medical_urgency == '3':
+            medical_urgency_p = 0
+        else:
+            medical_urgency_p = 3
+            
+        if candidate_for_2_kidney_TX == 'yes':
+            candidate_for_2_kidney_TX_p = 2
+        else:
+            candidate_for_2_kidney_TX_p = 0
 
-    dialysis_duration_p = round((dialysis_duration_p * 0.5), 2)
-    age = recipient.age
-    previous_donation = recipient.previous_donation
-    medical_urgency = recipient.medical_urgency
-    candidate_for_2_kidney_TX = recipient.candidate_for_2_kidney_TX
-    candidate_for_kidney_after_other_organ_TX = recipient.candidate_for_kidney_after_other_organ_TX
-    cpra = recipient.cpra
-    desensitized = recipient.desensitized
+        if candidate_for_kidney_after_other_organ_TX == 'yes':
+            candidate_for_kidney_after_other_organ_TX_p = 2
+        else:
+            candidate_for_kidney_after_other_organ_TX_p = 0
 
-    if 0 <= age <= 10:
-        age_p = 4
-    elif 11 <= age <= 17:
-        age_p = 3
+        if cpra == '1':
+            cpra_p = 10
+        elif cpra == '2':
+            cpra_p = 4
+        else:
+            cpra_p = 0
+
+        if desensitized == 'yes':
+            desensitized_p = 10
+        else:
+            desensitized_p = 0
     else:
+        waiting_list_p = 0
+        dialysis_duration_p = 0
         age_p = 0
-        
-    if previous_donation == 'yes':
-        previous_donation_p = 3
-    else:
         previous_donation_p = 0
-    
-    if medical_urgency == '3':
         medical_urgency_p = 0
-    else:
-        medical_urgency_p = 3
-        
-    if candidate_for_2_kidney_TX == 'yes':
-        candidate_for_2_kidney_TX_p = 2
-    else:
         candidate_for_2_kidney_TX_p = 0
-
-    if candidate_for_kidney_after_other_organ_TX == 'yes':
-        candidate_for_kidney_after_other_organ_TX_p = 2
-    else:
         candidate_for_kidney_after_other_organ_TX_p = 0
-
-    if cpra == '1':
-        cpra_p = 10
-    elif cpra == '2':
-        cpra_p = 4
-    else:
         cpra_p = 0
-
-    if desensitized == 'yes':
-        desensitized_p = 10
-    else:
         desensitized_p = 0
 
     context = {
@@ -363,7 +387,7 @@ def recipient_detail(request, pk):
 
     return render(request, 'recipients/recipient_detail.html', context)
 
-class RecipientUpdateView(LoginRequiredMixin, UpdateView):
+class RecipientUpdateView(LoginRequiredMixin, SuperAdminRequiredMixin, UpdateView):
     model = Recipient
     form_class = RecipientForm
     template_name = 'recipients/recipient_form.html'
@@ -379,12 +403,13 @@ class RecipientUpdateView(LoginRequiredMixin, UpdateView):
     def get_success_url(self):
         return reverse('recipient_detail', kwargs={'pk': self.object.id})
 
-class RecipientDeleteView(LoginRequiredMixin, DeleteView):
+class RecipientDeleteView(LoginRequiredMixin, SuperAdminRequiredMixin, DeleteView):
     model = Recipient
     template_name = 'recipients/recipient_confirm_delete.html'
     success_url = reverse_lazy('recipient_list')
 
 @login_required
+@superadmin_required
 def hla_lists(request):
     hla_as = HlaA.objects.all()
     hla_bs = HlaB.objects.all()
@@ -402,7 +427,7 @@ def hla_lists(request):
 
     return render(request, 'hla/hla_lists.html', context=context)
 
-class HlaACreateview(LoginRequiredMixin, CreateView):
+class HlaACreateview(LoginRequiredMixin, SuperAdminRequiredMixin, CreateView):
     model = HlaA
     fields = '__all__'
     template_name = 'hla/hla_a_form.html'
@@ -410,7 +435,7 @@ class HlaACreateview(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse('hla_lists')
 
-class HlaAUpdateView(LoginRequiredMixin, UpdateView):
+class HlaAUpdateView(LoginRequiredMixin, SuperAdminRequiredMixin, UpdateView):
     model = HlaA
     fields = '__all__'
     template_name = 'hla/hla_a_form.html'
@@ -418,12 +443,12 @@ class HlaAUpdateView(LoginRequiredMixin, UpdateView):
     def get_success_url(self):
         return reverse('hla_lists')
 
-class HlaADeleteView(LoginRequiredMixin, DeleteView):
+class HlaADeleteView(LoginRequiredMixin, SuperAdminRequiredMixin, DeleteView):
     model = HlaA
     template_name = 'hla/hla_a_confirm_delete.html'
     success_url = reverse_lazy('hla_lists')
 
-class HlaBCreateview(LoginRequiredMixin, CreateView):
+class HlaBCreateview(LoginRequiredMixin, SuperAdminRequiredMixin, CreateView):
     model = HlaB
     fields = '__all__'
     template_name = 'hla/hla_b_form.html'
@@ -431,7 +456,7 @@ class HlaBCreateview(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse('hla_lists')
 
-class HlaBUpdateView(LoginRequiredMixin, UpdateView):
+class HlaBUpdateView(LoginRequiredMixin, SuperAdminRequiredMixin, UpdateView):
     model = HlaB
     fields = '__all__'
     template_name = 'hla/hla_b_form.html'
@@ -439,12 +464,12 @@ class HlaBUpdateView(LoginRequiredMixin, UpdateView):
     def get_success_url(self):
         return reverse('hla_lists')
 
-class HlaBDeleteView(LoginRequiredMixin, DeleteView):
+class HlaBDeleteView(LoginRequiredMixin, SuperAdminRequiredMixin, DeleteView):
     model = HlaB
     template_name = 'hla/hla_b_confirm_delete.html'
     success_url = reverse_lazy('hla_lists')
 
-class HlaDRB1Createview(LoginRequiredMixin, CreateView):
+class HlaDRB1Createview(LoginRequiredMixin, SuperAdminRequiredMixin, CreateView):
     model = HlaDRB1
     fields = '__all__'
     template_name = 'hla/hla_drb1_form.html'
@@ -452,7 +477,7 @@ class HlaDRB1Createview(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse('hla_lists')
 
-class HlaDRB1UpdateView(LoginRequiredMixin, UpdateView):
+class HlaDRB1UpdateView(LoginRequiredMixin, SuperAdminRequiredMixin, UpdateView):
     model = HlaDRB1
     fields = '__all__'
     template_name = 'hla/hla_drb1_form.html'
@@ -460,12 +485,12 @@ class HlaDRB1UpdateView(LoginRequiredMixin, UpdateView):
     def get_success_url(self):
         return reverse('hla_lists')
 
-class HlaDRB1DeleteView(LoginRequiredMixin, DeleteView):
+class HlaDRB1DeleteView(LoginRequiredMixin, SuperAdminRequiredMixin, DeleteView):
     model = HlaDRB1
     template_name = 'hla/hla_drb1_confirm_delete.html'
     success_url = reverse_lazy('hla_lists')
 
-class HlaDRBCreateview(LoginRequiredMixin, CreateView):
+class HlaDRBCreateview(LoginRequiredMixin, SuperAdminRequiredMixin, CreateView):
     model = HlaDRB
     fields = '__all__'
     template_name = 'hla/hla_drb_form.html'
@@ -473,7 +498,7 @@ class HlaDRBCreateview(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse('hla_lists')
     
-class HlaDRBUpdateView(LoginRequiredMixin, UpdateView):
+class HlaDRBUpdateView(LoginRequiredMixin, SuperAdminRequiredMixin, UpdateView):
     model = HlaDRB
     fields = '__all__'
     template_name = 'hla/hla_drb_form.html'
@@ -481,12 +506,12 @@ class HlaDRBUpdateView(LoginRequiredMixin, UpdateView):
     def get_success_url(self):
         return reverse('hla_lists')
 
-class HlaDRBDeleteView(LoginRequiredMixin, DeleteView):
+class HlaDRBDeleteView(LoginRequiredMixin, SuperAdminRequiredMixin, DeleteView):
     model = HlaDRB
     template_name = 'hla/hla_drb_confirm_delete.html'
     success_url = reverse_lazy('hla_lists')
 
-class HlaDQB1Createview(LoginRequiredMixin, CreateView):
+class HlaDQB1Createview(LoginRequiredMixin, SuperAdminRequiredMixin, CreateView):
     model = HlaDQB1
     fields = '__all__'
     template_name = 'hla/hla_dqb1_form.html'
@@ -494,7 +519,7 @@ class HlaDQB1Createview(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse('hla_lists')
 
-class HlaDQB1UpdateView(LoginRequiredMixin, UpdateView):
+class HlaDQB1UpdateView(LoginRequiredMixin, SuperAdminRequiredMixin, UpdateView):
     model = HlaDQB1
     fields = '__all__'
     template_name = 'hla/hla_dqb1_form.html'
@@ -502,12 +527,13 @@ class HlaDQB1UpdateView(LoginRequiredMixin, UpdateView):
     def get_success_url(self):
         return reverse('hla_lists')
 
-class HlaDQB1DeleteView(LoginRequiredMixin, DeleteView):
+class HlaDQB1DeleteView(LoginRequiredMixin, SuperAdminRequiredMixin, DeleteView):
     model = HlaDQB1
     template_name = 'hla/hla_dqb1_confirm_delete.html'
     success_url = reverse_lazy('hla_lists')
 
 @login_required
+@superadmin_required
 def referees_test_lists(request):
     donor_tests = DonorTest.objects.all()
     recipient_tests = RecipientTest.objects.all()
@@ -531,7 +557,7 @@ def referees_test_lists(request):
 
     return render(request, 'test/referees_test_lists.html', context)
 
-class DonorTestCreateView(LoginRequiredMixin, CreateView):
+class DonorTestCreateView(LoginRequiredMixin, SuperAdminRequiredMixin, CreateView):
     model = DonorTest
     form_class = DonorTestForm
     template_name = 'test/donor_test_add.html'
@@ -539,7 +565,7 @@ class DonorTestCreateView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse('referees_test_lists')
 
-class RecipientTestCreateView(LoginRequiredMixin, CreateView):
+class RecipientTestCreateView(LoginRequiredMixin, SuperAdminRequiredMixin, CreateView):
     model = RecipientTest
     form_class = RecipientTestForm
     template_name = 'test/recipient_test_add.html'
@@ -547,7 +573,7 @@ class RecipientTestCreateView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse('referees_test_lists')
 
-class DonorTestUpdateView(LoginRequiredMixin, UpdateView):
+class DonorTestUpdateView(LoginRequiredMixin, SuperAdminRequiredMixin, UpdateView):
     model = DonorTest
     form_class = DonorTestForm
     template_name = 'test/donor_test_add.html'
@@ -555,7 +581,7 @@ class DonorTestUpdateView(LoginRequiredMixin, UpdateView):
     def get_success_url(self):
         return reverse('referees_test_lists')
 
-class RecipientTestUpdateView(LoginRequiredMixin, UpdateView):
+class RecipientTestUpdateView(LoginRequiredMixin, SuperAdminRequiredMixin, UpdateView):
     model = RecipientTest
     form_class = RecipientTestForm
     template_name = 'test/recipient_test_add.html'
@@ -563,17 +589,37 @@ class RecipientTestUpdateView(LoginRequiredMixin, UpdateView):
     def get_success_url(self):
         return reverse('referees_test_lists')
     
-class DonorTestDeleteView(LoginRequiredMixin, DeleteView):
+class DonorTestDeleteView(LoginRequiredMixin, SuperAdminRequiredMixin, DeleteView):
     model = DonorTest
     template_name = 'test/donor_test_confirm_delete.html'
     success_url = reverse_lazy('referees_test_lists')
 
-class RecipientTestDeleteView(LoginRequiredMixin, DeleteView):
+class RecipientTestDeleteView(LoginRequiredMixin, SuperAdminRequiredMixin, DeleteView):
     model = RecipientTest
     template_name = 'test/recipient_test_confirm_delete.html'
     success_url = reverse_lazy('referees_test_lists')
 
+class UserListView(LoginRequiredMixin, SuperAdminRequiredMixin, ListView):
+    model = CustomUser
+    context_object_name = 'users'
+    paginate_by = 100
+    template_name = 'users/user_list.html'
+
+class UserUpdateView(LoginRequiredMixin, SuperAdminRequiredMixin, UpdateView):
+    model = CustomUser
+    form_class = CustomUserChangeForm
+    template_name = 'users/user_form.html'
+
+    def get_success_url(self):
+        return reverse('user_list')
+
+class UserDeleteView(LoginRequiredMixin, SuperAdminRequiredMixin, DeleteView):
+    model = CustomUser
+    template_name = 'users/user_confirm_delete.html'
+    success_url = reverse_lazy('user_list')
+
 @csrf_exempt
+@login_required
 def extract_info_data(request):
     if request.method == 'POST' and request.FILES.get('file'):
         pdf_file = request.FILES['file']
@@ -582,6 +628,7 @@ def extract_info_data(request):
     return JsonResponse({'error': 'فایل ارسال نشده'}, status=400)
 
 @csrf_exempt
+@login_required
 def extract_hla_data(request):
     if request.method == 'POST' and request.FILES.get('file'):
         pdf_file = request.FILES['file']
@@ -590,6 +637,7 @@ def extract_hla_data(request):
     return JsonResponse({'error': 'فایل ارسال نشده'}, status=400)
 
 @login_required
+@superadmin_required
 def auto_add_hla(request):
     hla_a_choices = [
         ('A*01', '1'), ('A*02', '1'), ('A*03', '1'), ('A*07', '3'),

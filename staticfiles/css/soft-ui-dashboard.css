@@ -28054,7 +28054,6 @@ pre[class*=language-] {
 }
 
 .error {
-  max-width: 220px;
   padding: 10px;
   color: red;
   background-color: rgba(246, 10, 10, 0.2);
@@ -28310,7 +28309,7 @@ pre[class*=language-] {
   user-select: none;
 }
 
-.uam {
+.uam, .matrix {
   background-color: #fff;
   border: 1px solid #f97316;
   border-radius: 0.5rem;

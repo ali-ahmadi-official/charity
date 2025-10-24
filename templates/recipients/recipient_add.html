@@ -188,11 +188,14 @@
                 {% endfor %}
                 {% endif %}
             </div>
+        </div>
+        <h5 style="margin-top: 20px;">Matrix score calculation method: <input type="button" value="Using the fields" class="matrix"></h5>
+        <div class="my-grid">
             <div>
                 <label>{{ form.waiting_list.label }}</label>
                 <span style="font-size: small;">{{ form.waiting_list.help_text }}</span>
                 <div class="mb-3">
-                    <input data-jdp type="text" name="waiting_list" class="form-control" value="{{ form.waiting_list.value|default:'' }}" autocomplete="off">
+                    <input data-jdp type="text" name="waiting_list" class="form-control matrix-field" value="{{ form.waiting_list.value|default:'' }}" autocomplete="off">
                 </div>
                 {% if form.waiting_list.errors %}
                 {% for error in form.waiting_list.errors %}
@@ -204,7 +207,7 @@
                 <label>{{ form.dialysis_duration.label }}</label>
                 <span style="font-size: small;">{{ form.dialysis_duration.help_text }}</span>
                 <div class="mb-3">
-                    <input data-jdp type="text" name="dialysis_duration" class="form-control" value="{{ form.dialysis_duration.value|default:'' }}" autocomplete="off">
+                    <input data-jdp type="text" name="dialysis_duration" class="form-control matrix-field" value="{{ form.dialysis_duration.value|default:'' }}" autocomplete="off">
                 </div>
                 {% if form.dialysis_duration.errors %}
                 {% for error in form.dialysis_duration.errors %}
@@ -215,7 +218,7 @@
             <div>
                 <label>{{ form.previous_donation.label }}</label>
                 <div class="mb-3">
-                    <select name="previous_donation" class="form-control">
+                    <select name="previous_donation" class="form-control matrix-field">
                         {% for choice in form.previous_donation.field.choices %}
                         <option value="{{ choice.0 }}" {% if form.previous_donation.value == choice.0 %}selected{% endif %}>
                             {{ choice.1 }}
@@ -232,7 +235,7 @@
             <div>
                 <label>{{ form.medical_urgency.label }}</label>
                 <div class="mb-3">
-                    <select name="medical_urgency" class="form-control">
+                    <select name="medical_urgency" class="form-control matrix-field">
                         {% for choice in form.medical_urgency.field.choices %}
                         <option value="{{ choice.0 }}" {% if form.medical_urgency.value == choice.0 %}selected{% endif %}>
                             {{ choice.1 }}
@@ -249,7 +252,7 @@
             <div>
                 <label>{{ form.candidate_for_2_kidney_TX.label }}</label>
                 <div class="mb-3">
-                    <select name="candidate_for_2_kidney_TX" class="form-control">
+                    <select name="candidate_for_2_kidney_TX" class="form-control matrix-field">
                         {% for choice in form.candidate_for_2_kidney_TX.field.choices %}
                         <option value="{{ choice.0 }}" {% if form.candidate_for_2_kidney_TX.value == choice.0 %}selected{% endif %}>
                             {{ choice.1 }}
@@ -266,7 +269,7 @@
             <div>
                 <label>{{ form.candidate_for_kidney_after_other_organ_TX.label }}</label>
                 <div class="mb-3">
-                    <select name="candidate_for_kidney_after_other_organ_TX" class="form-control">
+                    <select name="candidate_for_kidney_after_other_organ_TX" class="form-control matrix-field">
                         {% for choice in form.candidate_for_kidney_after_other_organ_TX.field.choices %}
                         <option value="{{ choice.0 }}" {% if form.candidate_for_kidney_after_other_organ_TX.value == choice.0 %}selected{% endif %}>
                             {{ choice.1 }}
@@ -283,7 +286,7 @@
             <div>
                 <label>{{ form.cpra.label }}</label>
                 <div class="mb-3">
-                    <select name="cpra" class="form-control">
+                    <select name="cpra" class="form-control matrix-field">
                         {% for choice in form.cpra.field.choices %}
                         <option value="{{ choice.0 }}" {% if form.cpra.value == choice.0 %}selected{% endif %}>
                             {{ choice.1 }}
@@ -300,7 +303,7 @@
             <div>
                 <label>{{ form.desensitized.label }}</label>
                 <div class="mb-3">
-                    <select name="desensitized" class="form-control">
+                    <select name="desensitized" class="form-control matrix-field">
                         {% for choice in form.desensitized.field.choices %}
                         <option value="{{ choice.0 }}" {% if form.desensitized.value == choice.0 %}selected{% endif %}>
                             {{ choice.1 }}
@@ -341,6 +344,34 @@
             reader.readAsDataURL(file);
         }
     }); 
+</script>
+<script>
+    const button = document.querySelector('.matrix');
+    const inputs = document.querySelectorAll('.matrix-field');
+    let disabled = false;
+
+    inputs.forEach(input => {
+        input.required = true;
+    });
+
+    button.addEventListener('click', () => {
+        disabled = !disabled;
+
+        inputs.forEach(input => {
+            input.disabled = disabled;
+            input.required = !disabled;
+
+            if (disabled) {
+                if (input.tagName === 'SELECT') {
+                    input.selectedIndex = 0;
+                } else {
+                    input.value = '';
+                }
+            }
+        });
+
+        button.value = disabled ? 'Set 0 Without Calculation' : 'Using the fields';
+    });
 </script>
 <script src="{% static 'js/hla-uam-pdf.js' %}"></script>
 {% endblock %}

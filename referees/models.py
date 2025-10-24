@@ -214,14 +214,14 @@ class Recipient(models.Model):
     phone_number = models.IntegerField(verbose_name='شماره تماس')
     age = models.IntegerField(verbose_name='سن')
     blood_group = models.CharField(verbose_name='گروه خونی', max_length=2, choices=blood_group_choices)
-    waiting_list = models.CharField(max_length=10)
-    dialysis_duration = models.CharField(max_length=10)
-    previous_donation = models.CharField(max_length=3, choices=previous_donation_candidate_choices)
-    medical_urgency = models.CharField(max_length=1, choices=medical_urgency_choices)
-    candidate_for_2_kidney_TX = models.CharField(max_length=3, choices=previous_donation_candidate_choices)
-    candidate_for_kidney_after_other_organ_TX = models.CharField(max_length=3, choices=previous_donation_candidate_choices)
-    cpra = models.CharField(max_length=1, choices=cpra_choices)
-    desensitized = models.CharField(max_length=3, choices=previous_donation_candidate_choices)
+    waiting_list = models.CharField(max_length=10, null=True, blank=True)
+    dialysis_duration = models.CharField(max_length=10, null=True, blank=True)
+    previous_donation = models.CharField(max_length=3, choices=previous_donation_candidate_choices, null=True, blank=True)
+    medical_urgency = models.CharField(max_length=1, choices=medical_urgency_choices, null=True, blank=True)
+    candidate_for_2_kidney_TX = models.CharField(max_length=3, choices=previous_donation_candidate_choices, null=True, blank=True)
+    candidate_for_kidney_after_other_organ_TX = models.CharField(max_length=3, choices=previous_donation_candidate_choices, null=True, blank=True)
+    cpra = models.CharField(max_length=1, choices=cpra_choices, null=True, blank=True)
+    desensitized = models.CharField(max_length=3, choices=previous_donation_candidate_choices, null=True, blank=True)
     hla_a_1 = models.ForeignKey(HlaA, on_delete=models.DO_NOTHING, verbose_name='HLA A (allele 1)', related_name='hla_a_1_recipient')
     hla_a_2 = models.ForeignKey(HlaA, on_delete=models.DO_NOTHING, verbose_name='HLA A (allele 2)', related_name='hla_a_2_recipient')
     hla_b_1 = models.ForeignKey(HlaB, on_delete=models.DO_NOTHING, verbose_name='HLA B (allele 1)', related_name='hla_b_1_recipient')
@@ -272,66 +272,80 @@ class Recipient(models.Model):
         cpra = self.cpra
         desensitized = self.desensitized
 
-        if isinstance(waiting_list, str):
-            try:
-                waiting_list_date = Persian(waiting_list).gregorian_datetime()
-                now_date = datetime.now().date()
-                delta_days = (now_date - waiting_list_date).days
-                waiting_list_p = round((delta_days / 365), 2)
-            except:
-                pass
-        
-        if isinstance(dialysis_duration, str):
-            try:
-                dialysis_duration_date = Persian(dialysis_duration).gregorian_datetime()
-                now_date = datetime.now().date()
-                delta_days = (now_date - dialysis_duration_date).days
-                dialysis_duration_p = (delta_days / 365)
-            except:
-                pass
+        if all(value is not None for value in [
+            self.waiting_list,
+            self.dialysis_duration,
+            self.age,
+            self.previous_donation,
+            self.medical_urgency,
+            self.candidate_for_2_kidney_TX,
+            self.candidate_for_kidney_after_other_organ_TX,
+            self.cpra,
+            self.desensitized
+        ]):
 
-        if 0 <= age <= 10:
-            age_p = 4
-        elif 11 <= age <= 17:
-            age_p = 3
-        else:
-            age_p = 0
-        
-        if previous_donation == 'yes':
-            previous_donation_p = 3
-        else:
-            previous_donation_p = 0
-        
-        if medical_urgency == '3':
-            medical_urgency_p = 0
-        else:
-            medical_urgency_p = 3
-        
-        if candidate_for_2_kidney_TX == 'yes':
-            candidate_for_2_kidney_TX_p = 2
-        else:
-            candidate_for_2_kidney_TX_p = 0
+            if isinstance(waiting_list, str):
+                try:
+                    waiting_list_date = Persian(waiting_list).gregorian_datetime()
+                    now_date = datetime.now().date()
+                    delta_days = (now_date - waiting_list_date).days
+                    waiting_list_p = round((delta_days / 365), 2)
+                except:
+                    pass
+            
+            if isinstance(dialysis_duration, str):
+                try:
+                    dialysis_duration_date = Persian(dialysis_duration).gregorian_datetime()
+                    now_date = datetime.now().date()
+                    delta_days = (now_date - dialysis_duration_date).days
+                    dialysis_duration_p = (delta_days / 365)
+                except:
+                    pass
 
-        if candidate_for_kidney_after_other_organ_TX == 'yes':
-            candidate_for_kidney_after_other_organ_TX_p = 2
-        else:
-            candidate_for_kidney_after_other_organ_TX_p = 0
+            if 0 <= age <= 10:
+                age_p = 4
+            elif 11 <= age <= 17:
+                age_p = 3
+            else:
+                age_p = 0
+            
+            if previous_donation == 'yes':
+                previous_donation_p = 3
+            else:
+                previous_donation_p = 0
+            
+            if medical_urgency == '3':
+                medical_urgency_p = 0
+            else:
+                medical_urgency_p = 3
+            
+            if candidate_for_2_kidney_TX == 'yes':
+                candidate_for_2_kidney_TX_p = 2
+            else:
+                candidate_for_2_kidney_TX_p = 0
 
-        if cpra == '1':
-            cpra_p = 10
-        elif cpra == '2':
-            cpra_p = 4
-        else:
-            cpra_p = 0
-        
-        if desensitized == 'yes':
-            desensitized_p = 10
-        else:
-            desensitized_p = 0
+            if candidate_for_kidney_after_other_organ_TX == 'yes':
+                candidate_for_kidney_after_other_organ_TX_p = 2
+            else:
+                candidate_for_kidney_after_other_organ_TX_p = 0
 
-        point = waiting_list_p + round((dialysis_duration_p * 0.5), 2) + age_p + previous_donation_p + medical_urgency_p + candidate_for_2_kidney_TX_p + candidate_for_kidney_after_other_organ_TX_p + cpra_p + desensitized_p
+            if cpra == '1':
+                cpra_p = 10
+            elif cpra == '2':
+                cpra_p = 4
+            else:
+                cpra_p = 0
+            
+            if desensitized == 'yes':
+                desensitized_p = 10
+            else:
+                desensitized_p = 0
 
-        self.point = point
+            point = waiting_list_p + round((dialysis_duration_p * 0.5), 2) + age_p + previous_donation_p + medical_urgency_p + candidate_for_2_kidney_TX_p + candidate_for_kidney_after_other_organ_TX_p + cpra_p + desensitized_p
+
+            self.point = point
+        else:
+            self.point = 0
 
         super().save(*args, **kwargs)
 

@@ -7,12 +7,29 @@ CustomUser = get_user_model()
 
 class CustomUserCreationForm(UserCreationForm):
     username = forms.CharField(label='نام کاربری', max_length=100, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    first_name = forms.CharField(label='نام', max_length=100, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    last_name = forms.CharField(label='نام خانوادگی', max_length=100, widget=forms.TextInput(attrs={'class': 'form-control'}))
     password1 = forms.CharField(label='رمز عبور', widget=forms.PasswordInput(attrs={'class': 'form-control'}))
     password2 = forms.CharField(label='تکرار رمز عبور', widget=forms.PasswordInput(attrs={'class': 'form-control'}))
 
     class Meta:
         model = CustomUser
-        fields = ('username', 'password1', 'password2')
+        fields = ('username', 'first_name', 'last_name', 'password1', 'password2')
+
+class CustomUserChangeForm(forms.ModelForm):
+    class Meta:
+        model = CustomUser
+        fields = ('username', 'first_name', 'last_name')
+        labels = {
+            'username': 'نام کاربری',
+            'first_name': 'نام',
+            'last_name': 'نام خانوادگی',
+        }
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+        }
 
 class CadaverDonorForm(forms.ModelForm):
     class Meta:
