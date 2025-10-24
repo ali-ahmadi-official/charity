@@ -9,24 +9,18 @@ function mismatchPoint(type1, type2) {
     return 0;
 }
 
-function calculateLocusScore(r1, r1_type, r2, r2_type, donorList, locus) {
-    if (locus === "hla_drb") {
-        let matches = 0;
-        [r1, r2].forEach(r => {
-            if (donorList.some(d => d.value === r)) matches++;
-        });
-        return matches === 2 ? 5 : matches === 1 ? 3 : 0;
-    }
-
-    function scoreOneAllele(rec, recType) {
-        const match = donorList.find(d => d.value === rec);
+function calculateLocusScore(r1, r1_type, r2, r2_type, donorList) {
+    function scoreOneAllele(don, donType) {
+        const match = [r1, r2].find(r => r === don);
         if (match) return 5;
-        const scores = donorList.map(d => mismatchPoint(recType, d.type));
+
+        const scores = [r1_type, r2_type].map(rt => mismatchPoint(donType, rt));
         return Math.max(...scores);
     }
 
-    return scoreOneAllele(r1, r1_type) + scoreOneAllele(r2, r2_type);
+    return donorList.reduce((sum, d) => sum + scoreOneAllele(d.value, d.type), 0);
 }
+
 
 function scoreHlaDrb(rec1, rec2, donor1, donor2) {
     let score = 0;
@@ -152,11 +146,11 @@ trs.forEach(tr => {
         hla_dqb1_second_type: document.getElementById(`hla_dqb1_second_${recipientId}_type`).innerText.trim(),
     };
 
-    const hla_a_point = calculateLocusScore(recipient.hla_a_first, recipient.hla_a_first_type, recipient.hla_a_second, recipient.hla_a_second_type, hal_a_list, "hla_a");
-    const hla_b_point = calculateLocusScore(recipient.hla_b_first, recipient.hla_b_first_type, recipient.hla_b_second, recipient.hla_b_second_type, hal_b_list, "hla_b");
-    const hla_drb1_point = calculateLocusScore(recipient.hla_drb1_first, recipient.hla_drb1_first_type, recipient.hla_drb1_second, recipient.hla_drb1_second_type, hal_drb1_list, "hla_drb1");
+    const hla_a_point = calculateLocusScore(recipient.hla_a_first, recipient.hla_a_first_type, recipient.hla_a_second, recipient.hla_a_second_type, hal_a_list);
+    const hla_b_point = calculateLocusScore(recipient.hla_b_first, recipient.hla_b_first_type, recipient.hla_b_second, recipient.hla_b_second_type, hal_b_list);
+    const hla_drb1_point = calculateLocusScore(recipient.hla_drb1_first, recipient.hla_drb1_first_type, recipient.hla_drb1_second, recipient.hla_drb1_second_type, hal_drb1_list);
     const hla_drb_point = scoreHlaDrb(recipient.hla_drb_first, recipient.hla_drb_second, donor.hla_drb_first, donor.hla_drb_second);
-    const hla_dqb1_point = calculateLocusScore(recipient.hla_dqb1_first, recipient.hla_dqb1_first_type, recipient.hla_dqb1_second, recipient.hla_dqb1_second_type, hal_dqb1_list, "hla_dqb1");
+    const hla_dqb1_point = calculateLocusScore(recipient.hla_dqb1_first, recipient.hla_dqb1_first_type, recipient.hla_dqb1_second, recipient.hla_dqb1_second_type, hal_dqb1_list);
 
     const self_hla_a_point_div = document.getElementById(`hla_a_${recipientId}_point`);
     const self_hla_b_point_div = document.getElementById(`hla_b_${recipientId}_point`);
