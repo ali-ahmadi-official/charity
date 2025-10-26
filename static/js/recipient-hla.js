@@ -156,7 +156,7 @@ trs.forEach(tr => {
     const hla_a_point = calculateLocusScore(recipient.hla_a_first, recipient.hla_a_first_type, recipient.hla_a_second, recipient.hla_a_second_type, hal_a_list, "hla_a");
     const hla_b_point = calculateLocusScore(recipient.hla_b_first, recipient.hla_b_first_type, recipient.hla_b_second, recipient.hla_b_second_type, hal_b_list, "hla_b");
     const hla_drb1_point = calculateLocusScore(recipient.hla_drb1_first, recipient.hla_drb1_first_type, recipient.hla_drb1_second, recipient.hla_drb1_second_type, hal_drb1_list, "hla_drb1");
-    const hla_drb_point = scoreHlaDrb(recipient.hla_drb_first, recipient.hla_drb_second, donor.hla_drb_first, donor.hla_drb_second);
+    const hla_drb_point = scoreHlaDrb(donor.hla_drb_first, donor.hla_drb_second, recipient.hla_drb_first, recipient.hla_drb_second);
     const hla_dqb1_point = calculateLocusScore(recipient.hla_dqb1_first, recipient.hla_dqb1_first_type, recipient.hla_dqb1_second, recipient.hla_dqb1_second_type, hal_dqb1_list, "hla_dqb1");
 
     const self_hla_a_point_div = document.getElementById(`hla_a_${recipientId}_${status}_point`);
