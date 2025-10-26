@@ -84,18 +84,25 @@ def cadaver_donor_detail(request, pk):
         Q(age__lte=donor.max_recipient_age)
     )
 
+    hla_drb_values = [x for x in [donor.hla_drb_1, donor.hla_drb_2] if x]
+
+    conflict_filter = (
+        Q(hla_a_uam__in=[donor.hla_a_1, donor.hla_a_2]) |
+        Q(hla_b_uam__in=[donor.hla_b_1, donor.hla_b_2]) |
+        Q(hla_drb1_uam__in=[donor.hla_drb1_1, donor.hla_drb1_2]) |
+        Q(hla_dqb1_uam__in=[donor.hla_dqb1_1, donor.hla_dqb1_2])
+    )
+
+    if hla_drb_values:
+        conflict_filter |= Q(hla_drb_uam__in=hla_drb_values)
+
+    conflict_recipients = Recipient.objects.filter(conflict_filter).distinct()
+
     recipients_list = recipients_list.exclude(
-        Q(hla_a_uam=donor.hla_a_1) |
-        Q(hla_a_uam=donor.hla_a_2) |
-        Q(hla_b_uam=donor.hla_b_1) |
-        Q(hla_b_uam=donor.hla_b_2) |
-        Q(hla_drb1_uam=donor.hla_drb1_1) |
-        Q(hla_drb1_uam=donor.hla_drb1_2) |
-        Q(hla_drb_uam=donor.hla_drb_1) |
-        Q(hla_drb_uam=donor.hla_drb_2) |
-        Q(hla_dqb1_uam=donor.hla_dqb1_1) |
-        Q(hla_dqb1_uam=donor.hla_dqb1_2)
-    ).order_by('-point')
+        id__in=conflict_recipients.values_list('id', flat=True)
+    )
+
+    recipients_list = recipients_list.order_by('-point')
 
     paginator = Paginator(recipients_list, 100)
     page_number = request.GET.get('page')
@@ -140,18 +147,25 @@ def living_donor_detail(request, pk):
         Q(age__lte=donor.max_recipient_age)
     )
 
+    hla_drb_values = [x for x in [donor.hla_drb_1, donor.hla_drb_2] if x]
+
+    conflict_filter = (
+        Q(hla_a_uam__in=[donor.hla_a_1, donor.hla_a_2]) |
+        Q(hla_b_uam__in=[donor.hla_b_1, donor.hla_b_2]) |
+        Q(hla_drb1_uam__in=[donor.hla_drb1_1, donor.hla_drb1_2]) |
+        Q(hla_dqb1_uam__in=[donor.hla_dqb1_1, donor.hla_dqb1_2])
+    )
+
+    if hla_drb_values:
+        conflict_filter |= Q(hla_drb_uam__in=hla_drb_values)
+
+    conflict_recipients = Recipient.objects.filter(conflict_filter).distinct()
+
     recipients_list = recipients_list.exclude(
-        Q(hla_a_uam=donor.hla_a_1) |
-        Q(hla_a_uam=donor.hla_a_2) |
-        Q(hla_b_uam=donor.hla_b_1) |
-        Q(hla_b_uam=donor.hla_b_2) |
-        Q(hla_drb1_uam=donor.hla_drb1_1) |
-        Q(hla_drb1_uam=donor.hla_drb1_2) |
-        Q(hla_drb_uam=donor.hla_drb_1) |
-        Q(hla_drb_uam=donor.hla_drb_2) |
-        Q(hla_dqb1_uam=donor.hla_dqb1_1) |
-        Q(hla_dqb1_uam=donor.hla_dqb1_2)
-    ).order_by('-point')
+        id__in=conflict_recipients.values_list('id', flat=True)
+    )
+
+    recipients_list = recipients_list.order_by('-point')
 
     paginator = Paginator(recipients_list, 100)
     page_number = request.GET.get('page')

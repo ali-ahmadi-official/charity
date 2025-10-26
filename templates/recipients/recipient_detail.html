@@ -293,6 +293,18 @@
                                     <div style="color: #f97316;" class="form-control c5">HLA DQB1</div>
                                     <div style="color: #f97316;" class="form-control c6">Person</div>
 
+                                    <div class="form-control">{{ recipient.hla_a_1 }}</div>
+                                    <div class="form-control">{{ recipient.hla_a_2 }}</div>
+                                    <div class="form-control">{{ recipient.hla_b_1 }}</div>
+                                    <div class="form-control">{{ recipient.hla_b_2 }}</div>
+                                    <div class="form-control">{{ recipient.hla_drb1_1 }}</div>
+                                    <div class="form-control">{{ recipient.hla_drb1_2 }}</div>
+                                    <div class="form-control">{{ recipient.hla_drb_1 }}</div>
+                                    <div class="form-control">{{ recipient.hla_drb_2 }}</div>
+                                    <div class="form-control">{{ recipient.hla_dqb1_1 }}</div>
+                                    <div class="form-control">{{ recipient.hla_dqb1_2 }}</div>
+                                    <div class="form-control c6">Recipient</div>
+
                                     <div class="form-control" id="hla_a_first_{{ donor.id }}_{{ donor.get_status_display }}">{{ donor.hla_a_1 }}</div>
                                     <div class="form-control" id="hla_a_second_{{ donor.id }}_{{ donor.get_status_display }}">{{ donor.hla_a_2 }}</div>
                                     <div class="form-control" id="hla_b_first_{{ donor.id }}_{{ donor.get_status_display }}">{{ donor.hla_b_1 }}</div>
@@ -315,18 +327,6 @@
                                     <div style="display: none;" id="hla_drb_second_{{ donor.id }}_{{ donor.get_status_display }}_type">{{ donor.hla_drb_2.get_type_display }}</div>
                                     <div style="display: none;" id="hla_dqb1_first_{{ donor.id }}_{{ donor.get_status_display }}_type">{{ donor.hla_dqb1_1.get_type_display }}</div>
                                     <div style="display: none;" id="hla_dqb1_second_{{ donor.id }}_{{ donor.get_status_display }}_type">{{ donor.hla_dqb1_2.get_type_display }}</div>
-
-                                    <div class="form-control">{{ recipient.hla_a_1 }}</div>
-                                    <div class="form-control">{{ recipient.hla_a_2 }}</div>
-                                    <div class="form-control">{{ recipient.hla_b_1 }}</div>
-                                    <div class="form-control">{{ recipient.hla_b_2 }}</div>
-                                    <div class="form-control">{{ recipient.hla_drb1_1 }}</div>
-                                    <div class="form-control">{{ recipient.hla_drb1_2 }}</div>
-                                    <div class="form-control">{{ recipient.hla_drb_1 }}</div>
-                                    <div class="form-control">{{ recipient.hla_drb_2 }}</div>
-                                    <div class="form-control">{{ recipient.hla_dqb1_1 }}</div>
-                                    <div class="form-control">{{ recipient.hla_dqb1_2 }}</div>
-                                    <div class="form-control c6">Recipient</div>
 
                                     <div class="form-control c1" id="hla_a_{{ donor.id }}_{{ donor.get_status_display }}_point"></div>
                                     <div class="form-control c2" id="hla_b_{{ donor.id }}_{{ donor.get_status_display }}_point"></div>

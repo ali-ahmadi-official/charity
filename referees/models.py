@@ -249,7 +249,7 @@ class Recipient(models.Model):
         verbose_name_plural = 'گیرندگان'
     
     def __str__(self):
-        return f'گیرنده {self.first_name} {self.last_name}'
+        return f'گیرنده {self.full_name}'
 
     def save(self, *args, **kwargs):
         compatibility_map = {

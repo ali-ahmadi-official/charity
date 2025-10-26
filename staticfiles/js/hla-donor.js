@@ -1,6 +1,3 @@
-
-// ✳️ توابع عمومی امتیازدهی
-
 function mismatchPoint(type1, type2) {
     if (type1 === type2) return 4;
     if ((type1 === "COMMON" && type2 === "INTERMEDIATE") || (type1 === "INTERMEDIATE" && type2 === "COMMON")) return 2;
@@ -20,7 +17,6 @@ function calculateLocusScore(r1, r1_type, r2, r2_type, donorList) {
 
     return donorList.reduce((sum, d) => sum + scoreOneAllele(d.value, d.type), 0);
 }
-
 
 function scoreHlaDrb(rec1, rec2, donor1, donor2) {
     let score = 0;
@@ -63,8 +59,6 @@ function scoreHlaDrb(rec1, rec2, donor1, donor2) {
 
     return score;
 }
-
-// ✳️ شروع محاسبه برای تمام گیرنده‌ها
 
 const donor = {
     hla_a_first: document.getElementById('hla_a_first_donor').innerText.trim(),
@@ -114,7 +108,6 @@ const hal_dqb1_list = [
     { value: donor.hla_dqb1_second, type: donor.hla_dqb1_second_type }
 ];
 
-// گرفتن همه گیرنده‌ها
 const trs = document.querySelectorAll('tr#tr');
 trs.forEach(tr => {
     const recipientId = tr.querySelector('td:first-child span').innerText.trim();
@@ -166,7 +159,6 @@ trs.forEach(tr => {
 
     const total_point = ((hla_a_point + hla_b_point + hla_drb1_point + hla_dqb1_point + hla_drb_point) / 5).toFixed(2);
 
-    // نمایش در جدول HTML — ستون ششم با تگ <span>
     const withouthla = parseFloat(tr.querySelector('td:nth-child(6) span').innerText);
 
     const pointCell = tr.querySelector('td:nth-child(7) span');
@@ -178,61 +170,4 @@ trs.forEach(tr => {
     if (totalCell) {
         totalCell.innerText = (parseFloat(total_point) + withouthla).toFixed(2);
     }
-});
-
-function sortTableByColumn(columnIndex) {
-    const table = document.getElementById('myTable');
-    const tbody = table.querySelector('tbody');
-    const rows = Array.from(tbody.querySelectorAll('tr'));
-
-    rows.sort((a, b) => {
-        const valA = a.cells[columnIndex].textContent.trim();
-        const valB = b.cells[columnIndex].textContent.trim();
-
-        const numA = parseFloat(valA);
-        const numB = parseFloat(valB);
-        if (!isNaN(numA) && !isNaN(numB)) {
-            return numB - numA; // از بیشتر به کمتر
-        }
-
-        return valA.localeCompare(valB, 'fa'); // مرتب‌سازی فارسی
-    });
-
-    tbody.innerHTML = '';
-    rows.forEach(row => tbody.appendChild(row));
-}
-
-const black = document.querySelector('.black');
-function showDiv(id) {
-    hideAllDivs();
-    document.getElementById(id).style.display = 'grid';
-    black.style.display = 'flex';
-}
-
-function hideAllDivs() {
-    const divs = document.querySelectorAll('.hidden-div');
-    divs.forEach(div => div.style.display = 'none');
-    black.style.display = 'none';
-}
-
-const first_sort = document.getElementById('first_sort');
-const second_sort = document.getElementById('second_sort');
-const third_sort = document.getElementById('third_sort');
-
-first_sort.addEventListener('click', () => {
-    first_sort.classList.add('active-sort');
-    second_sort.classList.remove('active-sort');
-    third_sort.classList.remove('active-sort');
-});
-
-second_sort.addEventListener('click', () => {
-    second_sort.classList.add('active-sort');
-    third_sort.classList.remove('active-sort');
-    first_sort.classList.remove('active-sort');
-});
-
-third_sort.addEventListener('click', () => {
-    third_sort.classList.add('active-sort');
-    first_sort.classList.remove('active-sort');
-    second_sort.classList.remove('active-sort');
 });
