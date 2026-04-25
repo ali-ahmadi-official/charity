@@ -15,6 +15,7 @@ from .forms import CustomUserCreationForm, CustomUserChangeForm, CadaverDonorFor
 from .mixins import SuperAdminRequiredMixin, superadmin_required
 from .jalali import Persian
 from .pcr import extract_patient_info_from_pdf, extract_alleles_from_pdf
+from .creg import donor_creg_filter, recipient_creg_filter
 
 CustomUser = get_user_model()
 
@@ -104,18 +105,34 @@ def cadaver_donor_detail(request, pk):
 
     recipients_list = recipients_list.order_by('-point')
 
-    paginator = Paginator(recipients_list, 100)
+    donor_hla_a_b_list = [donor.hla_a_1.value, donor.hla_a_2.value, donor.hla_b_1.value, donor.hla_b_2.value]
+    donor_creg_filter(donor_hla_a_b_list, recipients_list)
+
+    creg_filter_param = request.GET.get('creg_filter')
+
+    filtered_recipients_list = recipients_list
+    now_creg_filter = ''
+
+    if creg_filter_param == "1":
+        now_creg_filter = '1'
+        filtered_recipients_list = [donor for donor in recipients_list if donor.creg_status == "With CREG"]
+    elif creg_filter_param == "2":
+        now_creg_filter = '2'
+        filtered_recipients_list = [donor for donor in recipients_list if donor.creg_status == "Near CREG"]
+
+    paginator = Paginator(filtered_recipients_list, 100)
     page_number = request.GET.get('page')
     recipients = paginator.get_page(page_number)
 
     context = {
         'donor': donor,
         'recipients': recipients,
+        'now_creg_filter': now_creg_filter,
     }
 
     return render(request, 'donors/donor_detail.html', context)
 
-class CadaverDonorUpdateView(LoginRequiredMixin, SuperAdminRequiredMixin, UpdateView):
+class CadaverDonorUpdateView(LoginRequiredMixin, UpdateView):
     model = CadaverDonor
     form_class = CadaverDonorForm
     template_name = 'donors/cadaver_donor_form.html'
@@ -123,7 +140,7 @@ class CadaverDonorUpdateView(LoginRequiredMixin, SuperAdminRequiredMixin, Update
     def get_success_url(self):
         return reverse('cadaver_donor_detail', kwargs={'pk': self.object.id})
 
-class CadaverDonorDeleteView(LoginRequiredMixin, SuperAdminRequiredMixin, DeleteView):
+class CadaverDonorDeleteView(LoginRequiredMixin, DeleteView):
     model = CadaverDonor
     context_object_name = 'donor'
     template_name = 'donors/cadaver_donor_confirm_delete.html'
@@ -167,18 +184,34 @@ def living_donor_detail(request, pk):
 
     recipients_list = recipients_list.order_by('-point')
 
-    paginator = Paginator(recipients_list, 100)
+    donor_hla_a_b_list = [donor.hla_a_1.value, donor.hla_a_2.value, donor.hla_b_1.value, donor.hla_b_2.value]
+    donor_creg_filter(donor_hla_a_b_list, recipients_list)
+
+    creg_filter_param = request.GET.get('creg_filter')
+
+    filtered_recipients_list = recipients_list
+    now_creg_filter = ''
+
+    if creg_filter_param == "1":
+        now_creg_filter = '1'
+        filtered_recipients_list = [donor for donor in recipients_list if donor.creg_status == "With CREG"]
+    elif creg_filter_param == "2":
+        now_creg_filter = '2'
+        filtered_recipients_list = [donor for donor in recipients_list if donor.creg_status == "Near CREG"]
+
+    paginator = Paginator(filtered_recipients_list, 100)
     page_number = request.GET.get('page')
     recipients = paginator.get_page(page_number)
 
     context = {
         'donor': donor,
         'recipients': recipients,
+        'now_creg_filter': now_creg_filter,
     }
 
     return render(request, 'donors/donor_detail.html', context)
 
-class LivingDonorUpdateView(LoginRequiredMixin, SuperAdminRequiredMixin, UpdateView):
+class LivingDonorUpdateView(LoginRequiredMixin, UpdateView):
     model = LivingDonor
     form_class = LivingDonorForm
     template_name = 'donors/living_donor_form.html'
@@ -186,7 +219,7 @@ class LivingDonorUpdateView(LoginRequiredMixin, SuperAdminRequiredMixin, UpdateV
     def get_success_url(self):
         return reverse('living_donor_detail', kwargs={'pk': self.object.id})
 
-class LivingDonorDeleteView(LoginRequiredMixin, SuperAdminRequiredMixin, DeleteView):
+class LivingDonorDeleteView(LoginRequiredMixin, DeleteView):
     model = LivingDonor
     context_object_name = 'donor'
     template_name = 'donors/living_donor_confirm_delete.html'
@@ -245,7 +278,7 @@ def recipient_detail(request, pk):
         Q(age__lte=recipient.max_donor_age)
     )
 
-    living_donors_list = LivingDonor.objects.filter(
+    living_donor_list = LivingDonor.objects.filter(
         Q(blood_group__in=recipient.donor_blood_group) &
         Q(age__gte=recipient.min_donor_age) &
         Q(age__lte=recipient.max_donor_age)
@@ -264,7 +297,7 @@ def recipient_detail(request, pk):
         Q(hla_dqb1_2__in=recipient.hla_dqb1_uam.all())
     )
 
-    living_donors_list = living_donors_list.exclude(
+    living_donor_list = living_donor_list.exclude(
         Q(hla_a_1__in=recipient.hla_a_uam.all()) |
         Q(hla_a_2__in=recipient.hla_a_uam.all()) |
         Q(hla_b_1__in=recipient.hla_b_uam.all()) |
@@ -277,9 +310,26 @@ def recipient_detail(request, pk):
         Q(hla_dqb1_2__in=recipient.hla_dqb1_uam.all())
     )
 
-    donors_list = list(chain(cadaver_donor_list, living_donors_list))
+    donors_list = list(chain(cadaver_donor_list, living_donor_list))
 
-    paginator = Paginator(donors_list, 100)
+    recipient_hla_a_b_uams = [hla.value for hla in recipient.hla_a_uam.all()] + \
+        [hla.value for hla in recipient.hla_b_uam.all()]
+    
+    recipient_creg_filter(recipient_hla_a_b_uams, donors_list)
+
+    creg_filter_param = request.GET.get('creg_filter')
+
+    filtered_donors_list = donors_list
+    now_creg_filter = ''
+
+    if creg_filter_param == "1":
+        now_creg_filter = '1'
+        filtered_donors_list = [donor for donor in donors_list if donor.creg_status == "With CREG"]
+    elif creg_filter_param == "2":
+        now_creg_filter = '2'
+        filtered_donors_list = [donor for donor in donors_list if donor.creg_status == "Near CREG"]
+
+    paginator = Paginator(filtered_donors_list, 100)
     page_number = request.GET.get('page')
     donors = paginator.get_page(page_number)
 
@@ -387,6 +437,7 @@ def recipient_detail(request, pk):
         'recipient': recipient,
         'recipient_hla_uams': recipient_hla_uams,
         'is_recipient_hla_uams': is_recipient_hla_uams,
+        'now_creg_filter': now_creg_filter,
         'donors': donors,
         'waiting_list_p': waiting_list_p,
         'dialysis_duration_p': dialysis_duration_p,
@@ -401,7 +452,7 @@ def recipient_detail(request, pk):
 
     return render(request, 'recipients/recipient_detail.html', context)
 
-class RecipientUpdateView(LoginRequiredMixin, SuperAdminRequiredMixin, UpdateView):
+class RecipientUpdateView(LoginRequiredMixin, UpdateView):
     model = Recipient
     form_class = RecipientForm
     template_name = 'recipients/recipient_form.html'
@@ -417,7 +468,7 @@ class RecipientUpdateView(LoginRequiredMixin, SuperAdminRequiredMixin, UpdateVie
     def get_success_url(self):
         return reverse('recipient_detail', kwargs={'pk': self.object.id})
 
-class RecipientDeleteView(LoginRequiredMixin, SuperAdminRequiredMixin, DeleteView):
+class RecipientDeleteView(LoginRequiredMixin, DeleteView):
     model = Recipient
     template_name = 'recipients/recipient_confirm_delete.html'
     success_url = reverse_lazy('recipient_list')

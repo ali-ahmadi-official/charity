@@ -134,7 +134,29 @@
         <div class="form-control" style="display: none;" id="hla_dqb1_second_donor_type">{{ donor.hla_dqb1_2.get_type_display }}</div>
     </div>
 
-    <div class="col-12" style="margin-top: 40px; margin-bottom: -20px;">
+    {% if request.user.is_superuser %}
+    <div class="col-12" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+        <form method="get" class="my-form" style="grid-template-columns: none;">
+            <input type="hidden" name="creg_filter" value="">
+            <button
+             class="btn {% if now_creg_filter == '' %} bg-gradient-success {% else %} bg-gradient-warning {% endif %} w-100 mt-4 mb-0"
+             >No CREG Filter</button>
+        </form>
+        <form method="get" class="my-form" style="grid-template-columns: none;">
+            <input type="hidden" name="creg_filter" value="1">
+            <button
+             class="btn {% if now_creg_filter == '1' %} bg-gradient-success {% else %} bg-gradient-warning {% endif %} w-100 mt-4 mb-0"
+             >With CREG</button>
+        </form>
+        <form method="get" class="my-form" style="grid-template-columns: none;">
+            <input type="hidden" name="creg_filter" value="2">
+            <button
+             class="btn {% if now_creg_filter == '2' %} bg-gradient-success {% else %} bg-gradient-warning {% endif %} w-100 mt-4 mb-0"
+             >Near CREG</button>
+        </form>
+    </div>
+
+    <div class="col-12" style="margin-top: 20px; margin-bottom: -20px;">
         <h6>مرتب سازی گیرندگان</h6>
         <div class="my-form" style="grid-template-columns: repeat(3, 1fr);">
             <button id="first_sort" class="active-sort" onclick="sortTableByColumn(5)">Sort by Matrix Score</button>
@@ -142,6 +164,7 @@
             <button id="third_sort" onclick="sortTableByColumn(7)">Sort by Total Point</button>
         </div>
     </div>
+
     <div class="col-12" style="margin-top: 40px;">
         <div class="card mb-4">
             <div class="card-header pb-0" style="display: flex; justify-content: space-between;">
@@ -179,6 +202,9 @@
                                     Total Point</th>
                                 <th
                                     class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    CREG Status</th>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
                                     اکشن</th>
                             </tr>
                         </thead>
@@ -209,6 +235,9 @@
                                 </td>
                                 <td class="align-middle text-center">
                                     <span class="text-secondary text-xs font-weight-bold"></span>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <span class="text-secondary text-xs font-weight-bold">{{ recipient.creg_status }}</span>
                                 </td>
                                 <div class="fixed-div hla-grid hidden-div" id="recipient_{{ recipient.id }}" style="display: none;">
                                     <button class="close-btn" onclick="hideAllDivs()">
@@ -265,10 +294,42 @@
                                     <div class="form-control c5" id="hla_dqb1_{{ recipient.id }}_point"></div>
                                     <div class="form-control c6">Point</div>
                                 </div>
+                                <div class="fixed-div creg-grid hidden-div" id="creg_{{ recipient.id }}" style="display: none;">
+                                    <button class="close-btn" onclick="hideAllDivs()">
+                                        <svg style="margin: 0; padding: 0;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+                                            <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>
+                                        </svg>
+                                    </button>
+                                    <div style="color: #f97316;" class="form-control">CREG Status</div>
+                                    <div style="color: #f97316;" class="form-control">Recipient</div>
+                                    <div style="color: #f97316;" class="form-control">Donor</div>
+                                    <div style="color: #f97316;" class="form-control">Group</div>
+
+                                    {% for creg in recipient.near_creg_list %}
+                                        <div class="form-control" style="color: #163cf9;">Near CREG</div>
+                                        <div class="form-control">{{ creg.recipient }}</div>
+                                        <div class="form-control">{{ creg.donor }}</div>
+                                        <div class="form-control">{{ creg.group }}</div>
+                                    {% endfor %}
+
+                                    {% for creg in recipient.creg_list %}
+                                        <div class="form-control" style="color: #16C47F;">With CREG</div>
+                                        <div class="form-control">{{ creg.recipient }}</div>
+                                        <div class="form-control">{{ creg.donor }}</div>
+                                        <div class="form-control">{{ creg.group }}</div>
+                                    {% endfor %}
+                                </div>
                                 <td class="align-middle text-center">
                                     <a title="See HLA" style="padding: 0 4px;" onclick="showDiv('recipient_{{ recipient.id }}')">
                                         <span class="text-secondary text-xs font-weight-bold">
                                             <svg style="color: #163cf9; cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                                            </svg>
+                                        </span>
+                                    </a>
+                                    <a title="See CREG" style="padding: 0 4px;" onclick="showDiv('creg_{{ recipient.id }}')">
+                                        <span class="text-secondary text-xs font-weight-bold">
+                                            <svg style="color: #ec4899; cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
                                                 <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
                                             </svg>
                                         </span>
@@ -300,7 +361,7 @@
                             {% endfor %}
                             {% else %}
                             <tr>
-                                <td colspan="9" class="align-middle text-center">
+                                <td colspan="10" class="align-middle text-center">
                                     <span class="text-secondary text-xs font-weight-bold">موردی یافت نشد</span>
                                 </td>
                             </tr>
@@ -351,6 +412,7 @@
             {% endif %}
         </div>
     </div>
+    {% endif %}
 </div>
 
 <script src="{% static 'js/hla-donor.js' %}"></script>

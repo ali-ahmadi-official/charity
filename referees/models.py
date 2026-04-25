@@ -83,12 +83,12 @@ class Donor(models.Model):
     pcr_based_pdf = models.FileField(verbose_name='PCR Based PDF', upload_to='donor_pdf/', blank=True, null=True)
     full_name = models.CharField(verbose_name='نام و نام خانوادگی', max_length=200)
     national_code = models.CharField(verbose_name='کد ملی', max_length=15)
-    phone_number = models.IntegerField(verbose_name='شماره تماس')
-    gender = models.CharField(verbose_name='جنسیت', choices=gender_choices)
+    phone_number = models.CharField(verbose_name='شماره تماس', max_length=50)
+    gender = models.CharField(verbose_name='جنسیت', choices=gender_choices, max_length=1)
     pregnancies_number = models.IntegerField(verbose_name='تعداد بارداری (اختیاری)', null=True, blank=True)
     age = models.IntegerField(verbose_name='سن')
     blood_group = models.CharField(verbose_name='گروه خونی', max_length=2, choices=blood_group_choices)
-    recipient_blood_group = MultiSelectField(verbose_name='گروه خونی مناسب برای گیرنده', help_text='این مقدار توسط سیستیم تعین می گردد', max_length=2, choices=blood_group_choices)
+    recipient_blood_group = MultiSelectField(verbose_name='گروه خونی مناسب برای گیرنده', help_text='این مقدار توسط سیستیم تعین می گردد', max_length=50, choices=blood_group_choices)
     min_recipient_age = models.IntegerField(verbose_name='حداقل سن مناسب برای گیرنده', help_text='این مقدار توسط سیستیم تعین می گردد')
     max_recipient_age = models.IntegerField(verbose_name='حداکثر سن مناسب برای گیرنده', help_text='این مقدار توسط سیستیم تعین می گردد')
     status = models.CharField(verbose_name='وضعیت', max_length=1, choices=status_choices, help_text='این مقدار توسط سیستیم تعین می گردد')
@@ -203,15 +203,15 @@ class Recipient(models.Model):
         ('3', 'none'),
     ]
 
-    read_uam_from = models.CharField(verbose_name='تحلیل UAM از؟', choices=read_uam_from_choices, default='1')
+    read_uam_from = models.CharField(verbose_name='تحلیل UAM از؟', choices=read_uam_from_choices, default='1', max_length=1)
     pcr_based_pdf = models.FileField(verbose_name='PCR Based PDF', upload_to='recipient_pdf/', blank=True, null=True)
     class_i_pdf = models.FileField(verbose_name='Class I PDF', upload_to='recipient_pdf/', blank=True, null=True)
     class_ii_pdf = models.FileField(verbose_name='Class II PDF', upload_to='recipient_pdf/', blank=True, null=True)
     full_name = models.CharField(verbose_name='نام و نام خانوادگی', max_length=200)
     national_code = models.CharField(verbose_name='کد ملی', max_length=15)
-    gender = models.CharField(verbose_name='جنسیت', choices=gender_choices)
+    gender = models.CharField(verbose_name='جنسیت', choices=gender_choices, max_length=1)
     pregnancies_number = models.IntegerField(verbose_name='تعداد بارداری (اختیاری)', null=True, blank=True)
-    phone_number = models.IntegerField(verbose_name='شماره تماس')
+    phone_number = models.CharField(verbose_name='شماره تماس', max_length=50)
     age = models.IntegerField(verbose_name='سن')
     blood_group = models.CharField(verbose_name='گروه خونی', max_length=2, choices=blood_group_choices)
     waiting_list = models.CharField(max_length=10, null=True, blank=True)
@@ -234,7 +234,7 @@ class Recipient(models.Model):
     hla_dqb1_2 = models.ForeignKey(HlaDQB1, on_delete=models.DO_NOTHING, verbose_name='HLA DQB1 (allele 2)', related_name='hla_dqb1_2_recipient')
     point = models.FloatField(verbose_name='امتیاز')
 
-    donor_blood_group = MultiSelectField(verbose_name='گروه خونی مناسب برای دهنده', help_text='این مقدار توسط سیستیم تعین می گردد', max_length=2, choices=blood_group_choices)
+    donor_blood_group = MultiSelectField(verbose_name='گروه خونی مناسب برای دهنده', help_text='این مقدار توسط سیستیم تعین می گردد', max_length=50, choices=blood_group_choices)
     min_donor_age = models.IntegerField(verbose_name='حداقل سن مناسب برای دهنده', help_text='این مقدار توسط سیستیم تعین می گردد', default=0)
     max_donor_age = models.IntegerField(verbose_name='حداکثر سن مناسب برای دهنده', help_text='این مقدار توسط سیستیم تعین می گردد')
 

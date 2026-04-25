@@ -27991,6 +27991,13 @@ pre[class*=language-] {
   text-align: center;
 }
 
+.creg-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  text-align: center;
+}
+
 .close-btn {
   display: flex;
   justify-content: center;
