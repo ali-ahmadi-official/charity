@@ -124,7 +124,7 @@
             <div>
                 <label>{{ form.phone_number.label }}</label>
                 <div class="mb-3">
-                    <input type="number" name="phone_number" class="form-control" value="{{ form.phone_number.value|default:'' }}">
+                    <input type="text" name="phone_number" class="form-control" value="{{ form.phone_number.value|default:'' }}">
                 </div>
                 {% if form.phone_number.errors %}
                 {% for error in form.phone_number.errors %}

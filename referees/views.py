@@ -9,7 +9,6 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.urls import reverse, reverse_lazy
 from django.db.models import Q
-from django.core.paginator import Paginator
 from .models import CadaverDonor, LivingDonor, Recipient, HlaA, HlaB, HlaDRB1, HlaDRB, HlaDQB1, DonorTest, RecipientTest
 from .forms import CustomUserCreationForm, CustomUserChangeForm, CadaverDonorForm, LivingDonorForm, RecipientForm, DonorTestForm, RecipientTestForm
 from .mixins import SuperAdminRequiredMixin, superadmin_required
@@ -120,13 +119,9 @@ def cadaver_donor_detail(request, pk):
         now_creg_filter = '2'
         filtered_recipients_list = [donor for donor in recipients_list if donor.creg_status == "Near CREG"]
 
-    paginator = Paginator(filtered_recipients_list, 100)
-    page_number = request.GET.get('page')
-    recipients = paginator.get_page(page_number)
-
     context = {
         'donor': donor,
-        'recipients': recipients,
+        'recipients': filtered_recipients_list,
         'now_creg_filter': now_creg_filter,
     }
 
@@ -199,13 +194,9 @@ def living_donor_detail(request, pk):
         now_creg_filter = '2'
         filtered_recipients_list = [donor for donor in recipients_list if donor.creg_status == "Near CREG"]
 
-    paginator = Paginator(filtered_recipients_list, 100)
-    page_number = request.GET.get('page')
-    recipients = paginator.get_page(page_number)
-
     context = {
         'donor': donor,
-        'recipients': recipients,
+        'recipients': filtered_recipients_list,
         'now_creg_filter': now_creg_filter,
     }
 
@@ -329,10 +320,6 @@ def recipient_detail(request, pk):
         now_creg_filter = '2'
         filtered_donors_list = [donor for donor in donors_list if donor.creg_status == "Near CREG"]
 
-    paginator = Paginator(filtered_donors_list, 100)
-    page_number = request.GET.get('page')
-    donors = paginator.get_page(page_number)
-
     recipient_hla_uams = list(chain(
         recipient.hla_a_uam.all(),
         recipient.hla_b_uam.all(),
@@ -438,7 +425,7 @@ def recipient_detail(request, pk):
         'recipient_hla_uams': recipient_hla_uams,
         'is_recipient_hla_uams': is_recipient_hla_uams,
         'now_creg_filter': now_creg_filter,
-        'donors': donors,
+        'donors': filtered_donors_list,
         'waiting_list_p': waiting_list_p,
         'dialysis_duration_p': dialysis_duration_p,
         'age_p': age_p,
