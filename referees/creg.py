@@ -24,25 +24,32 @@ def find_creg_matches(recipient_hla_list, donor_hla_list):
     near_creg_list, creg_list = [], []
 
     for key, alleles in creg_dict.items():
-        for group in [x for x in alleles if isinstance(x, list)]:
-            for ra in r[:]:
-                for da in d[:]:
-                    if ra in group and da in group:
-                        near_creg_list.append({"recipient": ra, "donor": da, "group": key})
-                        r.remove(ra)
-                        d.remove(da)
-
-        subgroups = [x for x in alleles if isinstance(x, list)]
+        suballeles = [x for x in alleles if isinstance(x, list)]
 
         for ra in r[:]:
             for da in d[:]:
-                if ra not in alleles or da not in alleles:
+                if ra in alleles and da in alleles:
+                    creg_list.append({"recipient": ra, "donor": da, "group": key})
                     continue
-                in_same_subgroup = any(ra in g and da in g for g in subgroups)
 
-                if in_same_subgroup:
+                elif ra in alleles and any(da in g for g in suballeles): 
+                    creg_list.append({"recipient": ra, "donor": da, "group": key})
                     continue
-                creg_list.append({"recipient": ra, "donor": da, "group": key})
+
+                elif da in alleles and any(ra in g for g in suballeles): 
+                    creg_list.append({"recipient": ra, "donor": da, "group": key})
+                    continue
+
+                elif any(ra in g and da in g for g in suballeles):
+                    near_creg_list.append({"recipient": ra, "donor": da, "group": key})
+                    continue
+
+                elif any(da in g for g in suballeles) and any(ra in g for g in suballeles):
+                    creg_list.append({"recipient": ra, "donor": da, "group": key})
+                    continue
+                
+                else:
+                    continue
 
     if near_creg_list:
         creg_status = "Near CREG"

@@ -114,7 +114,7 @@ def cadaver_donor_detail(request, pk):
 
     if creg_filter_param == "1":
         now_creg_filter = '1'
-        filtered_recipients_list = [donor for donor in recipients_list if donor.creg_status != "With CREG"]
+        filtered_recipients_list = [donor for donor in recipients_list if donor.creg_status == "No CREG"]
     elif creg_filter_param == "2":
         now_creg_filter = '2'
         filtered_recipients_list = [donor for donor in recipients_list if donor.creg_status != "Near CREG"]
@@ -189,7 +189,7 @@ def living_donor_detail(request, pk):
 
     if creg_filter_param == "1":
         now_creg_filter = '1'
-        filtered_recipients_list = [donor for donor in recipients_list if donor.creg_status != "With CREG"]
+        filtered_recipients_list = [donor for donor in recipients_list if donor.creg_status == "No CREG"]
     elif creg_filter_param == "2":
         now_creg_filter = '2'
         filtered_recipients_list = [donor for donor in recipients_list if donor.creg_status != "Near CREG"]
@@ -315,7 +315,7 @@ def recipient_detail(request, pk):
 
     if creg_filter_param == "1":
         now_creg_filter = '1'
-        filtered_donors_list = [donor for donor in donors_list if donor.creg_status != "With CREG"]
+        filtered_donors_list = [donor for donor in donors_list if donor.creg_status == "No CREG"]
     elif creg_filter_param == "2":
         now_creg_filter = '2'
         filtered_donors_list = [donor for donor in donors_list if donor.creg_status != "Near CREG"]
