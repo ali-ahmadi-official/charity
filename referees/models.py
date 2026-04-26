@@ -170,7 +170,7 @@ class LivingDonor(Donor):
 
 class Recipient(models.Model):
     read_uam_from_choices = [
-        ('1', 'از لیست های ارسالی'),
+        ('1', 'ارسال دستی'),
         ('2', 'از فایل های ارسالی'),
     ]
 

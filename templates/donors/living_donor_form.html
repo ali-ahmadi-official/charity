@@ -116,7 +116,7 @@
             <div>
                 <label>{{ form.pregnancies_number.label }}</label>
                 <div class="mb-3">
-                    <input type="number" name="pregnancies_number" class="form-control" value="{{ form.pregnancies_number.value }}">
+                    <input type="number" name="pregnancies_number" id="pregnancies_number" class="form-control" value="{{ form.pregnancies_number.value }}">
                 </div>
                 {% if form.pregnancies_number.errors %}
                 {% for error in form.pregnancies_number.errors %}
@@ -159,5 +159,24 @@
         </div>
     </form>
 </div>
+<script>
+    const genderSelect = document.getElementById("gender");
+    const pregnanciesInput = document.getElementById("pregnancies_number");
+
+    function togglePregnancyField() {
+        const selectedGender = genderSelect.value;
+
+        if (selectedGender === "1") {
+            pregnanciesInput.value = "";
+            pregnanciesInput.disabled = true;
+        } else {
+            pregnanciesInput.disabled = false;
+        }
+    }
+
+    genderSelect.addEventListener("change", togglePregnancyField);
+
+    togglePregnancyField();
+</script>
 <script src="{% static 'js/hla-uam-pdf.js' %}"></script>
 {% endblock %}

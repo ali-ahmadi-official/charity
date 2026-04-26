@@ -144,5 +144,24 @@
         </div>
     </form>
 </div>
+<script>
+    const genderSelect = document.getElementById("gender");
+    const pregnanciesInput = document.getElementById("pregnancies_number");
+
+    function togglePregnancyField() {
+        const selectedGender = genderSelect.value;
+
+        if (selectedGender === "1") {
+            pregnanciesInput.value = "";
+            pregnanciesInput.disabled = true;
+        } else {
+            pregnanciesInput.disabled = false;
+        }
+    }
+
+    genderSelect.addEventListener("change", togglePregnancyField);
+
+    togglePregnancyField();
+</script>
 <script src="{% static 'js/hla-uam-pdf.js' %}"></script>
 {% endblock %}

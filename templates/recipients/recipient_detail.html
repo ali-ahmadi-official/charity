@@ -220,19 +220,19 @@
             <input type="hidden" name="creg_filter" value="">
             <button
              class="btn {% if now_creg_filter == '' %} bg-gradient-success {% else %} bg-gradient-warning {% endif %} w-100 mt-4 mb-0"
-             >No CREG Filter</button>
+             >Ignore CREG</button>
         </form>
         <form method="get" class="my-form" style="grid-template-columns: none;">
             <input type="hidden" name="creg_filter" value="1">
             <button
              class="btn {% if now_creg_filter == '1' %} bg-gradient-success {% else %} bg-gradient-warning {% endif %} w-100 mt-4 mb-0"
-             >With CREG</button>
+             >Without CREG</button>
         </form>
         <form method="get" class="my-form" style="grid-template-columns: none;">
             <input type="hidden" name="creg_filter" value="2">
             <button
              class="btn {% if now_creg_filter == '2' %} bg-gradient-success {% else %} bg-gradient-warning {% endif %} w-100 mt-4 mb-0"
-             >Near CREG</button>
+             >Without Near CREG</button>
         </form>
     </div>
 
@@ -490,46 +490,6 @@
                     </table>
                 </div>
             </div>
-        </div>
-    </div>
-    <div class="col-12">
-        <div class="page">
-            {% if donors.has_previous %}
-            <a href="?page={{ donors.previous_page_number }}">
-                <div class="ago">
-                    <p>قبلی</p>
-                </div>
-            </a>
-            {% if donors.number > 3 %}
-            <a href="?page=1" class="number">1</a>
-                {% if donors.number > 4 %}
-                <span class="number">...</span>
-                {% endif %}
-            {% endif %}
-            {% endif %}
-            
-            {% for num in donors.paginator.page_range %}
-            {% if donors.number == num %}
-            <a href="?page={{ num }}" class="number">{{ num }}</a>
-            {% elif num > donors.number|add:'-3' and num < donors.number|add:'3' %} 
-            <a href="?page={{ num }}" class="number">{{ num }}</a>
-            {% endif %}
-            {% endfor %}
-            
-            {% if donors.has_next %}
-            {% if donors.number < donors.paginator.num_pages|add:'-3' %}
-            <span class="number">...</span>
-            <a href="?page={{ donors.paginator.num_pages }}" class="number">{{ donors.paginator.num_pages }}</a>
-            {% elif donors.number < donors.paginator.num_pages|add:'-2' %} 
-            <a href="?page={{ donors.paginator.num_pages }}" class="number">{{ donors.paginator.num_pages }}</a>
-            {% endif %}
-            
-            <a href="?page={{ donors.next_page_number }}">
-                <div class="next">
-                    <p>بعدی</p>
-                </div>
-            </a>
-            {% endif %}
         </div>
     </div>
     {% endif %}
