@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+انتخاب گیرنده برای {{ donor.full_name }}
+{% endblock %}
+
+{% block page1 %}
+اهداکنندگان
+{% endblock %}
+
+{% block page2 %}
+انتخاب گیرنده برای {{ donor.full_name }}
+{% endblock %}
+
+{% block contain %}
+<div class="pk" style="display: none;">{{ donor.id }}</div>
+{% if '/cadaver-donors/' in request.path %}
+<div class="status" style="display: none;">cadaver-donors</div>
+{% else %}
+<div class="status" style="display: none;">living-donors</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-12">
+        <input type="text" class="form-control w-40" id="search-input" placeholder="نام گیرنده را وارد کنید" />
+        <button class="btn w-100 mt-4 mb-0 bg-gradient-success" onclick="fetchRecipients()">جستجو</button>
+    </div>
+
+    <div class="col-12 mt-4">
+        <div class="card mb-4">
+            <div class="card-header pb-0" style="display: flex; justify-content: space-between;">
+                <h6>لیست گیرندگان</h6>
+            </div>
+            <div class="card-body px-0 pt-0 pb-2">
+                <div class="table-responsive p-0">
+                    <table class="table align-items-center mb-0" id="myTable">
+                        <thead>
+                            <tr>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    انتخاب</th>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    شناسه</th>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    نام و نام خانوادگی</th>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    کد ملی</th>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    شماره تلفن</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results">
+                            <tr>
+                                <td colspan="5" class="align-middle text-center">
+                                    <span class="text-secondary text-xs font-weight-bold">گیرندگان را جستجو کنید...</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 mt-4">
+        <div class="card mb-4" style="background-color: #FFF2EB;">
+            <div class="card-header pb-0" style="display: flex; justify-content: space-between; background-color: #FFF2EB;">
+                <h6>لیست گیرندگان انتخاب شده</h6>
+            </div>
+            <div class="card-body px-0 pt-0 pb-2">
+                <div class="table-responsive p-0">
+                    <table class="table align-items-center mb-0" id="myTable">
+                        <thead>
+                            <tr>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    شناسه</th>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    نام و نام خانوادگی</th>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    کد ملی</th>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    شماره تلفن</th>
+                            </tr>
+                        </thead>
+                        <tbody id="selecteds"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button class="btn w-100 mt-4 mb-0 bg-gradient-info" onclick="submitSelection()">آنالیز اهداکننده</button>
+</div>
+
+<script src="{% static 'js/selections/select-recipients.js' %}"></script>
+{% endblock %}

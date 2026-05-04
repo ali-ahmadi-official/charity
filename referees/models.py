@@ -169,6 +169,12 @@ class LivingDonor(Donor):
         super().save(*args, **kwargs)
 
 class Recipient(models.Model):
+    search_donor_choices = [
+        ('1', 'Both Types Of Donors'),
+        ('2', 'Cadaver Donors'),
+        ('3', 'Living Donors'),
+    ]
+
     read_uam_from_choices = [
         ('1', 'ارسال دستی'),
         ('2', 'از فایل های ارسالی'),
@@ -203,6 +209,7 @@ class Recipient(models.Model):
         ('3', 'none'),
     ]
 
+    search_donor = models.CharField(verbose_name='جستجو از اهداکنندگان', choices=search_donor_choices, max_length=1, default='1')
     read_uam_from = models.CharField(verbose_name='تحلیل UAM از؟', choices=read_uam_from_choices, default='1', max_length=1)
     pcr_based_pdf = models.FileField(verbose_name='PCR Based PDF', upload_to='recipient_pdf/', blank=True, null=True)
     class_i_pdf = models.FileField(verbose_name='Class I PDF', upload_to='recipient_pdf/', blank=True, null=True)

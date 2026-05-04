@@ -1,4 +1,3 @@
-from datetime import datetime
 from itertools import chain
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
@@ -12,9 +11,9 @@ from django.db.models import Q
 from .models import CadaverDonor, LivingDonor, Recipient, HlaA, HlaB, HlaDRB1, HlaDRB, HlaDQB1, DonorTest, RecipientTest
 from .forms import CustomUserCreationForm, CustomUserChangeForm, CadaverDonorForm, LivingDonorForm, RecipientForm, DonorTestForm, RecipientTestForm
 from .mixins import SuperAdminRequiredMixin, superadmin_required
-from .jalali import Persian
+from .details import parse_number_list_from_string, donor_detail, recipient_detail
 from .pcr import extract_patient_info_from_pdf, extract_alleles_from_pdf
-from .creg import donor_creg_filter, recipient_creg_filter
+from .analysis import analysis_recipients
 
 CustomUser = get_user_model()
 
@@ -29,6 +28,7 @@ def main(request):
     living_donors = LivingDonor.objects.all()
     donors = list(chain(cadaver_donors, living_donors))[:5]
     recipients = Recipient.objects.all()[:5]
+
 
     context = {
         'donors': donors,
@@ -75,55 +75,19 @@ class CadaverDonorCreateView(LoginRequiredMixin, CreateView):
         return reverse('cadaver_donor_detail', kwargs={'pk': self.object.id})
 
 @login_required
-def cadaver_donor_detail(request, pk):
-    donor = get_object_or_404(CadaverDonor, pk=pk)
+def all_cadaver_donor_detail(request, pk):
+    cadaver_donor = get_object_or_404(CadaverDonor, pk=pk)
+    recipient_list = Recipient.objects.all()
+    context = donor_detail(request, cadaver_donor, recipient_list, status=0)
 
-    recipients_list = Recipient.objects.filter(
-        Q(blood_group__in=donor.recipient_blood_group) &
-        Q(age__gte=donor.min_recipient_age) &
-        Q(age__lte=donor.max_recipient_age)
-    )
+    return render(request, 'donors/donor_detail.html', context)
 
-    hla_drb_values = [x for x in [donor.hla_drb_1, donor.hla_drb_2] if x]
-
-    conflict_filter = (
-        Q(hla_a_uam__in=[donor.hla_a_1, donor.hla_a_2]) |
-        Q(hla_b_uam__in=[donor.hla_b_1, donor.hla_b_2]) |
-        Q(hla_drb1_uam__in=[donor.hla_drb1_1, donor.hla_drb1_2]) |
-        Q(hla_dqb1_uam__in=[donor.hla_dqb1_1, donor.hla_dqb1_2])
-    )
-
-    if hla_drb_values:
-        conflict_filter |= Q(hla_drb_uam__in=hla_drb_values)
-
-    conflict_recipients = Recipient.objects.filter(conflict_filter).distinct()
-
-    recipients_list = recipients_list.exclude(
-        id__in=conflict_recipients.values_list('id', flat=True)
-    )
-
-    recipients_list = recipients_list.order_by('-point')
-
-    donor_hla_a_b_list = [donor.hla_a_1.value, donor.hla_a_2.value, donor.hla_b_1.value, donor.hla_b_2.value]
-    donor_creg_filter(donor_hla_a_b_list, recipients_list)
-
-    creg_filter_param = request.GET.get('creg_filter')
-
-    filtered_recipients_list = recipients_list
-    now_creg_filter = ''
-
-    if creg_filter_param == "1":
-        now_creg_filter = '1'
-        filtered_recipients_list = [donor for donor in recipients_list if donor.creg_status == "No CREG"]
-    elif creg_filter_param == "2":
-        now_creg_filter = '2'
-        filtered_recipients_list = [donor for donor in recipients_list if donor.creg_status != "Near CREG"]
-
-    context = {
-        'donor': donor,
-        'recipients': filtered_recipients_list,
-        'now_creg_filter': now_creg_filter,
-    }
+@login_required
+def some_cadaver_donor_detail(request, pk):
+    some_recipients = request.GET.get('some_recipients')
+    cadaver_donor = get_object_or_404(CadaverDonor, pk=pk)
+    recipient_list = Recipient.objects.filter(id__in=parse_number_list_from_string(some_recipients))
+    context = donor_detail(request, cadaver_donor, recipient_list, status=1)
 
     return render(request, 'donors/donor_detail.html', context)
 
@@ -150,55 +114,19 @@ class LivingDonorCreateView(LoginRequiredMixin, CreateView):
         return reverse('living_donor_detail', kwargs={'pk': self.object.id})
 
 @login_required
-def living_donor_detail(request, pk):
-    donor = get_object_or_404(LivingDonor, pk=pk)
+def all_living_donor_detail(request, pk):
+    living_donor = get_object_or_404(LivingDonor, pk=pk)
+    recipient_list = Recipient.objects.all()
+    context = donor_detail(request, living_donor, recipient_list, status=0)
 
-    recipients_list = Recipient.objects.filter(
-        Q(blood_group__in=donor.recipient_blood_group) &
-        Q(age__gte=donor.min_recipient_age) &
-        Q(age__lte=donor.max_recipient_age)
-    )
+    return render(request, 'donors/donor_detail.html', context)
 
-    hla_drb_values = [x for x in [donor.hla_drb_1, donor.hla_drb_2] if x]
-
-    conflict_filter = (
-        Q(hla_a_uam__in=[donor.hla_a_1, donor.hla_a_2]) |
-        Q(hla_b_uam__in=[donor.hla_b_1, donor.hla_b_2]) |
-        Q(hla_drb1_uam__in=[donor.hla_drb1_1, donor.hla_drb1_2]) |
-        Q(hla_dqb1_uam__in=[donor.hla_dqb1_1, donor.hla_dqb1_2])
-    )
-
-    if hla_drb_values:
-        conflict_filter |= Q(hla_drb_uam__in=hla_drb_values)
-
-    conflict_recipients = Recipient.objects.filter(conflict_filter).distinct()
-
-    recipients_list = recipients_list.exclude(
-        id__in=conflict_recipients.values_list('id', flat=True)
-    )
-
-    recipients_list = recipients_list.order_by('-point')
-
-    donor_hla_a_b_list = [donor.hla_a_1.value, donor.hla_a_2.value, donor.hla_b_1.value, donor.hla_b_2.value]
-    donor_creg_filter(donor_hla_a_b_list, recipients_list)
-
-    creg_filter_param = request.GET.get('creg_filter')
-
-    filtered_recipients_list = recipients_list
-    now_creg_filter = ''
-
-    if creg_filter_param == "1":
-        now_creg_filter = '1'
-        filtered_recipients_list = [donor for donor in recipients_list if donor.creg_status == "No CREG"]
-    elif creg_filter_param == "2":
-        now_creg_filter = '2'
-        filtered_recipients_list = [donor for donor in recipients_list if donor.creg_status != "Near CREG"]
-
-    context = {
-        'donor': donor,
-        'recipients': filtered_recipients_list,
-        'now_creg_filter': now_creg_filter,
-    }
+@login_required
+def some_living_donor_detail(request, pk):
+    some_recipients = request.GET.get('some_recipients')
+    living_donor = get_object_or_404(LivingDonor, pk=pk)
+    recipient_list = Recipient.objects.filter(id__in=parse_number_list_from_string(some_recipients))
+    context = donor_detail(request, living_donor, recipient_list, status=1)
 
     return render(request, 'donors/donor_detail.html', context)
 
@@ -260,182 +188,22 @@ class RecipientCreateView(LoginRequiredMixin, CreateView):
         return reverse('recipient_detail', kwargs={'pk': self.object.id})
 
 @login_required
-def recipient_detail(request, pk):
+def all_recipient_detail(request, pk):
     recipient = get_object_or_404(Recipient, pk=pk)
+    cadaver_donor_list = CadaverDonor.objects.all()
+    living_donor_list = LivingDonor.objects.all()
+    context = recipient_detail(request, recipient, cadaver_donor_list, living_donor_list,  status=0)
 
-    cadaver_donor_list = CadaverDonor.objects.filter(
-        Q(blood_group__in=recipient.donor_blood_group) &
-        Q(age__gte=recipient.min_donor_age) &
-        Q(age__lte=recipient.max_donor_age)
-    )
+    return render(request, 'recipients/recipient_detail.html', context)
 
-    living_donor_list = LivingDonor.objects.filter(
-        Q(blood_group__in=recipient.donor_blood_group) &
-        Q(age__gte=recipient.min_donor_age) &
-        Q(age__lte=recipient.max_donor_age)
-    )
-
-    cadaver_donor_list = cadaver_donor_list.exclude(
-        Q(hla_a_1__in=recipient.hla_a_uam.all()) |
-        Q(hla_a_2__in=recipient.hla_a_uam.all()) |
-        Q(hla_b_1__in=recipient.hla_b_uam.all()) |
-        Q(hla_b_2__in=recipient.hla_b_uam.all()) |
-        Q(hla_drb1_1__in=recipient.hla_drb1_uam.all()) |
-        Q(hla_drb1_2__in=recipient.hla_drb1_uam.all()) |
-        Q(hla_drb_1__in=recipient.hla_drb_uam.all()) |
-        Q(hla_drb_2__in=recipient.hla_drb_uam.all()) |
-        Q(hla_dqb1_1__in=recipient.hla_dqb1_uam.all()) |
-        Q(hla_dqb1_2__in=recipient.hla_dqb1_uam.all())
-    )
-
-    living_donor_list = living_donor_list.exclude(
-        Q(hla_a_1__in=recipient.hla_a_uam.all()) |
-        Q(hla_a_2__in=recipient.hla_a_uam.all()) |
-        Q(hla_b_1__in=recipient.hla_b_uam.all()) |
-        Q(hla_b_2__in=recipient.hla_b_uam.all()) |
-        Q(hla_drb1_1__in=recipient.hla_drb1_uam.all()) |
-        Q(hla_drb1_2__in=recipient.hla_drb1_uam.all()) |
-        Q(hla_drb_1__in=recipient.hla_drb_uam.all()) |
-        Q(hla_drb_2__in=recipient.hla_drb_uam.all()) |
-        Q(hla_dqb1_1__in=recipient.hla_dqb1_uam.all()) |
-        Q(hla_dqb1_2__in=recipient.hla_dqb1_uam.all())
-    )
-
-    donors_list = list(chain(cadaver_donor_list, living_donor_list))
-
-    recipient_hla_a_b_uams = [hla.value for hla in recipient.hla_a_uam.all()] + \
-        [hla.value for hla in recipient.hla_b_uam.all()]
-    
-    recipient_creg_filter(recipient_hla_a_b_uams, donors_list)
-
-    creg_filter_param = request.GET.get('creg_filter')
-
-    filtered_donors_list = donors_list
-    now_creg_filter = ''
-
-    if creg_filter_param == "1":
-        now_creg_filter = '1'
-        filtered_donors_list = [donor for donor in donors_list if donor.creg_status == "No CREG"]
-    elif creg_filter_param == "2":
-        now_creg_filter = '2'
-        filtered_donors_list = [donor for donor in donors_list if donor.creg_status != "Near CREG"]
-
-    recipient_hla_uams = list(chain(
-        recipient.hla_a_uam.all(),
-        recipient.hla_b_uam.all(),
-        recipient.hla_drb1_uam.all(),
-        recipient.hla_drb_uam.all(),
-        recipient.hla_dqb1_uam.all(),
-    ))
-
-    if recipient_hla_uams:
-        is_recipient_hla_uams = True
-    else:
-        is_recipient_hla_uams = False
-
-    if all(value is not None for value in [
-        recipient.waiting_list,
-        recipient.dialysis_duration,
-        recipient.age,
-        recipient.previous_donation,
-        recipient.medical_urgency,
-        recipient.candidate_for_2_kidney_TX,
-        recipient.candidate_for_kidney_after_other_organ_TX,
-        recipient.cpra,
-        recipient.desensitized
-    ]):
-        if isinstance(recipient.waiting_list, str):
-            try:
-                waiting_list_date = Persian(recipient.waiting_list).gregorian_datetime()
-                now_date = datetime.now().date()
-                delta_days = (now_date - waiting_list_date).days
-                waiting_list_p = round((delta_days / 365), 2)
-            except:
-                pass
-            
-        if isinstance(recipient.dialysis_duration, str):
-            try:
-                dialysis_duration_date = Persian(recipient.dialysis_duration).gregorian_datetime()
-                now_date = datetime.now().date()
-                delta_days = (now_date - dialysis_duration_date).days
-                dialysis_duration_p = (delta_days / 365)
-            except:
-                pass
-
-        dialysis_duration_p = round((dialysis_duration_p * 0.5), 2)
-        age = recipient.age
-        previous_donation = recipient.previous_donation
-        medical_urgency = recipient.medical_urgency
-        candidate_for_2_kidney_TX = recipient.candidate_for_2_kidney_TX
-        candidate_for_kidney_after_other_organ_TX = recipient.candidate_for_kidney_after_other_organ_TX
-        cpra = recipient.cpra
-        desensitized = recipient.desensitized
-
-        if 0 <= age <= 10:
-            age_p = 4
-        elif 11 <= age <= 17:
-            age_p = 3
-        else:
-            age_p = 0
-            
-        if previous_donation == 'yes':
-            previous_donation_p = 3
-        else:
-            previous_donation_p = 0
-        
-        if medical_urgency == '3':
-            medical_urgency_p = 0
-        else:
-            medical_urgency_p = 3
-            
-        if candidate_for_2_kidney_TX == 'yes':
-            candidate_for_2_kidney_TX_p = 2
-        else:
-            candidate_for_2_kidney_TX_p = 0
-
-        if candidate_for_kidney_after_other_organ_TX == 'yes':
-            candidate_for_kidney_after_other_organ_TX_p = 2
-        else:
-            candidate_for_kidney_after_other_organ_TX_p = 0
-
-        if cpra == '1':
-            cpra_p = 10
-        elif cpra == '2':
-            cpra_p = 4
-        else:
-            cpra_p = 0
-
-        if desensitized == 'yes':
-            desensitized_p = 10
-        else:
-            desensitized_p = 0
-    else:
-        waiting_list_p = 0
-        dialysis_duration_p = 0
-        age_p = 0
-        previous_donation_p = 0
-        medical_urgency_p = 0
-        candidate_for_2_kidney_TX_p = 0
-        candidate_for_kidney_after_other_organ_TX_p = 0
-        cpra_p = 0
-        desensitized_p = 0
-
-    context = {
-        'recipient': recipient,
-        'recipient_hla_uams': recipient_hla_uams,
-        'is_recipient_hla_uams': is_recipient_hla_uams,
-        'now_creg_filter': now_creg_filter,
-        'donors': filtered_donors_list,
-        'waiting_list_p': waiting_list_p,
-        'dialysis_duration_p': dialysis_duration_p,
-        'age_p': age_p,
-        'previous_donation_p': previous_donation_p,
-        'medical_urgency_p': medical_urgency_p,
-        'candidate_for_2_kidney_TX_p': candidate_for_2_kidney_TX_p,
-        'candidate_for_kidney_after_other_organ_TX_p': candidate_for_kidney_after_other_organ_TX_p,
-        'cpra_p': cpra_p,
-        'desensitized_p': desensitized_p,
-    }
+@login_required
+def some_recipient_detail(request, pk):
+    some_cadaver_donors = request.GET.get('some_cadaver_donors')
+    some_living_donors = request.GET.get('some_living_donors')
+    recipient = get_object_or_404(Recipient, pk=pk)
+    cadaver_donor_list = CadaverDonor.objects.filter(id__in=parse_number_list_from_string(some_cadaver_donors))
+    living_donor_list = LivingDonor.objects.filter(id__in=parse_number_list_from_string(some_living_donors))
+    context = recipient_detail(request, recipient, cadaver_donor_list, living_donor_list,  status=1)
 
     return render(request, 'recipients/recipient_detail.html', context)
 
@@ -459,6 +227,69 @@ class RecipientDeleteView(LoginRequiredMixin, DeleteView):
     model = Recipient
     template_name = 'recipients/recipient_confirm_delete.html'
     success_url = reverse_lazy('recipient_list')
+
+def select_donors_for_recipient(request, pk):
+    recipient = get_object_or_404(Recipient, pk=pk)
+
+    return render(request, 'donors/select_donors.html', {'recipient': recipient})
+
+def select_recipients_for_cadaver_donor(request, pk):
+    donor = get_object_or_404(CadaverDonor, pk=pk)
+
+    return render(request, 'recipients/select_recipients.html', {'donor': donor})
+
+def select_recipients_for_living_donor(request, pk):
+    donor = get_object_or_404(LivingDonor, pk=pk)
+
+    return render(request, 'recipients/select_recipients.html', {'donor': donor})
+
+@login_required
+def cadaver_donor_api(request):
+    query = request.GET.get('full_name', '')
+    cadaver_donors = CadaverDonor.objects.filter(full_name__icontains=query)
+    cadaver_donors_list = []
+
+    for donor in cadaver_donors:
+        cadaver_donors_list.append({
+            'id': donor.id,
+            'full_name': donor.full_name,
+            'national_code': donor.national_code,
+            'phone_number': donor.phone_number
+        })
+        
+    return JsonResponse(cadaver_donors_list, safe=False)
+
+@login_required
+def living_donor_api(request):
+    query = request.GET.get('full_name', '')
+    living_donors = LivingDonor.objects.filter(full_name__icontains=query)
+    living_donors_list = []
+
+    for donor in living_donors:
+        living_donors_list.append({
+            'id': donor.id,
+            'full_name': donor.full_name,
+            'national_code': donor.national_code,
+            'phone_number': donor.phone_number
+        })
+        
+    return JsonResponse(living_donors_list, safe=False)
+
+@login_required
+def recipient_api(request):
+    query = request.GET.get('full_name', '')
+    recipients = Recipient.objects.filter(full_name__icontains=query)
+    recipients_list = []
+
+    for recipient in recipients:
+        recipients_list.append({
+            'id': recipient.id,
+            'full_name': recipient.full_name,
+            'national_code': recipient.national_code,
+            'phone_number': recipient.phone_number
+        })
+        
+    return JsonResponse(recipients_list, safe=False)
 
 @login_required
 @superadmin_required
