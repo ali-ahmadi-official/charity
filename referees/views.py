@@ -13,7 +13,8 @@ from .forms import CustomUserCreationForm, CustomUserChangeForm, CadaverDonorFor
 from .mixins import SuperAdminRequiredMixin, superadmin_required
 from .details import parse_number_list_from_string, donor_detail, recipient_detail
 from .pcr import extract_patient_info_from_pdf, extract_alleles_from_pdf
-from .analysis import analysis_recipients
+from .analysis import analysis_recipients, analysis_donors, merge_analysis_results
+from .excel_exporter import export_to_excel
 
 CustomUser = get_user_model()
 
@@ -28,7 +29,6 @@ def main(request):
     living_donors = LivingDonor.objects.all()
     donors = list(chain(cadaver_donors, living_donors))[:5]
     recipients = Recipient.objects.all()[:5]
-
 
     context = {
         'donors': donors,
@@ -228,16 +228,19 @@ class RecipientDeleteView(LoginRequiredMixin, DeleteView):
     template_name = 'recipients/recipient_confirm_delete.html'
     success_url = reverse_lazy('recipient_list')
 
+@login_required
 def select_donors_for_recipient(request, pk):
     recipient = get_object_or_404(Recipient, pk=pk)
 
     return render(request, 'donors/select_donors.html', {'recipient': recipient})
 
+@login_required
 def select_recipients_for_cadaver_donor(request, pk):
     donor = get_object_or_404(CadaverDonor, pk=pk)
 
     return render(request, 'recipients/select_recipients.html', {'donor': donor})
 
+@login_required
 def select_recipients_for_living_donor(request, pk):
     donor = get_object_or_404(LivingDonor, pk=pk)
 
@@ -577,3 +580,92 @@ def auto_add_hla(request):
         HlaDQB1.objects.create(value=value, type=type_)
 
     return redirect('main')
+
+@login_required
+def r_analysis(request):
+    recipients = Recipient.objects.all()
+    results = analysis_recipients(recipients)
+
+    if request.GET.get("export") == "excel":
+        return export_to_excel(
+            datasets=[
+                results['gender_status'],
+                results['age_status'],
+                results['blood_group_status'],
+                results['previous_donation'],
+                results['medical_urgency'],
+                results['candidate_for_2_kidney_TX'],
+                results['candidate_for_kidney_after_other_organ_TX'],
+                results['cpra'],
+                results['desensitized'],
+                results['hla_a'],
+                results['hla_b'],
+                results['hla_drb1'],
+                results['hla_drb'],
+                results['hla_dqb1'],
+                results['hla_a_uam'],
+                results['hla_b_uam'],
+                results['hla_drb1_uam'],
+                results['hla_drb_uam'],
+                results['hla_dqb1_uam'],
+            ],
+            sheet_names=[
+                'جنسیت',
+                'بازه سنی',
+                'گروه خونی',
+                'Previous Donation',
+                'Medical Urgency',
+                'Candidate For 2 Kidney TX',
+                'Candidate For Kidney After...',
+                'CPRA',
+                'Desensitized',
+                'HLA A',
+                'HLA B',
+                'HLA DRB1',
+                'HLA DRB',
+                'HLA DQB1',
+                'HLA A UAM',
+                'HLA B UAM',
+                'HLA DRB1 UAM',
+                'HLA DRB UAM',
+                'HLA DQB1 UAM',
+            ],
+            filename=f"recipients_analysis.xlsx",
+        )
+
+    return render(request, 'analysis/r_analysis.html', {'results': results})
+
+@login_required
+def d_analysis(request):
+    cadaver_donors = CadaverDonor.objects.all()
+    living_donors = LivingDonor.objects.all()
+    cadaver_donors_results = analysis_donors(cadaver_donors)
+    living_donors_results = analysis_donors(living_donors)
+    results = merge_analysis_results(cadaver_donors_results, living_donors_results)
+
+    if request.GET.get("export") == "excel":
+        return export_to_excel(
+            datasets=[
+                results['gender_status'],
+                results['age_status'],
+                results['blood_group_status'],
+                results['hla_a'],
+                results['hla_b'],
+                results['hla_drb1'],
+                results['hla_drb'],
+                results['hla_dqb1'],
+            ],
+            sheet_names=[
+                'جنسیت',
+                'بازه سنی',
+                'گروه خونی',
+                'HLA A',
+                'HLA B',
+                'HLA DRB1',
+                'HLA DRB',
+                'HLA DQB1',
+            ],
+            filename=f"donors_analysis.xlsx",
+        )
+
+    return render(request, 'analysis/d_analysis.html', {'results': results})

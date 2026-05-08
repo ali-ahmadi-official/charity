@@ -195,6 +195,24 @@ def recipient_detail(request, recipient, main_cadaver_donor_list, main_living_do
 
     donors_list = list(chain(cadaver_donor_list, living_donor_list))
 
+    hla_warnings = [hla_warning.hla_base for hla_warning in recipient.uam_warnings.all()]
+    donors_warning_list = []
+
+    for donor in donors_list:
+        if any(hla_field and hla_field.value in hla_warnings for hla_field in [
+            donor.hla_a_1,
+            donor.hla_a_2,
+            donor.hla_b_1,
+            donor.hla_b_2,
+            donor.hla_drb1_1,
+            donor.hla_drb1_2,
+            donor.hla_drb_1,
+            donor.hla_drb_2,
+            donor.hla_dqb1_1,
+            donor.hla_dqb1_2,
+        ]):
+            donors_warning_list.append(donor)
+
     recipient_hla_a_b_uams = [hla.value for hla in recipient.hla_a_uam.all()] + \
         [hla.value for hla in recipient.hla_b_uam.all()]
     
@@ -226,8 +244,6 @@ def recipient_detail(request, recipient, main_cadaver_donor_list, main_living_do
         is_recipient_hla_uams = False
 
     if all(value is not None for value in [
-        recipient.waiting_list,
-        recipient.dialysis_duration,
         recipient.age,
         recipient.previous_donation,
         recipient.medical_urgency,
@@ -243,7 +259,7 @@ def recipient_detail(request, recipient, main_cadaver_donor_list, main_living_do
                 delta_days = (now_date - waiting_list_date).days
                 waiting_list_p = round((delta_days / 365), 2)
             except:
-                pass
+                waiting_list_p = 0
             
         if isinstance(recipient.dialysis_duration, str):
             try:
@@ -252,7 +268,7 @@ def recipient_detail(request, recipient, main_cadaver_donor_list, main_living_do
                 delta_days = (now_date - dialysis_duration_date).days
                 dialysis_duration_p = (delta_days / 365)
             except:
-                pass
+                dialysis_duration_p = 0
 
         dialysis_duration_p = round((dialysis_duration_p * 0.5), 2)
         age = recipient.age
@@ -318,6 +334,7 @@ def recipient_detail(request, recipient, main_cadaver_donor_list, main_living_do
         'is_recipient_hla_uams': is_recipient_hla_uams,
         'now_creg_filter': now_creg_filter,
         'donors': filtered_donors_list,
+        'donors_warning_list': donors_warning_list,
         'rejected_list': list(chain(
             cadaver_blood_group_rejected_list, living_blood_group_rejected_list,
             cadaver_age_range_rejected_list, living_age_range_rejected_list,

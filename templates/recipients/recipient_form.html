@@ -408,10 +408,15 @@
 <script>
     const button = document.querySelector('.matrix');
     const inputs = document.querySelectorAll('.matrix-field');
+    const dateInputs = document.querySelectorAll('.date-field');
     let disabled = false;
 
     inputs.forEach(input => {
         input.required = true;
+    });
+
+    dateInputs.forEach(dateInput => {
+        dateInput.required = false;
     });
 
     button.addEventListener('click', () => {
@@ -428,6 +433,10 @@
                     input.value = '';
                 }
             }
+        });
+
+        dateInputs.forEach(dateInput => {
+            dateInput.required = false;
         });
 
         button.value = disabled ? 'Set 0 Without Calculation' : 'Using the fields';

@@ -1,16 +1,41 @@
 from collections import Counter
+from datetime import datetime
+from .jalali import Persian
+
+def field_to_date(field):
+    if isinstance(field, str):
+        try:
+            field_date = Persian(field).gregorian_datetime()
+            now_date = datetime.now().date()
+            return (now_date.year - field_date.year)
+        except:
+            return None
+        
+def average_numbers(items):
+    numbers = [x for x in items if x is not None]
+    
+    if not numbers:
+        return None
+    
+    return sum(numbers) // len(numbers)
 
 def analysis_recipients(recipients):
     def clean_dict(d):
         return {k: v for k, v in d.items() if v not in [0, None, '', '0']}
+    
+    waiting_list = [field_to_date(rec.waiting_list) for rec in recipients]
+    waiting_list_status = average_numbers(waiting_list)
+
+    dialysis_duration = [field_to_date(rec.dialysis_duration) for rec in recipients]
+    dialysis_duration_status = average_numbers(dialysis_duration)
 
     gender_status = Counter(rec.get_gender_display() for rec in recipients)
     age_status = {
-        'under_20': recipients.filter(age__lt=20).count(),
-        '20_40': recipients.filter(age__gte=20, age__lt=40).count(),
-        '40_60': recipients.filter(age__gte=40, age__lt=60).count(),
-        '60_80': recipients.filter(age__gte=60, age__lt=80).count(),
-        'above_80': recipients.filter(age__gte=80).count(),
+        'کمتر از 20 سال': recipients.filter(age__lt=20).count(),
+        '20 تا 40 سال': recipients.filter(age__gte=20, age__lt=40).count(),
+        '40 تا 60 سال': recipients.filter(age__gte=40, age__lt=60).count(),
+        '60 تا 80 سال': recipients.filter(age__gte=60, age__lt=80).count(),
+        'بیش از 80 سال': recipients.filter(age__gte=80).count(),
     }
     blood_group_status = Counter(recipients.values_list('blood_group', flat=True))
     previous_donation = Counter(rec.get_previous_donation_display() for rec in recipients)
@@ -43,6 +68,8 @@ def analysis_recipients(recipients):
     hla_dqb1_uam = count_m2m(recipients, 'hla_dqb1_uam')
 
     return {
+        "waiting_list_status": waiting_list_status,
+        "dialysis_duration_status": dialysis_duration_status,
         "gender_status": clean_dict(dict(gender_status)),
         "age_status": clean_dict(age_status),
         "blood_group_status": clean_dict(dict(blood_group_status)),
@@ -63,3 +90,52 @@ def analysis_recipients(recipients):
         "hla_drb_uam": clean_dict(dict(hla_drb_uam)),
         "hla_dqb1_uam": clean_dict(dict(hla_dqb1_uam)),
     }
+
+def analysis_donors(donors):
+    def clean_dict(d):
+        return {k: v for k, v in d.items() if v not in [0, None, '', '0']}
+
+    gender_status = Counter(rec.get_gender_display() for rec in donors)
+    age_status = {
+        'کمتر از 20 سال': donors.filter(age__lt=20).count(),
+        '20 تا 40 سال': donors.filter(age__gte=20, age__lt=40).count(),
+        '40 تا 60 سال': donors.filter(age__gte=40, age__lt=60).count(),
+        '60 تا 80 سال': donors.filter(age__gte=60, age__lt=80).count(),
+        'بیش از 80 سال': donors.filter(age__gte=80).count(),
+    }
+    blood_group_status = Counter(donors.values_list('blood_group', flat=True))
+
+    hla_a = Counter([r.hla_a_1.value for r in donors] + [r.hla_a_2.value for r in donors])
+    hla_b = Counter([r.hla_b_1.value for r in donors] + [r.hla_b_2.value for r in donors])
+    hla_drb1 = Counter([r.hla_drb1_1.value for r in donors] + [r.hla_drb1_2.value for r in donors])
+    hla_drb = Counter(
+        [r.hla_drb_1.value for r in donors if r.hla_drb_1] +
+        [r.hla_drb_2.value for r in donors if r.hla_drb_2]
+    )
+    hla_dqb1 = Counter([r.hla_dqb1_1.value for r in donors] + [r.hla_dqb1_2.value for r in donors])
+
+    return {
+        "gender_status": clean_dict(dict(gender_status)),
+        "age_status": clean_dict(age_status),
+        "blood_group_status": clean_dict(dict(blood_group_status)),
+        "hla_a": clean_dict(dict(hla_a)),
+        "hla_b": clean_dict(dict(hla_b)),
+        "hla_drb1": clean_dict(dict(hla_drb1)),
+        "hla_drb": clean_dict(dict(hla_drb)),
+        "hla_dqb1": clean_dict(dict(hla_dqb1)),
+    }
+
+def merge_analysis_results(result1, result2):
+    merged = {}
+    
+    all_keys = set(result1.keys()) | set(result2.keys())
+    
+    for key in all_keys:
+        dict1 = result1.get(key, {})
+        dict2 = result2.get(key, {})
+        
+        counter = Counter(dict1) + Counter(dict2)
+        
+        merged[key] = {k: v for k, v in counter.items() if v not in [0, None, '', '0']}
+    
+    return merged

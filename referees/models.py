@@ -206,7 +206,10 @@ class Recipient(models.Model):
     cpra_choices = [
         ('1', '≥ 98%'),
         ('2', '95-97%'),
-        ('3', 'none'),
+        ('3', '80-94%'),
+        ('4', '21-79%'),
+        ('5', '1-20%'),
+        ('6', '0%'),
     ]
 
     search_donor = models.CharField(verbose_name='جستجو از اهداکنندگان', choices=search_donor_choices, max_length=1, default='1')
@@ -280,8 +283,6 @@ class Recipient(models.Model):
         desensitized = self.desensitized
 
         if all(value is not None for value in [
-            self.waiting_list,
-            self.dialysis_duration,
             self.age,
             self.previous_donation,
             self.medical_urgency,
@@ -298,7 +299,7 @@ class Recipient(models.Model):
                     delta_days = (now_date - waiting_list_date).days
                     waiting_list_p = round((delta_days / 365), 2)
                 except:
-                    pass
+                    waiting_list_p = 0
             
             if isinstance(dialysis_duration, str):
                 try:
@@ -307,7 +308,7 @@ class Recipient(models.Model):
                     delta_days = (now_date - dialysis_duration_date).days
                     dialysis_duration_p = (delta_days / 365)
                 except:
-                    pass
+                    dialysis_duration_p = 0
 
             if 0 <= age <= 10:
                 age_p = 4

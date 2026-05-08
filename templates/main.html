@@ -16,6 +16,14 @@
 
 {% block contain %}
 <div class="row">
+    <div class="col-12 w-100 d-flex mb-4">
+        <a class="w-100" style="display: flex; justify-content: center;" href="{% url 'd_analysis' %}">
+            <button class="btn w-50 mt-4 mb-0 bg-gradient-info">آنالیز اهداکنندگان</button>
+        </a>
+        <a class="w-100" style="display: flex; justify-content: center;" href="{% url 'r_analysis' %}">
+            <button class="btn w-50 mt-4 mb-0 bg-gradient-danger">آنالیز گیرندگان</button>
+        </a>
+    </div>
     <div class="col-12">
         {% include "includes/donors_table.html" %}
     </div>

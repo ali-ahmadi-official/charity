@@ -31,6 +31,10 @@
     </div>
 
     <div class="my-grid">
+        <div>
+            <label>جستجو از اهداکنندگان</label>
+            <input class="form-control" value="{{ recipient.get_search_donor_display }}" disabled>
+        </div>
         {% if recipient.pcr_based_pdf %}
         <div>
             <label>PCR Based PDF</label>
@@ -273,6 +277,9 @@
                                     CREG Status</th>
                                 <th
                                     class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    High Resolution Status</th>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
                                     اکشن</th>
                             </tr>
                         </thead>
@@ -307,6 +314,13 @@
                                 </td>
                                 <td class="align-middle text-center">
                                     <span class="text-secondary text-xs font-weight-bold">{{ donor.creg_status }}</span>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <span class="text-secondary text-xs font-weight-bold" style="color: #C5172E !important;">
+                                        {% if donor in donors_warning_list %}
+                                            (High Resolution)
+                                        {% endif %}
+                                    </span>
                                 </td>
                                 <div class="fixed-div hla-grid hidden-div mt-0" id="recipient_{{ donor.id }}_{{ donor.get_status_display }}" style="display: none;">
                                     <button class="close-btn" onclick="hideAllDivs()">
@@ -481,7 +495,7 @@
                             {% endfor %}
                             {% else %}
                             <tr>
-                                <td colspan="9" class="align-middle text-center">
+                                <td colspan="10" class="align-middle text-center">
                                     <span class="text-secondary text-xs font-weight-bold">موردی یافت نشد
                                         {% if rejected_list %}
                                         <a href="{% url 'recipient_detail' recipient.id %}" style="color: #C5172E;">(جستجو در بین همه اهداکنندگان)</a>

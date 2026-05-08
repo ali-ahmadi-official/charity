@@ -19,6 +19,7 @@ from .views import (
     UserListView, UserUpdateView, UserDeleteView,
     extract_info_data, extract_hla_data,
     auto_add_hla,
+    r_analysis, d_analysis
 )
 
 urlpatterns = [
@@ -95,4 +96,6 @@ urlpatterns = [
     path('api/extract-hla/', extract_hla_data, name='extract_hla_data'),
 
     path('auto-add-hla/', auto_add_hla, name='auto_add_hla'),
+    path('recipients/analysis/', r_analysis, name='r_analysis'),
+    path('donors/analysis/', d_analysis, name='d_analysis'),
 ]

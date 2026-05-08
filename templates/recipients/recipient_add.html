@@ -212,7 +212,7 @@
                 <label>{{ form.waiting_list.label }}</label>
                 <span style="font-size: small;">{{ form.waiting_list.help_text }}</span>
                 <div class="mb-3">
-                    <input data-jdp type="text" name="waiting_list" class="form-control matrix-field" value="{{ form.waiting_list.value|default:'' }}" autocomplete="off">
+                    <input data-jdp type="text" name="waiting_list" class="form-control matrix-field date-field" value="{{ form.waiting_list.value|default:'' }}" autocomplete="off">
                 </div>
                 {% if form.waiting_list.errors %}
                 {% for error in form.waiting_list.errors %}
@@ -224,7 +224,7 @@
                 <label>{{ form.dialysis_duration.label }}</label>
                 <span style="font-size: small;">{{ form.dialysis_duration.help_text }}</span>
                 <div class="mb-3">
-                    <input data-jdp type="text" name="dialysis_duration" class="form-control matrix-field" value="{{ form.dialysis_duration.value|default:'' }}" autocomplete="off">
+                    <input data-jdp type="text" name="dialysis_duration" class="form-control matrix-field date-field" value="{{ form.dialysis_duration.value|default:'' }}" autocomplete="off">
                 </div>
                 {% if form.dialysis_duration.errors %}
                 {% for error in form.dialysis_duration.errors %}
@@ -365,10 +365,15 @@
 <script>
     const button = document.querySelector('.matrix');
     const inputs = document.querySelectorAll('.matrix-field');
+    const dateInputs = document.querySelectorAll('.date-field');
     let disabled = false;
 
     inputs.forEach(input => {
         input.required = true;
+    });
+
+    dateInputs.forEach(dateInput => {
+        dateInput.required = false;
     });
 
     button.addEventListener('click', () => {
@@ -385,6 +390,10 @@
                     input.value = '';
                 }
             }
+        });
+
+        dateInputs.forEach(dateInput => {
+            dateInput.required = false;
         });
 
         button.value = disabled ? 'Set 0 Without Calculation' : 'Using the fields';

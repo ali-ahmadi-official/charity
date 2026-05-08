@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+آنالیز گیرندگان
+{% endblock %}
+
+{% block page1 %}
+آنالیز
+{% endblock %}
+
+{% block page2 %}
+گیرندگان
+{% endblock %}
+
+{% block contain %}
+<div id="content_image">
+    <div class="row" style="padding: 20px 0 44px 0; margin: auto;">
+        <div style="width: 31%; margin: auto; border-radius: 0.75rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); background-color: #FBFBFB;">
+            <h6 style="text-align: center;">جنسیت</h6>
+            <canvas id="gender_status"></canvas>
+        </div>
+        <div style="width: 31%; margin: auto; border-radius: 0.75rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); background-color: #FBFBFB;">
+            <h6 style="text-align: center;">بازه سنی</h6>
+            <canvas id="age_status"></canvas>
+        </div>
+        <div style="width: 31%; margin: auto; border-radius: 0.75rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); background-color: #FBFBFB;">
+            <h6 style="text-align: center;">گروه خونی</h6>
+            <canvas id="blood_group_status"></canvas>
+        </div>
+    </div>
+    <div class="row" style="padding: 20px 0 44px 0; margin: auto;">
+        <div style="width: 48%; margin: auto; border-radius: 0.75rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); background-color: #FBFBFB;">
+            <h6 style="text-align: center;">HLA A</h6>
+            <canvas id="hla_a"></canvas>
+        </div>
+        <div style="width: 48%; margin: auto; border-radius: 0.75rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); background-color: #FBFBFB;">
+            <h6 style="text-align: center;">HLA B</h6>
+            <canvas id="hla_b"></canvas>
+        </div>
+    </div>
+    <div class="row" style="padding: 20px 0 44px 0; margin: auto;">
+        <div style="width: 31%; margin: auto; border-radius: 0.75rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); background-color: #FBFBFB;">
+            <h6 style="text-align: center;">HLA DRB1</h6>
+            <canvas id="hla_drb1"></canvas>
+        </div>
+        <div style="width: 31%; margin: auto; border-radius: 0.75rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); background-color: #FBFBFB;">
+            <h6 style="text-align: center;">HLA DRB</h6>
+            <canvas id="hla_drb"></canvas>
+        </div>
+        <div style="width: 31%; margin: auto; border-radius: 0.75rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); background-color: #FBFBFB;">
+            <h6 style="text-align: center;">HLA DQB1</h6>
+            <canvas id="hla_dqb1"></canvas>
+        </div>
+    </div>
+
+    <script>
+        function captureImage() {
+            const element = document.getElementById('content_image');
+
+            html2canvas(element, { scale: 2 }).then(canvas => {
+        
+                const link = document.createElement('a');
+                link.download = 'snapshot.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+    </script>
+
+    <div style="width: 100%; display: flex; justify-content: center;">
+        <button class="my-btn-time" style="background-color: #fff; border: 1px solid #f97316; border-radius: 0.5rem; color: #f97316; padding: 8px 32px; font-size: 0.75rem; font-weight: 700; margin-left: 10px;" onclick="captureImage()">خروجی تصویر</button>
+        <a href="{% url 'r_analysis' %}?export=excel">
+            <button class="my-btn-time" style="background-color: #fff; border: 1px solid #16C47F; border-radius: 0.5rem; color: #16C47F; padding: 8px 32px; font-size: 0.75rem; font-weight: 700;">خروجی اکسل</button>
+        </a>
+    </div>
+</div>
+
+{{ results|json_script:"results" }}
+<script src="{% static 'js/charts/d_chart.js' %}" ></script>
+{% endblock %}
