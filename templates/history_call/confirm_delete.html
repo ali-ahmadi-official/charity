@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+حذف History Call: {{ historycall.id }}
+{% endblock %}
+
+{% block page1 %}
+History Call
+{% endblock %}
+
+{% block page2 %}
+حذف History Call: {{ historycall.id }}
+{% endblock %}
+
+{% block contain %}
+<div class="row" style="text-align: center; padding-top: 50px;">
+    <h5 style="color: #f97316;">
+        آیا از حذف History Call با شناسه {{ historycall.id }} اطمینان دارید؟
+    </h5>
+
+    <form method="post"> {% csrf_token %}
+        <br>
+        <br>
+        <button class="btn btn-netcopy_net" style="margin-left: 10px; color: red;">تایید و حذف</button>
+        <a href="{% url 'history_call_list' recipient.id %}">بیخیال!</a>
+    </form>
+</div>
+{% endblock %}

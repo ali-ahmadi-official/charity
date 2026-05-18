@@ -1,8 +1,35 @@
 from datetime import datetime
 from itertools import chain
 from django.db.models import Q, Value, CharField
+from django.shortcuts import get_object_or_404
+from .models import Recipient, HistoryCall
 from .jalali import Persian
 from .creg import donor_creg_filter, recipient_creg_filter
+
+def get_all_hla_uam_history_for_recipient(recipient_id):
+    recipient = get_object_or_404(Recipient, id=recipient_id)
+    history_calls = HistoryCall.objects.filter(recipient=recipient)
+
+    all_hla_a_ids = set()
+    all_hla_b_ids = set()
+    all_hla_drb1_ids = set()
+    all_hla_drb_ids = set()
+    all_hla_dqb1_ids = set()
+
+    for history_call in history_calls:
+        all_hla_a_ids.update(history_call.hla_a_uam_history.values_list('id', flat=True))
+        all_hla_b_ids.update(history_call.hla_b_uam_history.values_list('id', flat=True))
+        all_hla_drb1_ids.update(history_call.hla_drb1_uam_history.values_list('id', flat=True))
+        all_hla_drb_ids.update(history_call.hla_drb_uam_history.values_list('id', flat=True))
+        all_hla_dqb1_ids.update(history_call.hla_dqb1_uam_history.values_list('id', flat=True))
+
+    return {
+        'hla_a_uam_history': list(all_hla_a_ids),
+        'hla_b_uam_history': list(all_hla_b_ids),
+        'hla_drb1_uam_history': list(all_hla_drb1_ids),
+        'hla_drb_uam_history': list(all_hla_drb_ids),
+        'hla_dqb1_uam_history': list(all_hla_dqb1_ids),
+    }
 
 def parse_number_list_from_string(input_string):
     numbers = []
@@ -74,19 +101,42 @@ def donor_detail(request, donor, main_recipient_list, status):
 
     filtered_recipients_list = recipients_list
     now_creg_filter = ''
+    creg_rejected_list = []
+    near_creg_rejected_list = []
 
     if creg_filter_param == "1":
         now_creg_filter = '1'
         filtered_recipients_list = [recipient for recipient in recipients_list if recipient.creg_status == "No CREG"]
+
+        if status == 1:
+            correct_list = []
+            for main_donor in main_recipient_list:
+                if main_donor not in list(chain(blood_group_rejected_list, age_range_rejected_list, hla_uam_rejected_list)):
+                    correct_list.append(main_donor)
+
+            creg_rejected_list = creg_or_near_rejected(correct_list, 'creg')
+
     elif creg_filter_param == "2":
         now_creg_filter = '2'
         filtered_recipients_list = [recipient for recipient in recipients_list if recipient.creg_status != "Near CREG"]
+
+        if status == 1:
+            correct_list = []
+            for main_donor in main_recipient_list:
+                if main_donor not in list(chain(blood_group_rejected_list, age_range_rejected_list, hla_uam_rejected_list)):
+                    correct_list.append(main_donor)
+
+            near_creg_rejected_list = creg_or_near_rejected(correct_list, 'near_creg')
 
     context = {
         'donor': donor,
         'recipients': filtered_recipients_list,
         'now_creg_filter': now_creg_filter,
-        'rejected_list': list(chain(blood_group_rejected_list, age_range_rejected_list, hla_uam_rejected_list))
+        'rejected_list': list(chain(
+            blood_group_rejected_list, age_range_rejected_list, hla_uam_rejected_list,
+            creg_rejected_list, near_creg_rejected_list
+        )),
+        'status': status,
     }
 
     if status == 0:
@@ -95,6 +145,8 @@ def donor_detail(request, donor, main_recipient_list, status):
     return context
 
 def recipient_detail(request, recipient, main_cadaver_donor_list, main_living_donor_list, status):
+    recipient_history = get_all_hla_uam_history_for_recipient(recipient.id)
+
     cadaver_blood_group_rejected_list = []
     living_blood_group_rejected_list = []
     cadaver_age_range_rejected_list = []
@@ -222,13 +274,68 @@ def recipient_detail(request, recipient, main_cadaver_donor_list, main_living_do
 
     filtered_donors_list = donors_list
     now_creg_filter = ''
+    creg_rejected_list = []
+    near_creg_rejected_list = []
 
     if creg_filter_param == "1":
         now_creg_filter = '1'
         filtered_donors_list = [donor for donor in donors_list if donor.creg_status == "No CREG"]
+
+        if status == 1:
+            correct_list = []
+            for main_donor in list(chain(main_cadaver_donor_list, main_living_donor_list)):
+                if main_donor not in list(chain(
+                    cadaver_blood_group_rejected_list, living_blood_group_rejected_list,
+                    cadaver_age_range_rejected_list, living_age_range_rejected_list,
+                    cadaver_hla_uam_rejected_list, living_hla_uam_rejected_list, 
+                    filtered_donors_list
+                )):
+                    correct_list.append(main_donor)
+
+            creg_rejected_list = creg_or_near_rejected(correct_list, 'creg')
+
     elif creg_filter_param == "2":
         now_creg_filter = '2'
         filtered_donors_list = [donor for donor in donors_list if donor.creg_status != "Near CREG"]
+
+        if status == 1:
+            correct_list = []
+            for main_donor in list(chain(main_cadaver_donor_list, main_living_donor_list)):
+                if main_donor not in list(chain(
+                    cadaver_blood_group_rejected_list, living_blood_group_rejected_list,
+                    cadaver_age_range_rejected_list, living_age_range_rejected_list,
+                    cadaver_hla_uam_rejected_list, living_hla_uam_rejected_list, 
+                    filtered_donors_list
+                )):
+                    correct_list.append(main_donor)
+
+            near_creg_rejected_list = creg_or_near_rejected(correct_list, 'near_creg')
+
+    for filtered_donor in filtered_donors_list:
+        history_match = False
+        if filtered_donor.hla_a_1.id in recipient_history['hla_a_uam_history']:
+            history_match = True
+        elif filtered_donor.hla_a_2.id in recipient_history['hla_a_uam_history']:
+            history_match = True
+        elif filtered_donor.hla_b_1.id in recipient_history['hla_b_uam_history']:
+            history_match = True
+        elif filtered_donor.hla_b_2.id in recipient_history['hla_b_uam_history']:
+            history_match = True
+        elif filtered_donor.hla_drb1_1.id in recipient_history['hla_drb1_uam_history']:
+            history_match = True
+        elif filtered_donor.hla_drb1_2.id in recipient_history['hla_drb1_uam_history']:
+            history_match = True
+        elif filtered_donor.hla_drb_1 and filtered_donor.hla_drb_1.id in recipient_history['hla_drb_uam_history']:
+            history_match = True
+        elif filtered_donor.hla_drb_2 and filtered_donor.hla_drb_2.id in recipient_history['hla_drb_uam_history']:
+            history_match = True
+        elif filtered_donor.hla_dqb1_1.id in recipient_history['hla_dqb1_uam_history']:
+            history_match = True
+        elif filtered_donor.hla_dqb1_2.id in recipient_history['hla_dqb1_uam_history']:
+            history_match = True
+        
+        if history_match:
+            filtered_donor.history_match = True
 
     recipient_hla_uams = list(chain(
         recipient.hla_a_uam.all(),
@@ -338,7 +445,8 @@ def recipient_detail(request, recipient, main_cadaver_donor_list, main_living_do
         'rejected_list': list(chain(
             cadaver_blood_group_rejected_list, living_blood_group_rejected_list,
             cadaver_age_range_rejected_list, living_age_range_rejected_list,
-            cadaver_hla_uam_rejected_list, living_hla_uam_rejected_list
+            cadaver_hla_uam_rejected_list, living_hla_uam_rejected_list,
+            creg_rejected_list, near_creg_rejected_list
         )),
         'waiting_list_p': waiting_list_p,
         'dialysis_duration_p': dialysis_duration_p,
@@ -349,6 +457,7 @@ def recipient_detail(request, recipient, main_cadaver_donor_list, main_living_do
         'candidate_for_kidney_after_other_organ_TX_p': candidate_for_kidney_after_other_organ_TX_p,
         'cpra_p': cpra_p,
         'desensitized_p': desensitized_p,
+        'status': status,
     }
 
     if status == 0:
@@ -360,7 +469,9 @@ def notification_maker(condition):
     condition_dict = {
         'blood_group': 'Rejected due to blood group incompatibility',
         'age_range': 'Rejected due to being outside the eligible age range for transplantation',
-        'hla_uam': 'Rejected due to incompatible HLA UAM antigens'
+        'hla_uam': 'Rejected due to incompatible HLA UAM antigens',
+        'creg': 'Rejected due to incompatible HLA CREG antigens',
+        'near_creg': 'Rejected due to incompatibility with near HLA CREG antigens'
     }
 
     return condition_dict[condition]
@@ -400,3 +511,9 @@ def hla_uam_rejected(main_list, accepted_list_1, accepted_list_2, accepted_list_
             output_field=CharField()
         )
     )
+
+def creg_or_near_rejected(rejected_list, notification_key):
+    reason = notification_maker(notification_key)
+    for item in rejected_list:
+        item.reason_for_rejection = reason
+    return rejected_list

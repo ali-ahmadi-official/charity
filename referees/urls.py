@@ -1,5 +1,6 @@
-from django.urls import path
+from django.urls import path, include
 from django.contrib.auth.views import LoginView, LogoutView
+from .forms import CustomLoginForm
 from .views import (
     SignUpView,
     main,
@@ -16,6 +17,7 @@ from .views import (
     HlaDRBCreateview, HlaDRBUpdateView, HlaDRBDeleteView,
     HlaDQB1Createview, HlaDQB1UpdateView, HlaDQB1DeleteView,
     referees_test_lists, DonorTestCreateView, RecipientTestCreateView, DonorTestUpdateView, RecipientTestUpdateView, DonorTestDeleteView, RecipientTestDeleteView,
+    HistoryCallListView, HistoryCallCreateView, HistoryCallUpdateView, HistoryCallDeleteView,
     UserListView, UserUpdateView, UserDeleteView,
     extract_info_data, extract_hla_data,
     auto_add_hla,
@@ -23,8 +25,9 @@ from .views import (
 )
 
 urlpatterns = [
+    path('captcha/', include('captcha.urls')),
     path('signup/', SignUpView.as_view(), name='signup'),
-    path('login/', LoginView.as_view(template_name='registration/login.html'), name='login'),
+    path('login/', LoginView.as_view(template_name='registration/login.html', authentication_form=CustomLoginForm), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
 
     path('', main, name='main'),
@@ -87,6 +90,11 @@ urlpatterns = [
     path('hla-test/recipient/new/', RecipientTestCreateView.as_view(), name='recipient_test_create'),
     path('hla-test/recipient/<int:pk>/edit/', RecipientTestUpdateView.as_view(), name='recipient_test_update'),
     path('hla-test/recipient/<int:pk>/delete/', RecipientTestDeleteView.as_view(), name='recipient_test_delete'),
+
+    path('recipients/history-call/<int:recipient_id>/list/', HistoryCallListView.as_view(), name='history_call_list'),
+    path('recipients/history-call/<int:recipient_id>/new/', HistoryCallCreateView.as_view(), name='history_call_create'),
+    path('recipients/history-call/<int:recipient_id>/edit/<int:pk>/', HistoryCallUpdateView.as_view(), name='history_call_update'),
+    path('recipients/history-call/<int:recipient_id>/delete/<int:pk>/', HistoryCallDeleteView.as_view(), name='history_call_delete'),
 
     path('users/', UserListView.as_view(), name='user_list'),
     path('users/<int:pk>/edit/', UserUpdateView.as_view(), name='user_update'),

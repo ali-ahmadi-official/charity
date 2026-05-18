@@ -1,3 +1,4 @@
+import re
 from collections import Counter
 from datetime import datetime
 from .jalali import Persian
@@ -7,7 +8,9 @@ def field_to_date(field):
         try:
             field_date = Persian(field).gregorian_datetime()
             now_date = datetime.now().date()
-            return (now_date.year - field_date.year)
+            diff_in_months = (now_date.year - field_date.year) * 12 + (now_date.month - field_date.month)
+
+            return diff_in_months
         except:
             return None
         
@@ -17,7 +20,17 @@ def average_numbers(items):
     if not numbers:
         return None
     
-    return sum(numbers) // len(numbers)
+    years = sum(numbers) // 12
+    months = sum(numbers) % 12
+
+    return f"{years} years and {months} months"
+
+def format_counts_with_percent(data):
+    total = sum(data.values())
+    return {
+        key: f'{value} ({value / total * 100:.0f}%)'
+        for key, value in data.items()
+    }
 
 def analysis_recipients(recipients):
     def clean_dict(d):
@@ -70,25 +83,25 @@ def analysis_recipients(recipients):
     return {
         "waiting_list_status": waiting_list_status,
         "dialysis_duration_status": dialysis_duration_status,
-        "gender_status": clean_dict(dict(gender_status)),
-        "age_status": clean_dict(age_status),
-        "blood_group_status": clean_dict(dict(blood_group_status)),
-        "previous_donation": clean_dict(dict(previous_donation)),
-        "medical_urgency": clean_dict(dict(medical_urgency)),
-        "candidate_for_2_kidney_TX": clean_dict(dict(candidate_for_2_kidney_TX)),
-        "candidate_for_kidney_after_other_organ_TX": clean_dict(dict(candidate_for_kidney_after_other_organ_TX)),
-        "cpra": clean_dict(dict(cpra)),
-        "desensitized": clean_dict(dict(desensitized)),
-        "hla_a": clean_dict(dict(hla_a)),
-        "hla_b": clean_dict(dict(hla_b)),
-        "hla_drb1": clean_dict(dict(hla_drb1)),
-        "hla_drb": clean_dict(dict(hla_drb)),
-        "hla_dqb1": clean_dict(dict(hla_dqb1)),
-        "hla_a_uam": clean_dict(dict(hla_a_uam)),
-        "hla_b_uam": clean_dict(dict(hla_b_uam)),
-        "hla_drb1_uam": clean_dict(dict(hla_drb1_uam)),
-        "hla_drb_uam": clean_dict(dict(hla_drb_uam)),
-        "hla_dqb1_uam": clean_dict(dict(hla_dqb1_uam)),
+        "gender_status": format_counts_with_percent(clean_dict(dict(gender_status))),
+        "age_status": format_counts_with_percent(clean_dict(age_status)),
+        "blood_group_status": format_counts_with_percent(clean_dict(dict(blood_group_status))),
+        "previous_donation": format_counts_with_percent(clean_dict(dict(previous_donation))),
+        "medical_urgency": format_counts_with_percent(clean_dict(dict(medical_urgency))),
+        "candidate_for_2_kidney_TX": format_counts_with_percent(clean_dict(dict(candidate_for_2_kidney_TX))),
+        "candidate_for_kidney_after_other_organ_TX": format_counts_with_percent(clean_dict(dict(candidate_for_kidney_after_other_organ_TX))),
+        "cpra": format_counts_with_percent(clean_dict(dict(cpra))),
+        "desensitized": format_counts_with_percent(clean_dict(dict(desensitized))),
+        "hla_a": format_counts_with_percent(clean_dict(dict(hla_a))),
+        "hla_b": format_counts_with_percent(clean_dict(dict(hla_b))),
+        "hla_drb1": format_counts_with_percent(clean_dict(dict(hla_drb1))),
+        "hla_drb": format_counts_with_percent(clean_dict(dict(hla_drb))),
+        "hla_dqb1": format_counts_with_percent(clean_dict(dict(hla_dqb1))),
+        "hla_a_uam": format_counts_with_percent(clean_dict(dict(hla_a_uam))),
+        "hla_b_uam": format_counts_with_percent(clean_dict(dict(hla_b_uam))),
+        "hla_drb1_uam": format_counts_with_percent(clean_dict(dict(hla_drb1_uam))),
+        "hla_drb_uam": format_counts_with_percent(clean_dict(dict(hla_drb_uam))),
+        "hla_dqb1_uam": format_counts_with_percent(clean_dict(dict(hla_dqb1_uam))),
     }
 
 def analysis_donors(donors):
@@ -115,27 +128,46 @@ def analysis_donors(donors):
     hla_dqb1 = Counter([r.hla_dqb1_1.value for r in donors] + [r.hla_dqb1_2.value for r in donors])
 
     return {
-        "gender_status": clean_dict(dict(gender_status)),
-        "age_status": clean_dict(age_status),
-        "blood_group_status": clean_dict(dict(blood_group_status)),
-        "hla_a": clean_dict(dict(hla_a)),
-        "hla_b": clean_dict(dict(hla_b)),
-        "hla_drb1": clean_dict(dict(hla_drb1)),
-        "hla_drb": clean_dict(dict(hla_drb)),
-        "hla_dqb1": clean_dict(dict(hla_dqb1)),
+        "gender_status": format_counts_with_percent(clean_dict(dict(gender_status))),
+        "age_status": format_counts_with_percent(clean_dict(age_status)),
+        "blood_group_status": format_counts_with_percent(clean_dict(dict(blood_group_status))),
+        "hla_a": format_counts_with_percent(clean_dict(dict(hla_a))),
+        "hla_b": format_counts_with_percent(clean_dict(dict(hla_b))),
+        "hla_drb1": format_counts_with_percent(clean_dict(dict(hla_drb1))),
+        "hla_drb": format_counts_with_percent(clean_dict(dict(hla_drb))),
+        "hla_dqb1": format_counts_with_percent(clean_dict(dict(hla_dqb1))),
     }
+
+def parse_value(value):
+    if isinstance(value, (int, float)):
+        return value
+    if isinstance(value, str):
+        match = re.match(r'^\s*([+-]?\d+(?:\.\d+)?)', value)
+        if match:
+            num = match.group(1)
+            return float(num) if '.' in num else int(num)
+    return 0
 
 def merge_analysis_results(result1, result2):
     merged = {}
-    
+
     all_keys = set(result1.keys()) | set(result2.keys())
-    
+
     for key in all_keys:
         dict1 = result1.get(key, {})
         dict2 = result2.get(key, {})
-        
-        counter = Counter(dict1) + Counter(dict2)
-        
-        merged[key] = {k: v for k, v in counter.items() if v not in [0, None, '', '0']}
-    
+
+        parsed_dict1 = {k: parse_value(v) for k, v in dict1.items()}
+        parsed_dict2 = {k: parse_value(v) for k, v in dict2.items()}
+
+        counter = Counter(parsed_dict1) + Counter(parsed_dict2)
+
+        total = sum(counter.values())
+
+        merged[key] = {
+            k: f"{v} ({round((v / total) * 100)}%)" if total else f"{v} (0%)"
+            for k, v in counter.items()
+            if v not in [0, None, '', '0']
+        }
+
     return merged

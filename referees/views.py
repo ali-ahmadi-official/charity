@@ -8,8 +8,14 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.urls import reverse, reverse_lazy
 from django.db.models import Q
-from .models import CadaverDonor, LivingDonor, Recipient, HlaA, HlaB, HlaDRB1, HlaDRB, HlaDQB1, DonorTest, RecipientTest
-from .forms import CustomUserCreationForm, CustomUserChangeForm, CadaverDonorForm, LivingDonorForm, RecipientForm, DonorTestForm, RecipientTestForm
+from .models import (
+    CadaverDonor, LivingDonor, Recipient, HlaA, HlaB, HlaDRB1,
+    HlaDRB, HlaDQB1, DonorTest, RecipientTest, HistoryCall
+)
+from .forms import (
+    CustomUserCreationForm, CustomUserChangeForm, CadaverDonorForm, LivingDonorForm,
+    RecipientForm, DonorTestForm, RecipientTestForm, HistoryCallForm, HistoryCallUpdateForm
+)
 from .mixins import SuperAdminRequiredMixin, superadmin_required
 from .details import parse_number_list_from_string, donor_detail, recipient_detail
 from .pcr import extract_patient_info_from_pdf, extract_alleles_from_pdf
@@ -18,6 +24,11 @@ from .excel_exporter import export_to_excel
 
 CustomUser = get_user_model()
 
+def is_test_filter(user, queryset):
+    if user.is_staff:
+        return queryset.filter(is_test=True)
+    return queryset.filter(is_test=False)
+
 class SignUpView(LoginRequiredMixin, SuperAdminRequiredMixin, CreateView):
     form_class = CustomUserCreationForm
     template_name = 'registration/signup.html'
@@ -25,10 +36,10 @@ class SignUpView(LoginRequiredMixin, SuperAdminRequiredMixin, CreateView):
 
 @login_required
 def main(request):
-    cadaver_donors = CadaverDonor.objects.all()
-    living_donors = LivingDonor.objects.all()
+    cadaver_donors = is_test_filter(request.user, CadaverDonor.objects.all())
+    living_donors = is_test_filter(request.user, LivingDonor.objects.all())
     donors = list(chain(cadaver_donors, living_donors))[:5]
-    recipients = Recipient.objects.all()[:5]
+    recipients = is_test_filter(request.user, Recipient.objects.all())[:5]
 
     context = {
         'donors': donors,
@@ -56,8 +67,8 @@ class DonorListView(LoginRequiredMixin, ListView):
         if age:
             filters['age'] = age
 
-        cadaver_donors = CadaverDonor.objects.filter(**filters)
-        living_donors = LivingDonor.objects.filter(**filters)
+        cadaver_donors = is_test_filter(self.request.user, CadaverDonor.objects.filter(**filters))
+        living_donors = is_test_filter(self.request.user, LivingDonor.objects.filter(**filters))
 
         if search_query:
             cadaver_donors = cadaver_donors.filter(Q(full_name__icontains=search_query))
@@ -71,13 +82,23 @@ class CadaverDonorCreateView(LoginRequiredMixin, CreateView):
     form_class = CadaverDonorForm
     template_name = 'donors/cadaver_donor_add.html'
 
+    def form_valid(self, form):
+        instance = form.save(commit=False)
+
+        if self.request.user.is_staff:
+            instance.is_test = True
+
+        instance.save()
+        self.object = instance
+        return super().form_valid(form)
+
     def get_success_url(self):
         return reverse('cadaver_donor_detail', kwargs={'pk': self.object.id})
 
 @login_required
 def all_cadaver_donor_detail(request, pk):
     cadaver_donor = get_object_or_404(CadaverDonor, pk=pk)
-    recipient_list = Recipient.objects.all()
+    recipient_list = is_test_filter(request.user, Recipient.objects.exclude(search_donor='3'))
     context = donor_detail(request, cadaver_donor, recipient_list, status=0)
 
     return render(request, 'donors/donor_detail.html', context)
@@ -86,7 +107,7 @@ def all_cadaver_donor_detail(request, pk):
 def some_cadaver_donor_detail(request, pk):
     some_recipients = request.GET.get('some_recipients')
     cadaver_donor = get_object_or_404(CadaverDonor, pk=pk)
-    recipient_list = Recipient.objects.filter(id__in=parse_number_list_from_string(some_recipients))
+    recipient_list = is_test_filter(request.user, Recipient.objects.filter(id__in=parse_number_list_from_string(some_recipients)).exclude(search_donor='3'))
     context = donor_detail(request, cadaver_donor, recipient_list, status=1)
 
     return render(request, 'donors/donor_detail.html', context)
@@ -110,13 +131,23 @@ class LivingDonorCreateView(LoginRequiredMixin, CreateView):
     form_class = LivingDonorForm
     template_name = 'donors/living_donor_add.html'
 
+    def form_valid(self, form):
+        instance = form.save(commit=False)
+
+        if self.request.user.is_staff:
+            instance.is_test = True
+
+        instance.save()
+        self.object = instance
+        return super().form_valid(form)
+
     def get_success_url(self):
         return reverse('living_donor_detail', kwargs={'pk': self.object.id})
 
 @login_required
 def all_living_donor_detail(request, pk):
     living_donor = get_object_or_404(LivingDonor, pk=pk)
-    recipient_list = Recipient.objects.all()
+    recipient_list = is_test_filter(request.user, Recipient.objects.exclude(search_donor='2'))
     context = donor_detail(request, living_donor, recipient_list, status=0)
 
     return render(request, 'donors/donor_detail.html', context)
@@ -125,7 +156,7 @@ def all_living_donor_detail(request, pk):
 def some_living_donor_detail(request, pk):
     some_recipients = request.GET.get('some_recipients')
     living_donor = get_object_or_404(LivingDonor, pk=pk)
-    recipient_list = Recipient.objects.filter(id__in=parse_number_list_from_string(some_recipients))
+    recipient_list = is_test_filter(request.user, Recipient.objects.filter(id__in=parse_number_list_from_string(some_recipients)).exclude(search_donor='2'))
     context = donor_detail(request, living_donor, recipient_list, status=1)
 
     return render(request, 'donors/donor_detail.html', context)
@@ -153,6 +184,7 @@ class RecipientListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        queryset = is_test_filter(self.request.user, queryset)
         search_query = self.request.GET.get('q')
         blood_group = self.request.GET.get('blood_group')
         national_code = self.request.GET.get('national_code')
@@ -175,14 +207,20 @@ class RecipientCreateView(LoginRequiredMixin, CreateView):
     model = Recipient
     form_class = RecipientForm
     template_name = 'recipients/recipient_add.html'
-
+    
     def form_valid(self, form):
-        response = super().form_valid(form)
+        recipient_instance = form.save(commit=False)
+        if self.request.user.is_staff:
+            recipient_instance.is_test = True
+        
+        recipient_instance.save()
+        self.object = recipient_instance
 
         if form.cleaned_data.get('read_uam_from') == '2':
             self.object.process_uam_data()
+            self.object.save()
 
-        return response
+        return super().form_valid(form)
 
     def get_success_url(self):
         return reverse('recipient_detail', kwargs={'pk': self.object.id})
@@ -190,8 +228,8 @@ class RecipientCreateView(LoginRequiredMixin, CreateView):
 @login_required
 def all_recipient_detail(request, pk):
     recipient = get_object_or_404(Recipient, pk=pk)
-    cadaver_donor_list = CadaverDonor.objects.all()
-    living_donor_list = LivingDonor.objects.all()
+    cadaver_donor_list = is_test_filter(request.user, CadaverDonor.objects.all())
+    living_donor_list = is_test_filter(request.user, LivingDonor.objects.all())
     context = recipient_detail(request, recipient, cadaver_donor_list, living_donor_list,  status=0)
 
     return render(request, 'recipients/recipient_detail.html', context)
@@ -201,8 +239,8 @@ def some_recipient_detail(request, pk):
     some_cadaver_donors = request.GET.get('some_cadaver_donors')
     some_living_donors = request.GET.get('some_living_donors')
     recipient = get_object_or_404(Recipient, pk=pk)
-    cadaver_donor_list = CadaverDonor.objects.filter(id__in=parse_number_list_from_string(some_cadaver_donors))
-    living_donor_list = LivingDonor.objects.filter(id__in=parse_number_list_from_string(some_living_donors))
+    cadaver_donor_list = is_test_filter(request.user, CadaverDonor.objects.filter(id__in=parse_number_list_from_string(some_cadaver_donors)))
+    living_donor_list = is_test_filter(request.user, LivingDonor.objects.filter(id__in=parse_number_list_from_string(some_living_donors)))
     context = recipient_detail(request, recipient, cadaver_donor_list, living_donor_list,  status=1)
 
     return render(request, 'recipients/recipient_detail.html', context)
@@ -230,26 +268,26 @@ class RecipientDeleteView(LoginRequiredMixin, DeleteView):
 
 @login_required
 def select_donors_for_recipient(request, pk):
-    recipient = get_object_or_404(Recipient, pk=pk)
+    recipient = get_object_or_404(Recipient, pk=pk, is_test=request.user.is_staff)
 
     return render(request, 'donors/select_donors.html', {'recipient': recipient})
 
 @login_required
 def select_recipients_for_cadaver_donor(request, pk):
-    donor = get_object_or_404(CadaverDonor, pk=pk)
+    donor = get_object_or_404(CadaverDonor, pk=pk, is_test=request.user.is_staff)
 
     return render(request, 'recipients/select_recipients.html', {'donor': donor})
 
 @login_required
 def select_recipients_for_living_donor(request, pk):
-    donor = get_object_or_404(LivingDonor, pk=pk)
+    donor = get_object_or_404(LivingDonor, pk=pk, is_test=request.user.is_staff)
 
     return render(request, 'recipients/select_recipients.html', {'donor': donor})
 
 @login_required
 def cadaver_donor_api(request):
     query = request.GET.get('full_name', '')
-    cadaver_donors = CadaverDonor.objects.filter(full_name__icontains=query)
+    cadaver_donors = is_test_filter(request.user, CadaverDonor.objects.filter(full_name__icontains=query))
     cadaver_donors_list = []
 
     for donor in cadaver_donors:
@@ -265,7 +303,7 @@ def cadaver_donor_api(request):
 @login_required
 def living_donor_api(request):
     query = request.GET.get('full_name', '')
-    living_donors = LivingDonor.objects.filter(full_name__icontains=query)
+    living_donors = is_test_filter(request.user, LivingDonor.objects.filter(full_name__icontains=query))
     living_donors_list = []
 
     for donor in living_donors:
@@ -281,7 +319,7 @@ def living_donor_api(request):
 @login_required
 def recipient_api(request):
     query = request.GET.get('full_name', '')
-    recipients = Recipient.objects.filter(full_name__icontains=query)
+    recipients = is_test_filter(request.user, Recipient.objects.filter(full_name__icontains=query))
     recipients_list = []
 
     for recipient in recipients:
@@ -421,8 +459,8 @@ class HlaDQB1DeleteView(LoginRequiredMixin, SuperAdminRequiredMixin, DeleteView)
 @login_required
 @superadmin_required
 def referees_test_lists(request):
-    donor_tests = DonorTest.objects.all()
-    recipient_tests = RecipientTest.objects.all()
+    donor_tests = is_test_filter(request.user, DonorTest.objects.all())
+    recipient_tests = is_test_filter(request.user, RecipientTest.objects.all())
 
     donor_test_selected = None
     recipient_test_selected = None
@@ -448,6 +486,16 @@ class DonorTestCreateView(LoginRequiredMixin, SuperAdminRequiredMixin, CreateVie
     form_class = DonorTestForm
     template_name = 'test/donor_test_add.html'
 
+    def form_valid(self, form):
+        instance = form.save(commit=False)
+
+        if self.request.user.is_staff:
+            instance.is_test = True
+
+        instance.save()
+        self.object = instance
+        return super().form_valid(form)
+
     def get_success_url(self):
         return reverse('referees_test_lists')
 
@@ -455,6 +503,16 @@ class RecipientTestCreateView(LoginRequiredMixin, SuperAdminRequiredMixin, Creat
     model = RecipientTest
     form_class = RecipientTestForm
     template_name = 'test/recipient_test_add.html'
+
+    def form_valid(self, form):
+        instance = form.save(commit=False)
+
+        if self.request.user.is_staff:
+            instance.is_test = True
+
+        instance.save()
+        self.object = instance
+        return super().form_valid(form)
 
     def get_success_url(self):
         return reverse('referees_test_lists')
@@ -484,6 +542,61 @@ class RecipientTestDeleteView(LoginRequiredMixin, SuperAdminRequiredMixin, Delet
     model = RecipientTest
     template_name = 'test/recipient_test_confirm_delete.html'
     success_url = reverse_lazy('referees_test_lists')
+
+class HistoryCallListView(LoginRequiredMixin, ListView):
+    model = HistoryCall
+    template_name = 'history_call/list.html'
+    context_object_name = 'history_calls'
+
+    def get_queryset(self):
+        recipient_id = self.kwargs.get("recipient_id")
+        return HistoryCall.objects.filter(recipient__id=recipient_id).order_by('-id')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        recipient_id = self.kwargs.get("recipient_id")
+        context['recipient'] = get_object_or_404(Recipient, id=recipient_id)
+        return context
+
+class HistoryCallCreateView(LoginRequiredMixin, CreateView):
+    model = HistoryCall
+    form_class = HistoryCallForm
+    template_name = 'history_call/form.html'
+    
+    def form_valid(self, form):
+        recipient_id = self.kwargs.get("recipient_id")
+        recipient = get_object_or_404(Recipient, id=recipient_id)
+
+        form.instance.recipient = recipient
+        response = super().form_valid(form)
+
+        self.object.process_uam_data()
+        return response
+
+    def get_success_url(self):
+        recipient_id = self.kwargs.get("recipient_id")
+        return reverse("history_call_list", args=[recipient_id])
+    
+class HistoryCallUpdateView(LoginRequiredMixin, UpdateView):
+    model = HistoryCall
+    form_class = HistoryCallUpdateForm
+    template_name = 'history_call/form.html'
+
+    def get_success_url(self):
+        return reverse("history_call_list", args=[self.kwargs.get("recipient_id")])
+
+class HistoryCallDeleteView(LoginRequiredMixin, DeleteView):
+    model = HistoryCall
+    template_name = 'history_call/confirm_delete.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        recipient_id = self.kwargs.get("recipient_id")
+        context['recipient'] = get_object_or_404(Recipient, id=recipient_id)
+        return context
+
+    def get_success_url(self):
+        return reverse("history_call_list", args=[self.kwargs.get("recipient_id")])
 
 class UserListView(LoginRequiredMixin, SuperAdminRequiredMixin, ListView):
     model = CustomUser
@@ -583,7 +696,7 @@ def auto_add_hla(request):
 
 @login_required
 def r_analysis(request):
-    recipients = Recipient.objects.all()
+    recipients = is_test_filter(request.user, Recipient.objects.all())
     results = analysis_recipients(recipients)
 
     if request.GET.get("export") == "excel":
@@ -637,8 +750,8 @@ def r_analysis(request):
 
 @login_required
 def d_analysis(request):
-    cadaver_donors = CadaverDonor.objects.all()
-    living_donors = LivingDonor.objects.all()
+    cadaver_donors = is_test_filter(request.user, CadaverDonor.objects.all())
+    living_donors = is_test_filter(request.user, LivingDonor.objects.all())
     cadaver_donors_results = analysis_donors(cadaver_donors)
     living_donors_results = analysis_donors(living_donors)
     results = merge_analysis_results(cadaver_donors_results, living_donors_results)

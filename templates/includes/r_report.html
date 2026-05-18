@@ -1,0 +1,49 @@
+<div class="fixed-div creg-grid hidden-div" id="report_{{ recipient.id }}" style="display: none;">
+    <button class="close-btn" onclick="hideAllDivs()">
+        <svg style="margin: 0; padding: 0;" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+            fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+            <path
+                d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z" />
+        </svg>
+    </button>
+    <div style="color: #C5172E;" class="form-control">نام و نام خانوادگی</div>
+    <div class="form-control">{{ recipient.full_name }}</div>
+
+    <div style="color: #C5172E;" class="form-control">کد ملی</div>
+    <div class="form-control">{{ recipient.national_code }}</div>
+
+    <div style="color: #C5172E;" class="form-control">جنسیت</div>
+    <div class="form-control">{{ recipient.get_gender_display }}</div>
+
+    <div style="color: #C5172E;" class="form-control">سن</div>
+    <div class="form-control">{{ recipient.age }}</div>
+
+    {% if recipient.pregnancies_number %}
+    <div style="color: #C5172E;" class="form-control">تعداد بارداری</div>
+    <div class="form-control">{{ recipient.pregnancies_number }}</div>
+    {% endif %}
+
+    <div style="color: #C5172E;" class="form-control">جستجو از اهداکنندگان</div>
+    <div class="form-control">{{ recipient.get_search_donor_display }}</div>
+
+    <div style="color: #C5172E;" class="form-control">گروه خونی</div>
+    <div class="form-control">{{ recipient.blood_group }}</div>
+
+    <div style="color: #C5172E;" class="form-control">گروه خونی مناسب</div>
+    <div class="form-control">{{ recipient.donor_blood_group }}</div>
+
+    {% if recipient.waiting_list %}
+    <div style="color: #C5172E;" class="form-control">Waiting List</div>
+    <div class="form-control">{{ recipient.waiting_list }}</div>
+    {% endif %}
+
+    {% if recipient.previous_donation %}
+    <div style="color: #C5172E;" class="form-control">Previous Donation</div>
+    <div class="form-control">{{ recipient.previous_donation }}</div>
+    {% endif %}
+
+    {% if recipient.creg_status %}
+    <div style="color: #C5172E;" class="form-control">CREG Status</div>
+    <div class="form-control">{{ recipient.creg_status }}</div>
+    {% endif %}
+</div>

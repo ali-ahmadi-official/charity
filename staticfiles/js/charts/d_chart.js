@@ -1,3 +1,19 @@
+function parseCountsFromPercent(data) {
+    const result = {};
+    for (const key in data) {
+        if (data.hasOwnProperty(key)) {
+            const valueString = data[key];
+            const match = valueString.match(/^(\d+)\s*\(/);
+            if (match && match[1]) {
+                result[key] = parseInt(match[1], 10);
+            } else {
+                result[key] = valueString;
+            }
+        }
+    }
+    return result;
+}
+
 function shuffleArray(arr) {
     const a = [...arr];
     for (let i = a.length - 1; i > 0; i--) {
@@ -34,24 +50,48 @@ function barChartCreator(data, elementId, label) {
     if (data) {
         const labels = Object.keys(data);
         const values = Object.values(data);
+
+        const total = values.reduce((sum, value) => sum + value, 0);
+        const percentValues = values.map(value => total ? (value / total * 100) : 0);
+
         const barCtx = document.getElementById(elementId).getContext('2d');
         const barChart = new Chart(barCtx, {
             type: 'bar',
             data: {
                 labels: labels,
                 datasets: [{
-                    label: label,
-                    data: values,
+                    label: label + ' (%)',
+                    data: percentValues,
                     backgroundColor: shuffleArray(colors),
                     borderColor: '#ffffff',
-                    borderWidth: 1
+                    borderWidth: 1,
+                    rawValues: values
                 }]
             },
             options: {
                 responsive: true,
                 scales: {
                     y: {
-                        beginAtZero: true
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function (value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                const dataset = context.dataset;
+                                const index = context.dataIndex;
+                                const rawValue = dataset.rawValues[index];
+                                const percentValue = context.parsed.y;
+                                return `${context.label}: ${rawValue} (${percentValue.toFixed(1)}%)`;
+                            }
+                        }
                     }
                 }
             }
@@ -63,20 +103,38 @@ function pieChartCreator(data, elementId) {
     if (data) {
         const labels = Object.keys(data);
         const values = Object.values(data);
+
+        const total = values.reduce((sum, value) => sum + value, 0);
+        const percentValues = values.map(value => total ? (value / total * 100) : 0);
+
         const pieCtx = document.getElementById(elementId).getContext('2d');
         const pieChart = new Chart(pieCtx, {
             type: 'pie',
             data: {
                 labels: labels,
                 datasets: [{
-                    data: values,
+                    data: percentValues,
                     backgroundColor: shuffleArray(colors),
                     borderColor: '#ffffff',
-                    borderWidth: 1
+                    borderWidth: 1,
+                    rawValues: values
                 }]
             },
             options: {
-                responsive: true
+                responsive: true,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                const dataset = context.dataset;
+                                const index = context.dataIndex;
+                                const rawValue = dataset.rawValues[index];
+                                const percentValue = context.parsed;
+                                return `${context.label}: ${rawValue} (${percentValue.toFixed(1)}%)`;
+                            }
+                        }
+                    }
+                }
             }
         });
     }
@@ -84,13 +142,13 @@ function pieChartCreator(data, elementId) {
 
 let results = JSON.parse(document.getElementById('results').textContent);
 
-pieChartCreator(results['gender_status'], 'gender_status');
-pieChartCreator(results['age_status'], 'age_status');
-pieChartCreator(results['blood_group_status'], 'blood_group_status');
+pieChartCreator(parseCountsFromPercent(results['gender_status']), 'gender_status');
+pieChartCreator(parseCountsFromPercent(results['age_status']), 'age_status');
+pieChartCreator(parseCountsFromPercent(results['blood_group_status']), 'blood_group_status');
 
-barChartCreator(results['hla_a'], 'hla_a', 'HLA A');
-barChartCreator(results['hla_b'], 'hla_b', 'HLA B');
+barChartCreator(parseCountsFromPercent(results['hla_a']), 'hla_a', 'HLA A');
+barChartCreator(parseCountsFromPercent(results['hla_b']), 'hla_b', 'HLA B');
 
-barChartCreator(results['hla_drb1'], 'hla_drb1', 'HLA DRB1');
-barChartCreator(results['hla_drb'], 'hla_drb', 'HLA DRB');
-barChartCreator(results['hla_dqb1'], 'hla_dqb1', 'HLA DQB1');
+barChartCreator(parseCountsFromPercent(results['hla_drb1']), 'hla_drb1', 'HLA DRB1');
+barChartCreator(parseCountsFromPercent(results['hla_drb']), 'hla_drb', 'HLA DRB');
+barChartCreator(parseCountsFromPercent(results['hla_dqb1']), 'hla_dqb1', 'HLA DQB1');

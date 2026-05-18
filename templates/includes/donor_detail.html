@@ -1,0 +1,370 @@
+{% load custom_filters %}
+
+<div class="col-12 mb-4" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+    <form method="get">
+        {% for key, value in request.GET.items %}
+            {% if key != "creg_filter" %}
+                <input type="hidden" name="{{ key }}" value="{{ value }}">
+            {% endif %}
+        {% endfor %}
+        <input type="hidden" name="creg_filter" value="">
+        <button
+            class="btn {% if now_creg_filter == '' %} bg-gradient-success {% else %} bg-gradient-warning {% endif %} w-100 mt-4 mb-0">
+            Ignore CREG
+        </button>
+    </form>
+
+    <form method="get">
+        {% for key, value in request.GET.items %}
+            {% if key != "creg_filter" %}
+                <input type="hidden" name="{{ key }}" value="{{ value }}">
+            {% endif %}
+        {% endfor %}
+        <input type="hidden" name="creg_filter" value="1">
+        <button
+            class="btn {% if now_creg_filter == '1' %} bg-gradient-success {% else %} bg-gradient-warning {% endif %} w-100 mt-4 mb-0">
+            Without CREG
+        </button>
+    </form>
+
+    <form method="get">
+        {% for key, value in request.GET.items %}
+            {% if key != "creg_filter" %}
+                <input type="hidden" name="{{ key }}" value="{{ value }}">
+            {% endif %}
+        {% endfor %}
+        <input type="hidden" name="creg_filter" value="2">
+        <button
+            class="btn {% if now_creg_filter == '2' %} bg-gradient-success {% else %} bg-gradient-warning {% endif %} w-100 mt-4 mb-0">
+            Without Near CREG
+        </button>
+    </form>
+</div>
+
+<div class="col-12" style="margin-top: 20px; margin-bottom: -20px;">
+    <h6>مرتب سازی گیرندگان</h6>
+    <div class="my-form" style="grid-template-columns: repeat(3, 1fr);">
+        <button id="first_sort" class="active-sort" onclick="sortTableByColumn(5)">Sort by Matrix Score</button>
+        <button id="second_sort" onclick="sortTableByColumn(6)">Sort by HLA Point</button>
+        <button id="third_sort" onclick="sortTableByColumn(7)">Sort by Total Point</button>
+    </div>
+</div>
+
+<div class="col-12" style="margin-top: 40px;">
+    <div class="card mb-4">
+        <div class="card-header pb-0" style="display: flex; justify-content: space-between;">
+            <h6>لیست گیرندگان مناسب برای اهدا کننده فوق</h6>
+        </div>
+        <div class="card-body px-0 pt-0 pb-2">
+            <div class="table-responsive p-0">
+                <table class="table align-items-center mb-0" id="myTable">
+                    <thead>
+                        <tr>
+                            <th
+                                class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                شناسه</th>
+                            <th
+                                class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                نام و نام خانوادگی</th>
+                            <th
+                                class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                شماره تلفن</th>
+                            <th
+                                class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                کد ملی</th>
+                            <th
+                                class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                سن</th>
+                            <th
+                                class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                Matrix Score</th>
+                            <th
+                                class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                HLA Point</th>
+                            <th
+                                class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7"
+                                style="color: red !important;">
+                                Total Point</th>
+                            <th
+                                class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                CREG Status</th>
+                            <th
+                                class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                اکشن</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if recipients %}
+                        {% for recipient in recipients %}
+                        <tr id="tr">
+                            <td class="align-middle text-center">
+                                <span class="text-secondary text-xs font-weight-bold">{{ recipient.id }}</span>
+                            </td>
+                            <td class="align-middle text-center">
+                                <span class="text-secondary text-xs font-weight-bold">{{ recipient.full_name }}</span>
+                            </td>
+                            <td class="align-middle text-center">
+                                <span class="text-secondary text-xs font-weight-bold">{{ recipient.phone_number }}</span>
+                            </td>
+                            <td class="align-middle text-center">
+                                <span class="text-secondary text-xs font-weight-bold">{{ recipient.national_code }}</span>
+                            </td>
+                            <td class="align-middle text-center">
+                                <span class="text-secondary text-xs font-weight-bold">{{ recipient.age }}</span>
+                            </td>
+                            <td class="align-middle text-center">
+                                <span class="text-secondary text-xs font-weight-bold">{{ recipient.point|truncatechars_noellipsis:5 }}</span>
+                            </td>
+                            <td class="align-middle text-center">
+                                <span class="text-secondary text-xs font-weight-bold"></span>
+                            </td>
+                            <td class="align-middle text-center">
+                                <span class="text-secondary text-xs font-weight-bold"></span>
+                            </td>
+                            <td class="align-middle text-center">
+                                <span class="text-secondary text-xs font-weight-bold">{{ recipient.creg_status }}</span>
+                            </td>
+                            {% if status == 1 %}
+                            {% include "includes/r_report.html" %}
+                            {% endif %}
+                            <div class="fixed-div hla-grid hidden-div" id="recipient_{{ recipient.id }}" style="display: none;">
+                                <button class="close-btn" onclick="hideAllDivs()">
+                                    <svg style="margin: 0; padding: 0;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+                                        <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>
+                                    </svg>
+                                </button>
+                                <div style="color: #f97316;" class="form-control c1">HLA A</div>
+                                <div style="color: #f97316;" class="form-control c2">HLA B</div>
+                                <div style="color: #f97316;" class="form-control c3">HLA DRB1</div>
+                                <div style="color: #f97316;" class="form-control c4">HLA DRB</div>
+                                <div style="color: #f97316;" class="form-control c5">HLA DQB1</div>
+                                <div style="color: #f97316;" class="form-control c6">Person</div>
+
+                                <div class="form-control" id="hla_a_first_{{ recipient.id }}">{{ recipient.hla_a_1 }}</div>
+                                <div class="form-control" id="hla_a_second_{{ recipient.id }}">{{ recipient.hla_a_2 }}</div>
+                                <div class="form-control" id="hla_b_first_{{ recipient.id }}">{{ recipient.hla_b_1 }}</div>
+                                <div class="form-control" id="hla_b_second_{{ recipient.id }}">{{ recipient.hla_b_2 }}</div>
+                                <div class="form-control" id="hla_drb1_first_{{ recipient.id }}">{{ recipient.hla_drb1_1 }}</div>
+                                <div class="form-control" id="hla_drb1_second_{{ recipient.id }}">{{ recipient.hla_drb1_2 }}</div>
+                                <div class="form-control" id="hla_drb_first_{{ recipient.id }}">{{ recipient.hla_drb_1 }}</div>
+                                <div class="form-control" id="hla_drb_second_{{ recipient.id }}">{{ recipient.hla_drb_2 }}</div>
+                                <div class="form-control" id="hla_dqb1_first_{{ recipient.id }}">{{ recipient.hla_dqb1_1 }}</div>
+                                <div class="form-control" id="hla_dqb1_second_{{ recipient.id }}">{{ recipient.hla_dqb1_2 }}</div>
+                                <div class="form-control c6">Recipient</div>
+
+                                <div style="display: none;" id="hla_a_first_{{ recipient.id }}_type">{{ recipient.hla_a_1.get_type_display }}</div>
+                                <div style="display: none;" id="hla_a_second_{{ recipient.id }}_type">{{ recipient.hla_a_2.get_type_display }}</div>
+                                <div style="display: none;" id="hla_b_first_{{ recipient.id }}_type">{{ recipient.hla_b_1.get_type_display }}</div>
+                                <div style="display: none;" id="hla_b_second_{{ recipient.id }}_type">{{ recipient.hla_b_2.get_type_display }}</div>
+                                <div style="display: none;" id="hla_drb1_first_{{ recipient.id }}_type">{{ recipient.hla_drb1_1.get_type_display }}</div>
+                                <div style="display: none;" id="hla_drb1_second_{{ recipient.id }}_type">{{ recipient.hla_drb1_2.get_type_display }}</div>
+                                <div style="display: none;" id="hla_drb_first_{{ recipient.id }}_type">{{ recipient.hla_drb_1.get_type_display }}</div>
+                                <div style="display: none;" id="hla_drb_second_{{ recipient.id }}_type">{{ recipient.hla_drb_2.get_type_display }}</div>
+                                <div style="display: none;" id="hla_dqb1_first_{{ recipient.id }}_type">{{ recipient.hla_dqb1_1.get_type_display }}</div>
+                                <div style="display: none;" id="hla_dqb1_second_{{ recipient.id }}_type">{{ recipient.hla_dqb1_2.get_type_display }}</div>
+
+                                <div class="form-control">{{ donor.hla_a_1 }}</div>
+                                <div class="form-control">{{ donor.hla_a_2 }}</div>
+                                <div class="form-control">{{ donor.hla_b_1 }}</div>
+                                <div class="form-control">{{ donor.hla_b_2 }}</div>
+                                <div class="form-control">{{ donor.hla_drb1_1 }}</div>
+                                <div class="form-control">{{ donor.hla_drb1_2 }}</div>
+                                <div class="form-control">{{ donor.hla_drb_1 }}</div>
+                                <div class="form-control">{{ donor.hla_drb_2 }}</div>
+                                <div class="form-control">{{ donor.hla_dqb1_1 }}</div>
+                                <div class="form-control">{{ donor.hla_dqb1_2 }}</div>
+                                <div class="form-control c6">Donor</div>
+
+                                <div class="form-control c1" id="hla_a_{{ recipient.id }}_point"></div>
+                                <div class="form-control c2" id="hla_b_{{ recipient.id }}_point"></div>
+                                <div class="form-control c3" id="hla_drb1_{{ recipient.id }}_point"></div>
+                                <div class="form-control c4" id="hla_drb_{{ recipient.id }}_point"></div>
+                                <div class="form-control c5" id="hla_dqb1_{{ recipient.id }}_point"></div>
+                                <div class="form-control c6">Point</div>
+                            </div>
+                            <div class="fixed-div creg-grid hidden-div" id="creg_{{ recipient.id }}" style="display: none;">
+                                <button class="close-btn" onclick="hideAllDivs()">
+                                    <svg style="margin: 0; padding: 0;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+                                        <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z"/>
+                                    </svg>
+                                </button>
+                                <div style="color: #f97316;" class="form-control">CREG Status</div>
+                                <div style="color: #f97316;" class="form-control">Recipient</div>
+                                <div style="color: #f97316;" class="form-control">Donor</div>
+                                <div style="color: #f97316;" class="form-control">Group</div>
+
+                                {% for creg in recipient.near_creg_list %}
+                                    <div class="form-control" style="color: #163cf9;">Near CREG</div>
+                                    <div class="form-control">{{ creg.recipient }}</div>
+                                    <div class="form-control">{{ creg.donor }}</div>
+                                    <div class="form-control">{{ creg.group }}</div>
+                                {% endfor %}
+
+                                {% for creg in recipient.creg_list %}
+                                    <div class="form-control" style="color: #16C47F;">With CREG</div>
+                                    <div class="form-control">{{ creg.recipient }}</div>
+                                    <div class="form-control">{{ creg.donor }}</div>
+                                    <div class="form-control">{{ creg.group }}</div>
+                                {% endfor %}
+                            </div>
+                            <td class="align-middle text-center">
+                                {% if status == 1 %}
+                                <a title="See Report" style="padding: 0 4px;" onclick="showDiv('report_{{ recipient.id }}')">
+                                    <span class="text-secondary text-xs font-weight-bold">
+                                        <svg style="color: #9248ec; cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list" viewBox="0 0 16 16">
+                                            <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+                                        </svg>
+                                    </span>
+                                </a>
+                                {% endif %}
+                                <a title="See HLA" style="padding: 0 4px;" onclick="showDiv('recipient_{{ recipient.id }}')">
+                                    <span class="text-secondary text-xs font-weight-bold">
+                                        <svg style="color: #163cf9; cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                                        </svg>
+                                    </span>
+                                </a>
+                                <a title="See CREG" style="padding: 0 4px;" onclick="showDiv('creg_{{ recipient.id }}')">
+                                    <span class="text-secondary text-xs font-weight-bold">
+                                        <svg style="color: #ec4899; cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                                        </svg>
+                                    </span>
+                                </a>
+                                <a href="{% url 'recipient_detail' recipient.id %}" title="جزئیات" style="padding: 0 4px;">
+                                    <span class="text-secondary text-xs font-weight-bold">
+                                        <svg style="color: #f97316; cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
+                                            <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
+                                            <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
+                                        </svg>
+                                    </span>
+                                </a>
+                                <a href="{% url 'recipient_update' recipient.id %}" title="ویرایش" style="padding: 0 4px;">
+                                    <span class="text-secondary text-xs font-weight-bold">
+                                        <svg style="color: #16C47F; cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
+                                            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
+                                        </svg>
+                                    </span>
+                                </a>
+                                <a href="{% url 'recipient_delete' recipient.id %}" title="حذف" style="padding: 0 4px;">
+                                    <span class="text-secondary text-xs font-weight-bold">
+                                        <svg style="color: #C5172E; cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+                                            <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
+                                        </svg>
+                                    </span>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="10" class="align-middle text-center">
+                                <span class="text-secondary text-xs font-weight-bold">موردی یافت نشد
+                                    {% if rejected_list %}
+                                        {% if donor.status == '1' %}
+                                        <a href="{% url 'cadaver_donor_detail' donor.id %}" style="color: #C5172E;">(جستجو در بین همه گیرندگان)</a>
+                                        {% else %}
+                                        <a href="{% url 'living_donor_detail' donor.id %}" style="color: #C5172E;">(جستجو در بین همه گیرندگان)</a>
+                                        {% endif %}
+                                    {% endif %}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if rejected_list %}
+<div class="col-12">
+    <div class="card mb-4" style="background-color: #FFF2EB;">
+        <div class="card-header pb-0" style="display: flex; justify-content: space-between; background-color: #FFF2EB;">
+            <h6>لیست گیرندگان رد شده</h6>
+        </div>
+        <div class="card-body px-0 pt-0 pb-2">
+            <div class="table-responsive p-0">
+                <table class="table align-items-center mb-0" id="myTable">
+                    <thead>
+                        <tr>
+                            <th
+                                class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                شناسه</th>
+                            <th
+                                class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                نام و نام خانوادگی</th>
+                            <th
+                                class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                شماره تلفن</th>
+                            <th
+                                class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                کد ملی</th>
+                            <th
+                                class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                علت رد شدن</th>
+                            <th
+                                class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                اکشن</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for recipient in rejected_list %}
+                        <tr>
+                            <td class="align-middle text-center">
+                                <span class="text-secondary text-xs font-weight-bold">{{ recipient.id }}</span>
+                            </td>
+                            <td class="align-middle text-center">
+                                <span class="text-secondary text-xs font-weight-bold">{{ recipient.full_name }}</span>
+                            </td>
+                            <td class="align-middle text-center">
+                                <span class="text-secondary text-xs font-weight-bold">{{ recipient.phone_number }}</span>
+                            </td>
+                            <td class="align-middle text-center">
+                                <span class="text-secondary text-xs font-weight-bold">{{ recipient.national_code }}</span>
+                            </td>
+                            <td class="align-middle text-center">
+                                <span class="text-secondary text-xs font-weight-bold">{{ recipient.reason_for_rejection }}</span>
+                            </td>
+                            {% include "includes/r_report.html" %}
+                            <td class="align-middle text-center">
+                                <a title="See Report" style="padding: 0 4px;" onclick="showDiv('report_{{ recipient.id }}')">
+                                    <span class="text-secondary text-xs font-weight-bold">
+                                        <svg style="color: #9248ec; cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list" viewBox="0 0 16 16">
+                                            <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+                                        </svg>
+                                    </span>
+                                </a>
+                                <a href="{% url 'recipient_detail' recipient.id %}" title="جزئیات" style="padding: 0 4px;">
+                                    <span class="text-secondary text-xs font-weight-bold">
+                                        <svg style="color: #f97316; cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
+                                            <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
+                                            <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
+                                        </svg>
+                                    </span>
+                                </a>
+                                <a href="{% url 'recipient_update' recipient.id %}" title="ویرایش" style="padding: 0 4px;">
+                                    <span class="text-secondary text-xs font-weight-bold">
+                                        <svg style="color: #16C47F; cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
+                                            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
+                                        </svg>
+                                    </span>
+                                </a>
+                                <a href="{% url 'recipient_delete' recipient.id %}" title="حذف" style="padding: 0 4px;">
+                                    <span class="text-secondary text-xs font-weight-bold">
+                                        <svg style="color: #C5172E; cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+                                            <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
+                                        </svg>
+                                    </span>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}

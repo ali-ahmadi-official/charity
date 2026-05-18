@@ -69,6 +69,9 @@
                                     شناسه</th>
                                 <th
                                     class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+                                    جستجو از اهداکنندگان</th>
+                                <th
+                                    class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
                                     نام و نام خانوادگی</th>
                                 <th
                                     class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
@@ -93,6 +96,9 @@
                             <tr>
                                 <td class="align-middle text-center">
                                     <span class="text-secondary text-xs font-weight-bold">{{ recipient.id }}</span>
+                                </td>
+                                <td class="align-middle text-center">
+                                    <span class="text-secondary text-xs font-weight-bold">{{ recipient.get_search_donor_display }}</span>
                                 </td>
                                 <td class="align-middle text-center">
                                     <span class="text-secondary text-xs font-weight-bold">{{ recipient.full_name }}</span>
@@ -149,7 +155,7 @@
                             {% endfor %}
                             {% else %}
                             <tr>
-                                <td colspan="7" class="align-middle text-center">
+                                <td colspan="8" class="align-middle text-center">
                                     <span class="text-secondary text-xs font-weight-bold">موردی یافت نشد</span>
                                 </td>
                             </tr>

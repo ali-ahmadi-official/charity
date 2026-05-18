@@ -104,6 +104,8 @@ class Donor(models.Model):
     hla_dqb1_1 = models.ForeignKey(HlaDQB1, on_delete=models.DO_NOTHING, verbose_name='HLA DQB1 (allele 1)', related_name='hla_dqb1_1_%(class)s')
     hla_dqb1_2 = models.ForeignKey(HlaDQB1, on_delete=models.DO_NOTHING, verbose_name='HLA DQB1 (allele 2)', related_name='hla_dqb1_2_%(class)s')
 
+    is_test = models.BooleanField(verbose_name='دیتای تستی', default=False)
+
     class Meta:
         verbose_name = 'اهدا کننده'
         verbose_name_plural = 'اهدا کنندگان'
@@ -254,6 +256,8 @@ class Recipient(models.Model):
     hla_drb_uam = models.ManyToManyField(HlaDRB, verbose_name='HLA DRB (UAM)', blank=True, related_name='hla_drb_1_uam')
     hla_dqb1_uam = models.ManyToManyField(HlaDQB1, verbose_name='HLA DQB1 (UAM)', blank=True, related_name='hla_dqb1_1_uam')
 
+    is_test = models.BooleanField(verbose_name='دیتای تستی', default=False)
+
     class Meta:
         verbose_name = 'گیرنده'
         verbose_name_plural = 'گیرندگان'
@@ -292,6 +296,7 @@ class Recipient(models.Model):
             self.desensitized
         ]):
 
+            waiting_list_p = 0
             if isinstance(waiting_list, str):
                 try:
                     waiting_list_date = Persian(waiting_list).gregorian_datetime()
@@ -299,8 +304,9 @@ class Recipient(models.Model):
                     delta_days = (now_date - waiting_list_date).days
                     waiting_list_p = round((delta_days / 365), 2)
                 except:
-                    waiting_list_p = 0
+                    pass
             
+            dialysis_duration_p = 0
             if isinstance(dialysis_duration, str):
                 try:
                     dialysis_duration_date = Persian(dialysis_duration).gregorian_datetime()
@@ -308,7 +314,7 @@ class Recipient(models.Model):
                     delta_days = (now_date - dialysis_duration_date).days
                     dialysis_duration_p = (delta_days / 365)
                 except:
-                    dialysis_duration_p = 0
+                    pass
 
             if 0 <= age <= 10:
                 age_p = 4
@@ -423,6 +429,8 @@ class DonorTest(models.Model):
     hla_dqb1_1 = models.ForeignKey(HlaDQB1, on_delete=models.DO_NOTHING, verbose_name='HLA DQB1 (allele 1)', related_name='hla_dqb1_1_donor_test')
     hla_dqb1_2 = models.ForeignKey(HlaDQB1, on_delete=models.DO_NOTHING, verbose_name='HLA DQB1 (allele 2)', related_name='hla_dqb1_2_donor_test')
 
+    is_test = models.BooleanField(verbose_name='دیتای تستی', default=False)
+
     class Meta:
         verbose_name = 'اهدا کننده تستی'
         verbose_name_plural = 'اهدا کنندگان تستی'
@@ -441,6 +449,63 @@ class RecipientTest(models.Model):
     hla_dqb1_1 = models.ForeignKey(HlaDQB1, on_delete=models.DO_NOTHING, verbose_name='HLA DQB1 (allele 1)', related_name='hla_dqb1_1_recipient_test')
     hla_dqb1_2 = models.ForeignKey(HlaDQB1, on_delete=models.DO_NOTHING, verbose_name='HLA DQB1 (allele 2)', related_name='hla_dqb1_2_recipient_test')
 
+    is_test = models.BooleanField(verbose_name='دیتای تستی', default=False)
+
     class Meta:
         verbose_name = 'گیرنده تستی'
         verbose_name_plural = 'گیرندگان تستی'
+
+class HistoryCall(models.Model):
+    recipient = models.ForeignKey(Recipient, on_delete=models.CASCADE, related_name='recipient_history_call', verbose_name='گیرنده')
+
+    class_i_pdf = models.FileField(verbose_name='Class I PDF', upload_to='recipient_pdf/', blank=True, null=True)
+    class_ii_pdf = models.FileField(verbose_name='Class II PDF', upload_to='recipient_pdf/', blank=True, null=True)
+
+    hla_a_uam_history = models.ManyToManyField(HlaA, verbose_name='HLA A (UAM)', blank=True, related_name='hla_a_1_uam_history')
+    hla_b_uam_history = models.ManyToManyField(HlaB, verbose_name='HLA B (UAM)', blank=True, related_name='hla_b_1_uam_history')
+    hla_drb1_uam_history = models.ManyToManyField(HlaDRB1, verbose_name='HLA DRB1 (UAM)', blank=True, related_name='hla_drb1_1_uam_history')
+    hla_drb_uam_history = models.ManyToManyField(HlaDRB, verbose_name='HLA DRB (UAM)', blank=True, related_name='hla_drb_1_uam_history')
+    hla_dqb1_uam_history = models.ManyToManyField(HlaDQB1, verbose_name='HLA DQB1 (UAM)', blank=True, related_name='hla_dqb1_1_uam_history')
+
+    class Meta:
+        verbose_name = 'history call'
+        verbose_name_plural = 'history calls'
+    
+    def __str__(self):
+        return f'history call for گیرنده {self.recipient.full_name}'
+
+    def process_uam_data(self):
+        if self.class_i_pdf and self.class_ii_pdf:
+            result = extract_combined_allele_risk(self.class_i_pdf.path, self.class_ii_pdf.path)
+            uam_list, warning_list = analyze_uam_status(result)
+
+            self.hla_a_uam_history.clear()
+            self.hla_b_uam_history.clear()
+            self.hla_drb1_uam_history.clear()
+            self.hla_drb_uam_history.clear()
+            self.hla_dqb1_uam_history.clear()
+
+            for hla in uam_list:
+                try:
+                    if hla.startswith("A*"):
+                        obj, created = HlaA.objects.get_or_create(value=hla, defaults={'type': '3'})
+                        self.hla_a_uam_history.add(obj)
+
+                    elif hla.startswith("B*"):
+                        obj, created = HlaB.objects.get_or_create(value=hla, defaults={'type': '3'})
+                        self.hla_b_uam_history.add(obj)
+
+                    elif hla.startswith("DRB1*"):
+                        obj, created = HlaDRB1.objects.get_or_create(value=hla, defaults={'type': '3'})
+                        self.hla_drb1_uam_history.add(obj)
+
+                    elif hla in ["DRB3", "DRB4", "DRB5"]:
+                        obj, created = HlaDRB.objects.get_or_create(value=hla)
+                        self.hla_drb_uam_history.add(obj)
+
+                    elif hla.startswith("DQB1*"):
+                        obj, created = HlaDQB1.objects.get_or_create(value=hla, defaults={'type': '3'})
+                        self.hla_dqb1_uam_history.add(obj)
+
+                except Exception:
+                    continue
