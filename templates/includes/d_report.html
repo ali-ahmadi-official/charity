@@ -1,4 +1,4 @@
-<div class="fixed-div creg-grid hidden-div" id="report_{{ donor.id }}_{{ donor.get_status_display }}" style="display: none;">
+<div class="fixed-div report-grid hidden-div" id="report_{{ donor.id }}_{{ donor.get_status_display }}" style="display: none;">
     <button class="close-btn" onclick="hideAllDivs()">
         <svg style="margin: 0; padding: 0;" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
             fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
@@ -6,31 +6,55 @@
                 d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z" />
         </svg>
     </button>
-    <div style="color: #C5172E;" class="form-control">نام و نام خانوادگی</div>
-    <div class="form-control">{{ donor.full_name }}</div>
+    <div class="mt-4" style="display: flex; justify-content: start; align-items: center;">Full Name</div>
+    <div class="form-control mt-4">{{ donor.full_name }}</div>
 
-    <div style="color: #C5172E;" class="form-control">کد ملی</div>
+    <div style="display: flex; justify-content: start; align-items: center;">Status</div>
+    <div class="form-control">{{ donor.get_status_display }}</div>
+
+    <div style="display: flex; justify-content: start; align-items: center;">National Code</div>
     <div class="form-control">{{ donor.national_code }}</div>
 
-    <div style="color: #C5172E;" class="form-control">جنسیت</div>
+    <div style="display: flex; justify-content: start; align-items: center;">Gender</div>
     <div class="form-control">{{ donor.get_gender_display }}</div>
 
-    <div style="color: #C5172E;" class="form-control">سن</div>
+    <div style="display: flex; justify-content: start; align-items: center;">Age</div>
     <div class="form-control">{{ donor.age }}</div>
 
     {% if donor.pregnancies_number %}
-    <div style="color: #C5172E;" class="form-control">تعداد بارداری</div>
+    <div style="display: flex; justify-content: start; align-items: center;">Number Of Pregnancies</div>
     <div class="form-control">{{ donor.pregnancies_number }}</div>
     {% endif %}
 
-    <div style="color: #C5172E;" class="form-control">گروه خونی</div>
+    <div style="display: flex; justify-content: start; align-items: center;">Blood Group</div>
     <div class="form-control">{{ donor.blood_group }}</div>
 
-    <div style="color: #C5172E;" class="form-control">گروه خونی مناسب</div>
-    <div class="form-control">{{ donor.recipient_blood_group }}</div>
+    <div style="display: flex; justify-content: start; align-items: center;">Appropriate Blood Group(s)</div>
+    <div class="form-control">
+        Suitable blood group(s) for a donor to this individual is/are {{ donor.recipient_blood_group }}
+    </div>
+
+    <div style="display: flex; justify-content: start; align-items: center;">Appropriate Age Range</div>
+    <div class="form-control">
+        {% if donor.min_recipient_age == 0 %}
+        The appropriate age range is up to {{ donor.max_recipient_age }} years old
+        {% elif donor.max_recipient_age == 200 %}
+        The appropriate age range starts from {{ donor.min_recipient_age }} years old
+        {% endif %}
+    </div>
 
     {% if donor.creg_status %}
-    <div style="color: #C5172E;" class="form-control">CREG Status</div>
+    <div style="display: flex; justify-content: start; align-items: center;">CREG Status</div>
     <div class="form-control">{{ donor.creg_status }}</div>
     {% endif %}
+
+    <div style="display: flex; justify-content: start; align-items: center;">Rejection Or Approval Status</div>
+    <div class="form-control">
+        {% if donor.reason_for_rejection %}
+            {{ donor.reason_for_rejection }}.
+            {{ donor.rejected_value }}
+        {% else %}
+            Considering the donor and recipient blood groups, their ages, and the HLA profiles of both, no rejection reason could be identified
+        {% endif %}
+    </div>
 </div>

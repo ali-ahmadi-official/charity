@@ -8,9 +8,9 @@ def field_to_date(field):
         try:
             field_date = Persian(field).gregorian_datetime()
             now_date = datetime.now().date()
-            diff_in_months = (now_date.year - field_date.year) * 12 + (now_date.month - field_date.month)
+            diff_in_days = (now_date - field_date).days
 
-            return diff_in_months
+            return diff_in_days
         except:
             return None
         
@@ -20,10 +20,12 @@ def average_numbers(items):
     if not numbers:
         return None
     
-    years = sum(numbers) // 12
-    months = sum(numbers) % 12
+    average_days = sum(numbers) / len(numbers)
 
-    return f"{years} years and {months} months"
+    months = int(average_days // 30)
+    remaining_days = int(average_days % 30)
+
+    return f"{months} months and {remaining_days} days"
 
 def format_counts_with_percent(data):
     total = sum(data.values())

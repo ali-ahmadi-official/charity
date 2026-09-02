@@ -29,11 +29,16 @@ def map_pdf_data_to_form_fields(pdf_data):
         "ﻧﺎﻣﺸﺨﺺ": ""
     }
 
+    try:
+        age = int(pdf_data.get("ﺳﻦ", "0"))
+    except:
+        age = ""
+
     return {
         "full_name": pdf_data.get("نام و نام خانوادگی", ""),
         "national_code": pdf_data.get("ﮐﺪ ﻣﻠﯽ", ""),
         "gender": gender_map.get(pdf_data.get("ﺟﻨﺲ", "").strip(), ""),
-        "age": int(pdf_data.get("ﺳﻦ", "0")),
+        "age": age,
         "blood_group": blood_map.get(pdf_data.get("ﮔﺮﻭﻩ ﺧﻮﻧﯽ", "").replace(" ", ""), "")
     }
 

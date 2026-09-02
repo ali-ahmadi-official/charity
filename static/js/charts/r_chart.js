@@ -73,7 +73,7 @@ function barChartCreator(data, elementId, label) {
                 scales: {
                     y: {
                         beginAtZero: true,
-                        max: 100,
+                        max: 40,
                         ticks: {
                             callback: function (value) {
                                 return value + '%';

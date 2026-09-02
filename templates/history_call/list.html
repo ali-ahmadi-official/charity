@@ -2,11 +2,11 @@
 {% load static %}
 
 {% block title %}
-History Call
+Historical
 {% endblock %}
 
 {% block page1 %}
-History Call
+Historical
 {% endblock %}
 
 {% block page2 %}
@@ -18,7 +18,7 @@ List
     <div class="col-12" style="margin-top: 40px;">
         <div class="card mb-4">
             <div class="card-header pb-0" style="display: flex; justify-content: space-between;">
-                <h6>History Call {{ recipient.full_name }}</h6>
+                <h6>Historical {{ recipient.full_name }}</h6>
                 <button
                     style="background-color: #fff; border: 1px solid #f97316; border-radius: 0.5rem; color: #f97316; padding: 8px 32px; font-size: 0.75rem; font-weight: 700;">
                     <a href="{% url 'history_call_create' recipient.id %}" style="color: #f97316;">

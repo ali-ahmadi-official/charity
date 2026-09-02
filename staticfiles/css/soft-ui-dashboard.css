@@ -27998,6 +27998,14 @@ pre[class*=language-] {
   text-align: center;
 }
 
+.report-grid {
+  width: 500px !important;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  text-align: center;
+}
+
 .close-btn {
   display: flex;
   justify-content: center;

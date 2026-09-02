@@ -6,6 +6,83 @@ from .models import Recipient, HistoryCall
 from .jalali import Persian
 from .creg import donor_creg_filter, recipient_creg_filter
 
+def add_rejection_reasons_for_donors(rejected_list, recipient, level):
+    
+    if level == 1:
+        for donor in rejected_list:
+            donor.rejected_value = f"{donor.blood_group} cannot donate to the {recipient.blood_group}"
+
+    elif level == 3:
+        hla_a_uam = set(recipient.hla_a_uam.values_list('value', flat=True))
+        hla_b_uam = set(recipient.hla_b_uam.values_list('value', flat=True))
+        hla_drb1_uam = set(recipient.hla_drb1_uam.values_list('value', flat=True))
+        hla_drb_uam = set(recipient.hla_drb_uam.values_list('value', flat=True))
+        hla_dqb1_uam = set(recipient.hla_dqb1_uam.values_list('value', flat=True))
+
+        hla_fields = {
+            'hla_a_1': hla_a_uam, 'hla_a_2': hla_a_uam,
+            'hla_b_1': hla_b_uam, 'hla_b_2': hla_b_uam,
+            'hla_drb1_1': hla_drb1_uam, 'hla_drb1_2': hla_drb1_uam,
+            'hla_drb_1': hla_drb_uam, 'hla_drb_2': hla_drb_uam,
+            'hla_dqb1_1': hla_dqb1_uam, 'hla_dqb1_2': hla_dqb1_uam,
+        }
+
+        for donor in rejected_list:
+            reasons = []
+            for field_name, uam_set in hla_fields.items():
+                donor_hla_value = getattr(donor, field_name)
+                
+                if str(donor_hla_value) in uam_set:
+                    reasons.append(f"{donor_hla_value}")
+            
+            donor.rejected_value = ", ".join(list(set(reasons)))
+            donor.rejected_value += " is/are HLA UAM(s)"
+
+    return rejected_list
+
+def add_rejection_reasons_for_recipients(rejected_list, donor, level):
+    
+    if level == 1:
+        for recipient in rejected_list:
+            recipient.rejected_value = f"{recipient.blood_group} cannot receive from the {donor.blood_group}"
+
+    elif level == 3:
+        for recipient in rejected_list:
+            results = []
+            recipient_hla_uams = list(chain(
+                recipient.hla_a_uam.all(),
+                recipient.hla_b_uam.all(),
+                recipient.hla_drb1_uam.all(),
+                recipient.hla_drb_uam.all(),
+                recipient.hla_dqb1_uam.all(),
+            ))
+
+            if donor.hla_a_1 in recipient_hla_uams:
+                results.append(donor.hla_a_1.value)
+            if donor.hla_a_2 in recipient_hla_uams:
+                results.append(donor.hla_a_2.value)
+            if donor.hla_b_1 in recipient_hla_uams:
+                results.append(donor.hla_b_1.value)
+            if donor.hla_b_2 in recipient_hla_uams:
+                results.append(donor.hla_b_2.value)
+            if donor.hla_drb1_1 in recipient_hla_uams:
+                results.append(donor.hla_drb1_1.value)
+            if donor.hla_drb1_2 in recipient_hla_uams:
+                results.append(donor.hla_drb1_2.value)
+            if donor.hla_drb_1 and donor.hla_drb_1 in recipient_hla_uams:
+                results.append(donor.hla_drb_1.value)
+            if donor.hla_drb_2 and donor.hla_drb_2 in recipient_hla_uams:
+                results.append(donor.hla_drb_2.value)
+            if donor.hla_dqb1_1 in recipient_hla_uams:
+                results.append(donor.hla_dqb1_1.value)
+            if donor.hla_dqb1_2 in recipient_hla_uams:
+                results.append(donor.hla_dqb1_2.value)
+            
+            recipient.rejected_value = ", ".join(list(set(results)))
+            recipient.rejected_value += " is/are HLA UAM(s)"
+
+    return rejected_list
+
 def get_all_hla_uam_history_for_recipient(recipient_id):
     recipient = get_object_or_404(Recipient, id=recipient_id)
     history_calls = HistoryCall.objects.filter(recipient=recipient)
@@ -17,11 +94,11 @@ def get_all_hla_uam_history_for_recipient(recipient_id):
     all_hla_dqb1_ids = set()
 
     for history_call in history_calls:
-        all_hla_a_ids.update(history_call.hla_a_uam_history.values_list('id', flat=True))
-        all_hla_b_ids.update(history_call.hla_b_uam_history.values_list('id', flat=True))
-        all_hla_drb1_ids.update(history_call.hla_drb1_uam_history.values_list('id', flat=True))
-        all_hla_drb_ids.update(history_call.hla_drb_uam_history.values_list('id', flat=True))
-        all_hla_dqb1_ids.update(history_call.hla_dqb1_uam_history.values_list('id', flat=True))
+        all_hla_a_ids.update(history_call.hla_a_uam_history.all())
+        all_hla_b_ids.update(history_call.hla_b_uam_history.all())
+        all_hla_drb1_ids.update(history_call.hla_drb1_uam_history.all())
+        all_hla_drb_ids.update(history_call.hla_drb_uam_history.all())
+        all_hla_dqb1_ids.update(history_call.hla_dqb1_uam_history.all())
 
     return {
         'hla_a_uam_history': list(all_hla_a_ids),
@@ -63,6 +140,8 @@ def donor_detail(request, donor, main_recipient_list, status):
     if status == 1:
         blood_group_rejected_list = blood_group_rejected(main_recipient_list, recipients_list)
 
+        blood_group_rejected_list = add_rejection_reasons_for_recipients(blood_group_rejected_list, donor, 1)
+
     recipients_list = recipients_list.filter(
         Q(age__gte=donor.min_recipient_age) &
         Q(age__lte=donor.max_recipient_age)
@@ -91,6 +170,8 @@ def donor_detail(request, donor, main_recipient_list, status):
 
     if status == 1:
         hla_uam_rejected_list = hla_uam_rejected(main_recipient_list, recipients_list, blood_group_rejected_list, age_range_rejected_list)
+
+        hla_uam_rejected_list = add_rejection_reasons_for_recipients(hla_uam_rejected_list, donor, 3)
 
     recipients_list = recipients_list.order_by('-point')
 
@@ -169,6 +250,8 @@ def recipient_detail(request, recipient, main_cadaver_donor_list, main_living_do
             cadaver_donor_list
         )
 
+        cadaver_blood_group_rejected_list = add_rejection_reasons_for_donors(cadaver_blood_group_rejected_list, recipient, 1)
+
     living_donor_list = main_living_donor_list.filter(
         blood_group__in=recipient.donor_blood_group
     )
@@ -178,6 +261,9 @@ def recipient_detail(request, recipient, main_cadaver_donor_list, main_living_do
             main_living_donor_list,
             living_donor_list
         )
+
+        living_blood_group_rejected_list = add_rejection_reasons_for_donors(living_blood_group_rejected_list, recipient, 1)
+
 
     cadaver_donor_list = cadaver_donor_list.filter(
         Q(age__gte=recipient.min_donor_age) &
@@ -224,6 +310,8 @@ def recipient_detail(request, recipient, main_cadaver_donor_list, main_living_do
             cadaver_age_range_rejected_list
         )
 
+        cadaver_hla_uam_rejected_list = add_rejection_reasons_for_donors(cadaver_hla_uam_rejected_list, recipient, 3)
+
     living_donor_list = living_donor_list.exclude(
         Q(hla_a_1__in=recipient.hla_a_uam.all()) |
         Q(hla_a_2__in=recipient.hla_a_uam.all()) |
@@ -244,6 +332,8 @@ def recipient_detail(request, recipient, main_cadaver_donor_list, main_living_do
             living_blood_group_rejected_list,
             living_age_range_rejected_list
         )
+
+        living_hla_uam_rejected_list = add_rejection_reasons_for_donors(living_hla_uam_rejected_list, recipient, 3)
 
     donors_list = list(chain(cadaver_donor_list, living_donor_list))
 
@@ -313,29 +403,41 @@ def recipient_detail(request, recipient, main_cadaver_donor_list, main_living_do
 
     for filtered_donor in filtered_donors_list:
         history_match = False
-        if filtered_donor.hla_a_1.id in recipient_history['hla_a_uam_history']:
+        history_list = []
+        if filtered_donor.hla_a_1 in recipient_history['hla_a_uam_history']:
             history_match = True
-        elif filtered_donor.hla_a_2.id in recipient_history['hla_a_uam_history']:
+            history_list.append(filtered_donor.hla_a_1.value)
+        elif filtered_donor.hla_a_2 in recipient_history['hla_a_uam_history']:
             history_match = True
-        elif filtered_donor.hla_b_1.id in recipient_history['hla_b_uam_history']:
+            history_list.append(filtered_donor.hla_a_2.value)
+        elif filtered_donor.hla_b_1 in recipient_history['hla_b_uam_history']:
             history_match = True
-        elif filtered_donor.hla_b_2.id in recipient_history['hla_b_uam_history']:
+            history_list.append(filtered_donor.hla_b_1.value)
+        elif filtered_donor.hla_b_2 in recipient_history['hla_b_uam_history']:
             history_match = True
-        elif filtered_donor.hla_drb1_1.id in recipient_history['hla_drb1_uam_history']:
+            history_list.append(filtered_donor.hla_b_2.value)
+        elif filtered_donor.hla_drb1_1 in recipient_history['hla_drb1_uam_history']:
             history_match = True
-        elif filtered_donor.hla_drb1_2.id in recipient_history['hla_drb1_uam_history']:
+            history_list.append(filtered_donor.hla_drb1_1.value)
+        elif filtered_donor.hla_drb1_2 in recipient_history['hla_drb1_uam_history']:
             history_match = True
-        elif filtered_donor.hla_drb_1 and filtered_donor.hla_drb_1.id in recipient_history['hla_drb_uam_history']:
+            history_list.append(filtered_donor.hla_drb1_2.value)
+        elif filtered_donor.hla_drb_1 and filtered_donor.hla_drb_1 in recipient_history['hla_drb_uam_history']:
             history_match = True
-        elif filtered_donor.hla_drb_2 and filtered_donor.hla_drb_2.id in recipient_history['hla_drb_uam_history']:
+            history_list.append(filtered_donor.hla_drb_1.value)
+        elif filtered_donor.hla_drb_2 and filtered_donor.hla_drb_2 in recipient_history['hla_drb_uam_history']:
             history_match = True
-        elif filtered_donor.hla_dqb1_1.id in recipient_history['hla_dqb1_uam_history']:
+            history_list.append(filtered_donor.hla_drb_2.value)
+        elif filtered_donor.hla_dqb1_1 in recipient_history['hla_dqb1_uam_history']:
             history_match = True
-        elif filtered_donor.hla_dqb1_2.id in recipient_history['hla_dqb1_uam_history']:
+            history_list.append(filtered_donor.hla_dqb1_1.value)
+        elif filtered_donor.hla_dqb1_2 in recipient_history['hla_dqb1_uam_history']:
             history_match = True
+            history_list.append(filtered_donor.hla_dqb1_2.value)
         
         if history_match:
             filtered_donor.history_match = True
+            filtered_donor.history_list = history_list
 
     recipient_hla_uams = list(chain(
         recipient.hla_a_uam.all(),

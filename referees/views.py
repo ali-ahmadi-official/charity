@@ -209,18 +209,17 @@ class RecipientCreateView(LoginRequiredMixin, CreateView):
     template_name = 'recipients/recipient_add.html'
     
     def form_valid(self, form):
-        recipient_instance = form.save(commit=False)
-        if self.request.user.is_staff:
-            recipient_instance.is_test = True
+        response = super().form_valid(form) 
         
-        recipient_instance.save()
-        self.object = recipient_instance
+        if self.request.user.is_staff:
+            self.object.is_test = True
+            self.object.save()
 
         if form.cleaned_data.get('read_uam_from') == '2':
             self.object.process_uam_data()
             self.object.save()
 
-        return super().form_valid(form)
+        return response
 
     def get_success_url(self):
         return reverse('recipient_detail', kwargs={'pk': self.object.id})
