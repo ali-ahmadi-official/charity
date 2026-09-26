@@ -19,45 +19,37 @@ function calculateLocusScore(r1, r1_type, r2, r2_type, donorList) {
 }
 
 function scoreHlaDrb(rec1, rec2, donor1, donor2) {
-    let score = 0;
 
     const isNone = val => !val || val.trim().toLowerCase() === "none";
 
     const donorEmpty1 = isNone(donor1);
     const donorEmpty2 = isNone(donor2);
 
-    if (donorEmpty1 && donorEmpty2) {
-        score += 10;
-    } else if (donorEmpty1 || donorEmpty2) {
-        const donorNonEmpty = donorEmpty1 ? donor2 : donor1;
-        const matches = [rec1, rec2].filter(r => r === donorNonEmpty).length;
-
-        if (matches >= 1) {
-            score += 10;
-        } else {
-            score += 5;
-        }
-    } else {
-        if (rec1 === donor1) {
-            if (rec2 === donor2) {
-                score += 10;
-            } else {
-                score += 5;
-            }
-        } else if (rec1 === donor2) {
-            if (rec2 === donor1) {
-                score += 10;
-            } else {
-                score += 5;
-            }
-        } else {
-            if (rec2 === donor1 || rec2 === donor2) {
-                score += 5;
-            }
-        }
+    // قانون 4: دهنده فقط یک DRB دارد
+    if (donorEmpty1 || donorEmpty2) {
+        const donorValue = donorEmpty1 ? donor2 : donor1;
+        return (rec1 === donorValue || rec2 === donorValue) ? 10 : 5;
     }
 
-    return score;
+    // قانون 3: دهنده هر دو DRB یکسان دارد
+    if (donor1 === donor2) {
+        return (rec1 === donor1 || rec2 === donor1) ? 10 : 0;
+    }
+
+    // قانون 1: هر دو آلل یکسان هستند (ترتیب مهم نیست)
+    if (
+        (rec1 === donor1 && rec2 === donor2) ||
+        (rec1 === donor2 && rec2 === donor1)
+    ) {
+        return 10;
+    }
+
+    // قانون 2: فقط یکی از DRBها مشترک است
+    const matches = [rec1, rec2].filter(
+        r => r === donor1 || r === donor2
+    ).length;
+
+    return matches === 1 ? 5 : 0;
 }
 
 const donor = {
