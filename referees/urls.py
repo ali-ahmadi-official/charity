@@ -19,6 +19,8 @@ from .views import (
     referees_test_lists, DonorTestCreateView, RecipientTestCreateView, DonorTestUpdateView, RecipientTestUpdateView, DonorTestDeleteView, RecipientTestDeleteView,
     HistoryCallListView, HistoryCallCreateView, HistoryCallUpdateView, HistoryCallDeleteView,
     UserListView, UserUpdateView, UserDeleteView,
+    GroupListView, GroupCreateView, GroupUpdateView, GroupDeleteView,
+    AddGroupToDonorsView, AddGroupToRecipientsView,
     extract_info_data, extract_hla_data,
     auto_add_hla,
     r_analysis, d_analysis
@@ -99,6 +101,14 @@ urlpatterns = [
     path('users/', UserListView.as_view(), name='user_list'),
     path('users/<int:pk>/edit/', UserUpdateView.as_view(), name='user_update'),
     path('users/<int:pk>/delete/', UserDeleteView.as_view(), name='user_delete'),
+
+    path('groups/', GroupListView.as_view(), name='group_list'),
+    path('groups/new/', GroupCreateView.as_view(), name='group_create'),
+    path('groups/<int:pk>/edit/', GroupUpdateView.as_view(), name='group_update'),
+    path('groups/<int:pk>/delete/', GroupDeleteView.as_view(), name='group_delete'),
+
+    path('donors/add/groups/', AddGroupToDonorsView.as_view(), name='donor_add_group'),
+    path('recipients/add/groups/', AddGroupToRecipientsView.as_view(), name='recipient_add_group'),
 
     path('api/extract-info/', extract_info_data, name='extract_info_data'),
     path('api/extract-hla/', extract_hla_data, name='extract_hla_data'),

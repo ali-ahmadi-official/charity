@@ -27,6 +27,17 @@
 
         <div class="my-grid">
             <div>
+                <div class="mb-3">
+                    <label>{{ form.deactivate.label }}</label>
+                    {{ form.deactivate }}
+                </div>
+                {% if form.deactivate.errors %}
+                {% for error in form.deactivate.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div>
                 <label>{{ form.search_donor.label }}</label>
                 <div class="mb-3">
                     <select name="search_donor" class="form-control">

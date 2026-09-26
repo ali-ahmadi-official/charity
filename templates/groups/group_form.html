@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="icon" type="image/png" href="{% static 'img/icon.jpg' %}">
     <title>
-        ثبت نام پرسنل
+        کلینیک
     </title>
     <link id="pagestyle" href="{% static 'css/soft-ui-dashboard.css' %}" rel="stylesheet" />
 </head>
@@ -20,12 +20,16 @@
                 <div class="container">
                     <div class="row">
                         <div class="col-xl-4 col-lg-5 col-md-6 d-flex flex-column mx-auto">
-                            <div class="card card-plain mt-4 mb-4" style="background-color: #fff; height: calc(100vh - 48px);">
-                                <div class="card-body" style="max-height: 90vh; overflow-y: scroll;">
+                            <div class="card card-plain mt-7" style="background-color: #fff;">
+                                <div class="card-header pb-0 text-left bg-transparent">
+                                    <h3 class="font-weight-bolder text-info text-gradient">فرم کلینیک</h3>
+                                </div>
+                                <div class="card-body">
                                     <form method="post"> {% csrf_token %}
-                                        {{ form.as_p }}
+                                        <label for="name">نام کلینیک (گروه)</label>
+                                        <input type="text" name="name" id="id_name" class="form-control" value="{{ form.name.value|default:'' }}">
                                         <div class="text-center">
-                                            <button type="submit" class="btn bg-gradient-info w-100 mt-4 mb-0">ثبت نام پرسنل</button>
+                                            <button type="submit" class="btn bg-gradient-info w-100 mt-4 mb-0">ثبت</button>
                                         </div>
                                     </form>
                                 </div>

@@ -341,18 +341,26 @@ def recipient_detail(request, recipient, main_cadaver_donor_list, main_living_do
     donors_warning_list = []
 
     for donor in donors_list:
-        if any(hla_field and hla_field.value in hla_warnings for hla_field in [
-            donor.hla_a_1,
-            donor.hla_a_2,
-            donor.hla_b_1,
-            donor.hla_b_2,
-            donor.hla_drb1_1,
-            donor.hla_drb1_2,
-            donor.hla_drb_1,
-            donor.hla_drb_2,
-            donor.hla_dqb1_1,
-            donor.hla_dqb1_2,
-        ]):
+        donor.warning_list = []
+
+        hla_fields = [
+            ("A1", donor.hla_a_1),
+            ("A2", donor.hla_a_2),
+            ("B1", donor.hla_b_1),
+            ("B2", donor.hla_b_2),
+            ("DRB1_1", donor.hla_drb1_1),
+            ("DRB1_2", donor.hla_drb1_2),
+            ("DR_1", donor.hla_drb_1),
+            ("DR_2", donor.hla_drb_2),
+            ("DQB1_1", donor.hla_dqb1_1),
+            ("DQB1_2", donor.hla_dqb1_2),
+        ]
+
+        for name, hla in hla_fields:
+            if hla and hla.value in hla_warnings:
+                donor.warning_list.append(f"{hla.value}")
+
+        if donor.warning_list:
             donors_warning_list.append(donor)
 
     recipient_hla_a_b_uams = [hla.value for hla in recipient.hla_a_uam.all()] + \

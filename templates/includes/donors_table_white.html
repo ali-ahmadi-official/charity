@@ -41,7 +41,7 @@
                 <tbody>
                     {% if donors %}
                     {% for donor in donors %}
-                    <tr>
+                    <tr {% if donor.deactivate %} style="background-color: hsl(0, 1%, 78%);" {% endif %}>
                         <td class="align-middle text-center">
                             <span class="text-secondary text-xs font-weight-bold">{{ donor.id }}</span>
                         </td>

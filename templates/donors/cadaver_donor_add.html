@@ -26,6 +26,17 @@
         {% endif %}
 
         <div class="my-grid">
+            <div>
+                <div class="mb-3">
+                    <label>{{ form.deactivate.label }}</label>
+                    {{ form.deactivate }}
+                </div>
+                {% if form.deactivate.errors %}
+                {% for error in form.deactivate.errors %}
+                <p class="error">{{ error }}</p>
+                {% endfor %}
+                {% endif %}
+            </div>
             <div class="file-upload" style="grid-column: 1 / span 4;">
                 <label for="pcr_based_input" class="file-label" data-type="pcr_based">
                     انتخاب فایل PCR Based

@@ -11,10 +11,26 @@
 
 {% block page2 %}
 اهداکنندگان
+{% if deactivate == "yes" %}
+غیرفعال
+{% elif deactivate == "no" %}
+فعال
+{% endif %}
 {% endblock %}
 
 {% block contain %}
 <div id="content_image">
+    <div style="width: 100%; display: flex; justify-content: center; gap: 20px; margin-bottom: 20px;">
+        <a href="{% url 'd_analysis' %}">
+            <button class="my-btn-time" style="background-color: #fff; border: 1px solid #1622c4; border-radius: 0.5rem; color: #1622c4; padding: 8px 32px; font-size: 0.75rem; font-weight: 700;">اهداکنندگان</button>
+        </a>
+        <a href="{% url 'd_analysis' %}?deactivate=no">
+            <button class="my-btn-time" style="background-color: #fff; border: 1px solid #16C47F; border-radius: 0.5rem; color: #16C47F; padding: 8px 32px; font-size: 0.75rem; font-weight: 700;">اهداکنندگان فعال</button>
+        </a>
+        <a href="{% url 'd_analysis' %}?deactivate=yes">
+            <button class="my-btn-time" style="background-color: #fff; border: 1px solid #C5172E; border-radius: 0.5rem; color: #C5172E; padding: 8px 32px; font-size: 0.75rem; font-weight: 700;">اهداکنندگان غیرفعال</button>
+        </a>
+    </div>
     <div class="row" style="padding: 20px 0 44px 0; margin: auto;">
         <div style="width: 31%; margin: auto; border-radius: 0.75rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); background-color: #FBFBFB;">
             <h6 style="text-align: center;">جنسیت</h6>

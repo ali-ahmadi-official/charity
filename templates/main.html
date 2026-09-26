@@ -77,7 +77,7 @@
                         <tbody>
                             {% if recipients %}
                             {% for recipient in recipients %}
-                            <tr>
+                            <tr {% if recipient.deactivate %} style="background-color: hsl(0, 1%, 78%);" {% endif %}>
                                 <td class="align-middle text-center">
                                     <span class="text-secondary text-xs font-weight-bold">{{ recipient.id }}</span>
                                 </td>

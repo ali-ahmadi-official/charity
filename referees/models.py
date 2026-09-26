@@ -1,8 +1,20 @@
+import uuid
+from pathlib import Path
 from datetime import datetime
 from django.db import models
+from django.conf import settings
+from django.contrib.auth.models import Group
 from multiselectfield import MultiSelectField
 from .jalali import Persian
 from .igg import extract_combined_allele_risk, analyze_uam_status
+
+def upload_recipient_pdf_path(instance, filename):
+    ext = Path(filename).suffix.lower()
+    return f"recipient_pdf/{uuid.uuid4().hex}{ext}"
+
+def upload_donor_pdf_path(instance, filename):
+    ext = Path(filename).suffix.lower()
+    return f"donor_pdf/{uuid.uuid4().hex}{ext}"
 
 class HlaA(models.Model):
     type_choices = [
@@ -80,7 +92,7 @@ class Donor(models.Model):
         ('2', 'Living Donor'),
     ]
 
-    pcr_based_pdf = models.FileField(verbose_name='PCR Based PDF', upload_to='donor_pdf/', blank=True, null=True)
+    pcr_based_pdf = models.FileField(verbose_name='PCR Based PDF', upload_to=upload_donor_pdf_path, blank=True, null=True)
     full_name = models.CharField(verbose_name='نام و نام خانوادگی', max_length=200)
     national_code = models.CharField(verbose_name='کد ملی', max_length=15)
     phone_number = models.CharField(verbose_name='شماره تماس', max_length=50)
@@ -105,6 +117,9 @@ class Donor(models.Model):
     hla_dqb1_2 = models.ForeignKey(HlaDQB1, on_delete=models.DO_NOTHING, verbose_name='HLA DQB1 (allele 2)', related_name='hla_dqb1_2_%(class)s')
 
     is_test = models.BooleanField(verbose_name='دیتای تستی', default=False)
+    creator_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    creator_groups = models.ManyToManyField(Group, blank=True)
+    deactivate = models.BooleanField(verbose_name='غیرفعال سازی', default=False)
 
     class Meta:
         verbose_name = 'اهدا کننده'
@@ -216,9 +231,9 @@ class Recipient(models.Model):
 
     search_donor = models.CharField(verbose_name='جستجو از اهداکنندگان', choices=search_donor_choices, max_length=1, default='1')
     read_uam_from = models.CharField(verbose_name='تحلیل UAM از؟', choices=read_uam_from_choices, default='1', max_length=1)
-    pcr_based_pdf = models.FileField(verbose_name='PCR Based PDF', upload_to='recipient_pdf/', blank=True, null=True)
-    class_i_pdf = models.FileField(verbose_name='Class I PDF', upload_to='recipient_pdf/', blank=True, null=True)
-    class_ii_pdf = models.FileField(verbose_name='Class II PDF', upload_to='recipient_pdf/', blank=True, null=True)
+    pcr_based_pdf = models.FileField(verbose_name='PCR Based PDF', upload_to=upload_recipient_pdf_path, blank=True, null=True)
+    class_i_pdf = models.FileField(verbose_name='Class I PDF', upload_to=upload_recipient_pdf_path, blank=True, null=True)
+    class_ii_pdf = models.FileField(verbose_name='Class II PDF', upload_to=upload_recipient_pdf_path, blank=True, null=True)
     full_name = models.CharField(verbose_name='نام و نام خانوادگی', max_length=200)
     national_code = models.CharField(verbose_name='کد ملی', max_length=15)
     gender = models.CharField(verbose_name='جنسیت', choices=gender_choices, max_length=1)
@@ -257,6 +272,9 @@ class Recipient(models.Model):
     hla_dqb1_uam = models.ManyToManyField(HlaDQB1, verbose_name='HLA DQB1 (UAM)', blank=True, related_name='hla_dqb1_1_uam')
 
     is_test = models.BooleanField(verbose_name='دیتای تستی', default=False)
+    creator_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    creator_groups = models.ManyToManyField(Group, blank=True)
+    deactivate = models.BooleanField(verbose_name='غیرفعال سازی', default=False)
 
     class Meta:
         verbose_name = 'گیرنده'
@@ -430,6 +448,8 @@ class DonorTest(models.Model):
     hla_dqb1_2 = models.ForeignKey(HlaDQB1, on_delete=models.DO_NOTHING, verbose_name='HLA DQB1 (allele 2)', related_name='hla_dqb1_2_donor_test')
 
     is_test = models.BooleanField(verbose_name='دیتای تستی', default=False)
+    creator_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    creator_groups = models.ManyToManyField(Group, blank=True)
 
     class Meta:
         verbose_name = 'اهدا کننده تستی'
@@ -450,6 +470,8 @@ class RecipientTest(models.Model):
     hla_dqb1_2 = models.ForeignKey(HlaDQB1, on_delete=models.DO_NOTHING, verbose_name='HLA DQB1 (allele 2)', related_name='hla_dqb1_2_recipient_test')
 
     is_test = models.BooleanField(verbose_name='دیتای تستی', default=False)
+    creator_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    creator_groups = models.ManyToManyField(Group, blank=True)
 
     class Meta:
         verbose_name = 'گیرنده تستی'
@@ -458,8 +480,8 @@ class RecipientTest(models.Model):
 class HistoryCall(models.Model):
     recipient = models.ForeignKey(Recipient, on_delete=models.CASCADE, related_name='recipient_history_call', verbose_name='گیرنده')
 
-    class_i_pdf = models.FileField(verbose_name='Class I PDF', upload_to='recipient_pdf/', blank=True, null=True)
-    class_ii_pdf = models.FileField(verbose_name='Class II PDF', upload_to='recipient_pdf/', blank=True, null=True)
+    class_i_pdf = models.FileField(verbose_name='Class I PDF', upload_to=upload_recipient_pdf_path, blank=True, null=True)
+    class_ii_pdf = models.FileField(verbose_name='Class II PDF', upload_to=upload_recipient_pdf_path, blank=True, null=True)
 
     hla_a_uam_history = models.ManyToManyField(HlaA, verbose_name='HLA A (UAM)', blank=True, related_name='hla_a_1_uam_history')
     hla_b_uam_history = models.ManyToManyField(HlaB, verbose_name='HLA B (UAM)', blank=True, related_name='hla_b_1_uam_history')

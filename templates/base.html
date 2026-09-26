@@ -193,6 +193,59 @@ background: linear-gradient(157deg, rgba(255, 255, 255, 1) 0%, rgba(250, 142, 65
                         <span class="nav-link-text me-1">مدیریت کاربران</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if '/groups/' in request.path %} active {% endif %}" href="{% url 'group_list' %}">
+                        <div
+                            class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center ms-2 d-flex align-items-center justify-content-center">
+                            <svg width="12px" height="12px" viewBox="0 0 46 42" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                                <title></title>
+                                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                <g transform="translate(-1717.000000, -291.000000)" fill="#FFFFFF" fill-rule="nonzero">
+                                    <g transform="translate(1716.000000, 291.000000)">
+                                        <g transform="translate(1.000000, 0.000000)">
+
+                                            <!-- Person Left -->
+                                            <path
+                                                class="color-background"
+                                                d="M9,25 C12.314,25 15,22.314 15,19 C15,15.686 12.314,13 9,13 C5.686,13 3,15.686 3,19 C3,22.314 5.686,25 9,25 Z">
+                                            </path>
+
+                                            <path
+                                                class="color-background opacity-6"
+                                                d="M0,38 C0,33.582 3.582,30 8,30 L10,30 C14.418,30 18,33.582 18,38 L18,40 L0,40 L0,38 Z">
+                                            </path>
+
+                                            <!-- Person Center -->
+                                            <path
+                                                class="color-background"
+                                                d="M23,23 C26.866,23 30,19.866 30,16 C30,12.134 26.866,9 23,9 C19.134,9 16,12.134 16,16 C16,19.866 19.134,23 23,23 Z">
+                                            </path>
+
+                                            <path
+                                                class="color-background"
+                                                d="M13,40 C13,34.477 17.477,30 23,30 C28.523,30 33,34.477 33,40 L33,42 L13,42 L13,40 Z">
+                                            </path>
+
+                                            <!-- Person Right -->
+                                            <path
+                                                class="color-background"
+                                                d="M37,25 C40.314,25 43,22.314 43,19 C43,15.686 40.314,13 37,13 C33.686,13 31,15.686 31,19 C31,22.314 33.686,25 37,25 Z">
+                                            </path>
+
+                                            <path
+                                                class="color-background opacity-6"
+                                                d="M28,38 C28,33.582 31.582,30 36,30 L38,30 C42.418,30 46,33.582 46,38 L46,40 L28,40 L28,38 Z">
+                                            </path>
+
+                                        </g>
+                                    </g>
+                                </g>
+                            </g>
+                            </svg>
+                        </div>
+                        <span class="nav-link-text me-1">مدیریت کلینیک‌ها</span>
+                    </a>
+                </li>
             </ul>
         </div>
     </aside>
