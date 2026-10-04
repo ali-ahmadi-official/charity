@@ -50,6 +50,9 @@ def extract_combined_allele_risk(class1_pdf_path, class2_pdf_path):
                     if re.match(allele_pattern, text):
                         current_row["allele"] = text
 
+                    if re.fullmatch(r"\d+", text) and "mfi" not in current_row:
+                        current_row["mfi"] = int(text)
+
                     for risk in risk_keywords:
                         if risk in text:
                             current_row["risk"] = risk
@@ -97,3 +100,24 @@ def analyze_uam_status(unique_list):
             })
 
     return sorted(uam_list), warning_list
+
+def compute_uam_max_mfi(unique_list, uam_list):
+    uam_set = set(uam_list)
+    max_mfi_by_base = {}
+
+    for item in unique_list:
+        allele = item['allele']
+        mfi = item.get('mfi')
+        if mfi is None:
+            continue
+
+        if allele.startswith(('DRB3*', 'DRB4*', 'DRB5*')):
+            base = allele.split('*')[0]
+        else:
+            base = allele.split(':')[0]
+
+        if base in uam_set:
+            if base not in max_mfi_by_base or mfi > max_mfi_by_base[base]:
+                max_mfi_by_base[base] = mfi
+
+    return max_mfi_by_base

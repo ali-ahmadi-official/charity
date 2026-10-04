@@ -1,10 +1,90 @@
 from datetime import datetime
 from itertools import chain
-from django.db.models import Q, Value, CharField
+from collections import defaultdict
+from django.db import transaction
+from django.db.models import Q, Value, CharField, Exists, OuterRef
 from django.shortcuts import get_object_or_404
-from .models import Recipient, HistoryCall
+from .models import Recipient, HistoryCall, RecipientUAMMFI
 from .jalali import Persian
 from .creg import donor_creg_filter, recipient_creg_filter
+
+HLA_FIELDS = ['hla_a', 'hla_b', 'hla_drb1', 'hla_drb', 'hla_dqb1']
+
+def compute_delisting_suggestion(request, recipient, main_cadaver_donor_list, main_living_donor_list, max_k=10):
+    candidates = list(
+        recipient.uam_mfi_values.filter(participates_in_filter=True).order_by('mfi', 'id')
+    )
+    if not candidates:
+        return None
+
+    limit = min(max_k, len(candidates))
+
+    for k in range(1, limit + 1):
+        subset = candidates[:k]
+        selections = []
+        for m in subset:
+            for f in HLA_FIELDS:
+                hla_id = getattr(m, f'{f}_id')
+                if hla_id:
+                    selections.append((f, hla_id))
+
+        with transaction.atomic():
+            for field, hla_id in selections:
+                getattr(recipient, f'{field}_uam').remove(hla_id)
+
+            context = recipient_detail(
+                request, recipient, main_cadaver_donor_list, main_living_donor_list,
+                status=0, suggest_delisting=False
+            )
+            donor_count = len(context['donors'])
+            transaction.set_rollback(True)
+
+        if donor_count > 0:
+            return {
+                'uam_list': [{'value': m.hla.value, 'mfi': m.mfi} for m in subset],
+                'donor_count': donor_count,
+                'checkbox_values': [f'{field}:{hla_id}' for field, hla_id in selections],
+            }
+
+    return None
+
+def build_delisted_match_exists(recipient):
+    delisted_mfi = RecipientUAMMFI.objects.filter(
+        recipient=recipient,
+        participates_in_filter=False,
+    ).filter(
+        Q(hla_a_id=OuterRef('hla_a_1_id')) | Q(hla_a_id=OuterRef('hla_a_2_id')) |
+        Q(hla_b_id=OuterRef('hla_b_1_id')) | Q(hla_b_id=OuterRef('hla_b_2_id')) |
+        Q(hla_drb1_id=OuterRef('hla_drb1_1_id')) | Q(hla_drb1_id=OuterRef('hla_drb1_2_id')) |
+        Q(hla_drb_id=OuterRef('hla_drb_1_id')) | Q(hla_drb_id=OuterRef('hla_drb_2_id')) |
+        Q(hla_dqb1_id=OuterRef('hla_dqb1_1_id')) | Q(hla_dqb1_id=OuterRef('hla_dqb1_2_id'))
+    )
+    return Exists(delisted_mfi)
+
+def get_donors_without_uams(request, recipient, cadaver_donor_list, living_donor_list, selections):
+    with transaction.atomic():
+        for field, hla_id in selections:
+            getattr(recipient, f'{field}_uam').remove(hla_id)
+        context = recipient_detail(request, recipient, cadaver_donor_list, living_donor_list, status=0)
+        donors = list(context['donors'])
+        transaction.set_rollback(True)
+    return donors
+
+def get_effective_uam_ids(recipient):
+    delisted = defaultdict(set)
+    for m in recipient.uam_mfi_values.filter(participates_in_filter=False):
+        for f in HLA_FIELDS:
+            hla_id = getattr(m, f'{f}_id')
+            if hla_id:
+                delisted[f].add(hla_id)
+
+    return {
+        'hla_a': set(recipient.hla_a_uam.values_list('id', flat=True)) - delisted['hla_a'],
+        'hla_b': set(recipient.hla_b_uam.values_list('id', flat=True)) - delisted['hla_b'],
+        'hla_drb1': set(recipient.hla_drb1_uam.values_list('id', flat=True)) - delisted['hla_drb1'],
+        'hla_drb': set(recipient.hla_drb_uam.values_list('id', flat=True)) - delisted['hla_drb'],
+        'hla_dqb1': set(recipient.hla_dqb1_uam.values_list('id', flat=True)) - delisted['hla_dqb1'],
+    }
 
 def add_rejection_reasons_for_donors(rejected_list, recipient, level):
     
@@ -225,8 +305,9 @@ def donor_detail(request, donor, main_recipient_list, status):
 
     return context
 
-def recipient_detail(request, recipient, main_cadaver_donor_list, main_living_donor_list, status):
+def recipient_detail(request, recipient, main_cadaver_donor_list, main_living_donor_list, status, suggest_delisting=True):
     recipient_history = get_all_hla_uam_history_for_recipient(recipient.id)
+    effective_ids = get_effective_uam_ids(recipient)
 
     cadaver_blood_group_rejected_list = []
     living_blood_group_rejected_list = []
@@ -290,16 +371,16 @@ def recipient_detail(request, recipient, main_cadaver_donor_list, main_living_do
         )
 
     cadaver_donor_list = cadaver_donor_list.exclude(
-        Q(hla_a_1__in=recipient.hla_a_uam.all()) |
-        Q(hla_a_2__in=recipient.hla_a_uam.all()) |
-        Q(hla_b_1__in=recipient.hla_b_uam.all()) |
-        Q(hla_b_2__in=recipient.hla_b_uam.all()) |
-        Q(hla_drb1_1__in=recipient.hla_drb1_uam.all()) |
-        Q(hla_drb1_2__in=recipient.hla_drb1_uam.all()) |
-        Q(hla_drb_1__in=recipient.hla_drb_uam.all()) |
-        Q(hla_drb_2__in=recipient.hla_drb_uam.all()) |
-        Q(hla_dqb1_1__in=recipient.hla_dqb1_uam.all()) |
-        Q(hla_dqb1_2__in=recipient.hla_dqb1_uam.all())
+        Q(hla_a_1_id__in=effective_ids['hla_a']) |
+        Q(hla_a_2_id__in=effective_ids['hla_a']) |
+        Q(hla_b_1_id__in=effective_ids['hla_b']) |
+        Q(hla_b_2_id__in=effective_ids['hla_b']) |
+        Q(hla_drb1_1_id__in=effective_ids['hla_drb1']) |
+        Q(hla_drb1_2_id__in=effective_ids['hla_drb1']) |
+        Q(hla_drb_1_id__in=effective_ids['hla_drb']) |
+        Q(hla_drb_2_id__in=effective_ids['hla_drb']) |
+        Q(hla_dqb1_1_id__in=effective_ids['hla_dqb1']) |
+        Q(hla_dqb1_2_id__in=effective_ids['hla_dqb1'])
     )
 
     if status == 1:
@@ -313,16 +394,16 @@ def recipient_detail(request, recipient, main_cadaver_donor_list, main_living_do
         cadaver_hla_uam_rejected_list = add_rejection_reasons_for_donors(cadaver_hla_uam_rejected_list, recipient, 3)
 
     living_donor_list = living_donor_list.exclude(
-        Q(hla_a_1__in=recipient.hla_a_uam.all()) |
-        Q(hla_a_2__in=recipient.hla_a_uam.all()) |
-        Q(hla_b_1__in=recipient.hla_b_uam.all()) |
-        Q(hla_b_2__in=recipient.hla_b_uam.all()) |
-        Q(hla_drb1_1__in=recipient.hla_drb1_uam.all()) |
-        Q(hla_drb1_2__in=recipient.hla_drb1_uam.all()) |
-        Q(hla_drb_1__in=recipient.hla_drb_uam.all()) |
-        Q(hla_drb_2__in=recipient.hla_drb_uam.all()) |
-        Q(hla_dqb1_1__in=recipient.hla_dqb1_uam.all()) |
-        Q(hla_dqb1_2__in=recipient.hla_dqb1_uam.all())
+        Q(hla_a_1_id__in=effective_ids['hla_a']) |
+        Q(hla_a_2_id__in=effective_ids['hla_a']) |
+        Q(hla_b_1_id__in=effective_ids['hla_b']) |
+        Q(hla_b_2_id__in=effective_ids['hla_b']) |
+        Q(hla_drb1_1_id__in=effective_ids['hla_drb1']) |
+        Q(hla_drb1_2_id__in=effective_ids['hla_drb1']) |
+        Q(hla_drb_1_id__in=effective_ids['hla_drb']) |
+        Q(hla_drb_2_id__in=effective_ids['hla_drb']) |
+        Q(hla_dqb1_1_id__in=effective_ids['hla_dqb1']) |
+        Q(hla_dqb1_2_id__in=effective_ids['hla_dqb1'])
     )
 
     if status == 1:
@@ -335,6 +416,9 @@ def recipient_detail(request, recipient, main_cadaver_donor_list, main_living_do
 
         living_hla_uam_rejected_list = add_rejection_reasons_for_donors(living_hla_uam_rejected_list, recipient, 3)
 
+    delisted_exists = build_delisted_match_exists(recipient)
+    cadaver_donor_list = cadaver_donor_list.annotate(is_delisted_match=delisted_exists)
+    living_donor_list = living_donor_list.annotate(is_delisted_match=delisted_exists)
     donors_list = list(chain(cadaver_donor_list, living_donor_list))
 
     hla_warnings = [hla_warning.hla_base for hla_warning in recipient.uam_warnings.all()]
@@ -460,6 +544,10 @@ def recipient_detail(request, recipient, main_cadaver_donor_list, main_living_do
     else:
         is_recipient_hla_uams = False
 
+    mfi_qs = recipient.uam_mfi_values.select_related('hla_a', 'hla_b', 'hla_drb1', 'hla_drb', 'hla_dqb1')
+    mfi_map = {m.hla.value: m.mfi for m in mfi_qs}
+    participates_map = {m.hla.value: m.participates_in_filter for m in mfi_qs}
+
     if all(value is not None for value in [
         recipient.age,
         recipient.previous_donation,
@@ -545,6 +633,12 @@ def recipient_detail(request, recipient, main_cadaver_donor_list, main_living_do
         cpra_p = 0
         desensitized_p = 0
 
+    delisting_suggestion = None
+    if suggest_delisting and not filtered_donors_list:
+        delisting_suggestion = compute_delisting_suggestion(
+            request, recipient, main_cadaver_donor_list, main_living_donor_list
+        )
+
     context = {
         'recipient': recipient,
         'recipient_hla_uams': recipient_hla_uams,
@@ -558,6 +652,8 @@ def recipient_detail(request, recipient, main_cadaver_donor_list, main_living_do
             cadaver_hla_uam_rejected_list, living_hla_uam_rejected_list,
             creg_rejected_list, near_creg_rejected_list
         )),
+        "mfi_map": mfi_map,
+        "participates_map": participates_map,
         'waiting_list_p': waiting_list_p,
         'dialysis_duration_p': dialysis_duration_p,
         'age_p': age_p,
@@ -568,6 +664,7 @@ def recipient_detail(request, recipient, main_cadaver_donor_list, main_living_do
         'cpra_p': cpra_p,
         'desensitized_p': desensitized_p,
         'status': status,
+        'delisting_suggestion': delisting_suggestion,
     }
 
     if status == 0:

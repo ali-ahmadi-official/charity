@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% block title %}Antigen Delisting{% endblock %}
+{% block head %}
+<style>
+    .uam-list {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+    }
+    .uam-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .uam-checkbox input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+        flex-shrink: 0;
+    }
+    .uam-checkbox label {
+        margin: 0;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+{% block page1 %}گیرندگان{% endblock %}
+{% block page2 %}Delisting HLA UAM{% endblock %}
+
+{% block contain %}
+<div class="col-12">
+    <div class="card mb-4">
+        <div class="card-header pb-0">
+            <h6>
+                انتخاب HLA UAM هایی که می‌خواهید delist شوند - {{ recipient.full_name }}
+                <a href="{% url 'recipient_detail' recipient.id %}" title="جزئیات" style="padding: 0 4px;">
+                    <span class="text-secondary text-xs font-weight-bold">
+                        <svg style="color: #f97316; cursor: pointer;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
+                            <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
+                            <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
+                        </svg>
+                    </span>
+                </a>
+            </h6>
+        </div>
+        <div class="card-body">
+            <form method="get">
+                <div class="uam-list">
+                    {% for item in uam_items %}
+                    <div class="uam-checkbox">
+                        <input type="checkbox" name="uam" value="{{ item.checkbox_value }}"
+                            id="uam_{{ forloop.counter }}"
+                            {% if item.checkbox_value in selected_values %}checked{% endif %}>
+                        <label for="uam_{{ forloop.counter }}">
+                            {{ item.value }} <small>(MFI: {{ item.mfi }})</small>
+                        </label>
+                    </div>
+                    {% empty %}
+                    <p style="grid-column: 1 / span 2;">هیچ HLA UAM ای با تیتر ثبت‌شده وجود ندارد.</p>
+                    {% endfor %}
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="btn bg-gradient-info w-100 mt-4 mb-0">نمایش اهداکننده‌های جدید</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% if form_submitted %}
+<div class="col-12">
+    <div class="card mb-4">
+        <div class="card-header pb-0">
+            <h6>اهداکننده‌های قابل اضافه شدن با delisting انتخاب‌شده</h6>
+        </div>
+        <div class="card-body px-0 pt-0 pb-2">
+            <div class="table-responsive p-0">
+                <table class="table align-items-center mb-0">
+                    <thead>
+                        <tr>
+                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">شناسه</th>
+                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">وضعیت</th>
+                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">نام و نام خانوادگی</th>
+                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">سن</th>
+                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">گروه خونی</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if addable_donors %}
+                        {% for donor in addable_donors %}
+                        <tr id="tr">
+                            <td class="align-middle text-center"><span class="text-secondary text-xs font-weight-bold">{{ donor.id }}</span></td>
+                            <td class="align-middle text-center"><span class="text-secondary text-xs font-weight-bold">{{ donor.get_status_display }}</span></td>
+                            <td class="align-middle text-center"><span class="text-secondary text-xs font-weight-bold">{{ donor.full_name }}</span></td>
+                            <td class="align-middle text-center"><span class="text-secondary text-xs font-weight-bold">{{ donor.age }}</span></td>
+                            <td class="align-middle text-center"><span class="text-secondary text-xs font-weight-bold">{{ donor.blood_group }}</span></td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="align-middle text-center">
+                                <span class="text-secondary text-xs font-weight-bold">اهداکننده جدیدی اضافه نمی‌شود</span>
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="col-12">
+    <div class="card mb-4">
+        <div class="card-header pb-0">
+            <h6>آیا می‌خواهید این HLA ها را delist کنید؟</h6>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                {% for value in selected_values %}
+                <input type="hidden" name="uam" value="{{ value }}">
+                {% endfor %}
+                <div class="text-center">
+                    <button type="submit" class="btn bg-gradient-success w-100 mt-2 mb-0">بله، delist کن</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+تیتر HLA UAM
+{% endblock %}
+
+{% block page1 %}
+گیرندگان
+{% endblock %}
+
+{% block page2 %}
+تیتر HLA UAM
+{% endblock %}
+
+{% block contain %}
+<div class="row">
+    <form method="post">
+        {% csrf_token %}
+        <h3 style="margin-bottom: 20px;">تیتر (MFI) برای HLA های UAM - {{ recipient.full_name }}</h3>
+
+        {% if messages %}
+        {% for message in messages %}
+        <p class="{% if message.tags == 'error' %}error{% else %}success{% endif %}">{{ message }}</p>
+        {% endfor %}
+        {% endif %}
+
+        {% if items %}
+        <div class="my-grid">
+            {% for item in items %}
+            <div>
+                <label>{{ item.value }}</label>
+                <div class="mb-3">
+                    <input type="number" name="{{ item.input_name }}" class="form-control" value="{{ item.mfi }}" min="0" placeholder="MFI">
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center">
+            <button type="submit" class="btn bg-gradient-info w-100 mt-4 mb-0">ثبت نهایی تیترها</button>
+        </div>
+        {% else %}
+        <p>این گیرنده هیچ HLA UAM ای ندارد.</p>
+        {% endif %}
+    </form>
+</div>
+{% endblock %}

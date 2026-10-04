@@ -13,3 +13,7 @@ def truncatechars_noellipsis(value, arg):
         value = str(value)
 
     return value[:length]
+
+@register.filter
+def get_item(d, key):
+    return d.get(key)

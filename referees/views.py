@@ -1,6 +1,6 @@
 from itertools import chain
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView, FormView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, FormView, View
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
@@ -11,7 +11,7 @@ from django.urls import reverse, reverse_lazy
 from django.db.models import Q
 from .models import (
     CadaverDonor, LivingDonor, Recipient, HlaA, HlaB, HlaDRB1,
-    HlaDRB, HlaDQB1, DonorTest, RecipientTest, HistoryCall
+    HlaDRB, HlaDQB1, DonorTest, RecipientTest, HistoryCall, RecipientUAMMFI
 )
 from .forms import (
     CustomUserCreationForm, CustomUserChangeForm, CadaverDonorForm, LivingDonorForm,
@@ -19,12 +19,14 @@ from .forms import (
     AddGroupToDonorsForm, AddGroupToRecipientsForm
 )
 from .mixins import SuperAdminRequiredMixin, superadmin_required
-from .details import parse_number_list_from_string, donor_detail, recipient_detail
+from .details import parse_number_list_from_string, donor_detail, recipient_detail, get_donors_without_uams
 from .pcr import extract_patient_info_from_pdf, extract_alleles_from_pdf
 from .analysis import analysis_recipients, analysis_donors, merge_analysis_results
 from .excel_exporter import export_to_excel
 
 CustomUser = get_user_model()
+
+HLA_FIELDS = ['hla_a', 'hla_b', 'hla_drb1', 'hla_drb', 'hla_dqb1']
 
 def owner_filter(user, queryset):
     base_filter = Q(is_test=user.is_staff)
@@ -285,6 +287,142 @@ class RecipientDeleteView(LoginRequiredMixin, DeleteView):
     model = Recipient
     template_name = 'recipients/recipient_confirm_delete.html'
     success_url = reverse_lazy('recipient_list')
+
+class RecipientUAMMFIView(LoginRequiredMixin, View):
+    template_name = 'recipients/recipient_uam_mfi.html'
+
+    def get_uam_items(self, recipient):
+        existing = {}
+        for m in recipient.uam_mfi_values.all():
+            for field in ['hla_a', 'hla_b', 'hla_drb1', 'hla_drb', 'hla_dqb1']:
+                hla_id = getattr(m, f'{field}_id')
+                if hla_id:
+                    existing[(field, hla_id)] = m
+
+        field_map = [
+            ('hla_a', recipient.hla_a_uam.all()),
+            ('hla_b', recipient.hla_b_uam.all()),
+            ('hla_drb1', recipient.hla_drb1_uam.all()),
+            ('hla_drb', recipient.hla_drb_uam.all()),
+            ('hla_dqb1', recipient.hla_dqb1_uam.all()),
+        ]
+
+        items = []
+        for field, qs in field_map:
+            for hla in qs:
+                mfi_obj = existing.get((field, hla.id))
+                items.append({
+                    'field': field,
+                    'hla_id': hla.id,
+                    'value': hla.value,
+                    'mfi': mfi_obj.mfi if mfi_obj else '',
+                    'input_name': f'mfi__{field}__{hla.id}',
+                })
+        return items
+
+    def get(self, request, pk):
+        recipient = get_object_or_404(Recipient, pk=pk)
+        items = self.get_uam_items(recipient)
+        return render(request, self.template_name, {'recipient': recipient, 'items': items})
+
+    def post(self, request, pk):
+        recipient = get_object_or_404(Recipient, pk=pk)
+        items = self.get_uam_items(recipient)
+        valid_keys = {(i['field'], i['hla_id']) for i in items}
+
+        for key, value in request.POST.items():
+            if not key.startswith('mfi__'):
+                continue
+            try:
+                _, field, hla_id = key.split('__')
+                hla_id = int(hla_id)
+            except ValueError:
+                continue
+
+            if (field, hla_id) not in valid_keys:
+                continue
+
+            value = value.strip()
+            lookup = {'recipient': recipient, f'{field}_id': hla_id}
+
+            if value == '':
+                RecipientUAMMFI.objects.filter(**lookup).delete()
+                continue
+
+            try:
+                mfi_val = int(value)
+            except ValueError:
+                continue
+
+            RecipientUAMMFI.objects.update_or_create(**lookup, defaults={'mfi': mfi_val})
+
+        return redirect('recipient_detail', pk=recipient.pk)
+
+class RecipientUAMFilterImpactView(View):
+    template_name = 'recipients/recipient_uam_filter_impact.html'
+
+    def get(self, request, pk):
+        recipient = get_object_or_404(Recipient, pk=pk)
+        cadaver_donor_list = owner_filter(request.user, CadaverDonor.objects.filter(deactivate=False))
+        living_donor_list = owner_filter(request.user, LivingDonor.objects.filter(deactivate=False))
+
+        uam_items = []
+        for m in recipient.uam_mfi_values.select_related(*HLA_FIELDS).order_by('mfi'):
+            field = next(f for f in HLA_FIELDS if getattr(m, f'{f}_id'))
+            hla_id = getattr(m, f'{field}_id')
+            uam_items.append({
+                'value': m.hla.value,
+                'mfi': m.mfi,
+                'checkbox_value': f'{field}:{hla_id}',
+            })
+
+        selected = request.GET.getlist('uam')
+        addable_donors = None
+
+        if selected:
+            selections = []
+            valid_values = {item['checkbox_value'] for item in uam_items}
+            for s in selected:
+                if s in valid_values:
+                    field, hla_id = s.split(':')
+                    selections.append((field, int(hla_id)))
+
+            if selections:
+                base_context = recipient_detail(request, recipient, cadaver_donor_list, living_donor_list, status=0)
+                base_keys = {(type(d).__name__, d.id) for d in base_context['donors']}
+
+                without_donors = get_donors_without_uams(request, recipient, cadaver_donor_list, living_donor_list, selections)
+                addable_donors = [d for d in without_donors if (type(d).__name__, d.id) not in base_keys]
+
+        context = {
+            'recipient': recipient,
+            'uam_items': uam_items,
+            'selected_values': selected,
+            'addable_donors': addable_donors,
+            'form_submitted': bool(selected),
+        }
+        return render(request, self.template_name, context)
+
+    def post(self, request, pk):
+        recipient = get_object_or_404(Recipient, pk=pk)
+        selected = request.POST.getlist('uam')
+
+        valid_map = {}
+        for m in recipient.uam_mfi_values.all():
+            for f in HLA_FIELDS:
+                hla_id = getattr(m, f'{f}_id')
+                if hla_id:
+                    valid_map[f'{f}:{hla_id}'] = m
+
+        updated = 0
+        for s in selected:
+            m = valid_map.get(s)
+            if m and m.participates_in_filter:
+                m.participates_in_filter = False
+                m.save(update_fields=['participates_in_filter'])
+                updated += 1
+
+        return redirect('recipient_detail', pk=recipient.pk)
 
 @login_required
 def select_donors_for_recipient(request, pk):

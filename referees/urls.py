@@ -8,6 +8,7 @@ from .views import (
     CadaverDonorCreateView, all_cadaver_donor_detail, some_cadaver_donor_detail, CadaverDonorUpdateView, CadaverDonorDeleteView,
     LivingDonorCreateView, all_living_donor_detail, some_living_donor_detail, LivingDonorUpdateView, LivingDonorDeleteView,
     RecipientListView, RecipientCreateView, all_recipient_detail, some_recipient_detail, RecipientUpdateView, RecipientDeleteView,
+    RecipientUAMMFIView, RecipientUAMFilterImpactView,
     select_donors_for_recipient, select_recipients_for_cadaver_donor, select_recipients_for_living_donor,
     cadaver_donor_api ,living_donor_api, recipient_api,
     hla_lists, 
@@ -54,6 +55,8 @@ urlpatterns = [
     path('recipients/<int:pk>/special-analysis/', some_recipient_detail, name='some_recipient_detail'),
     path('recipients/<int:pk>/edit/', RecipientUpdateView.as_view(), name='recipient_update'),
     path('recipients/<int:pk>/delete/', RecipientDeleteView.as_view(), name='recipient_delete'),
+    path('recipients/<int:pk>/uam-mfi/', RecipientUAMMFIView.as_view(), name='recipient_uam_mfi'),
+    path('recipients/<int:pk>/uam-filter-impact/', RecipientUAMFilterImpactView.as_view(), name='recipient_uam_filter_impact'),
 
     path('cadaver-donors/select-recipients-for-cadaver-donor/<int:pk>/', select_recipients_for_cadaver_donor, name='select_recipients_for_cadaver_donor'),
     path('living-donors/select-recipients-for-living-donor/<int:pk>/', select_recipients_for_living_donor, name='select_recipients_for_living_donor'),

@@ -2,11 +2,12 @@ import uuid
 from pathlib import Path
 from datetime import datetime
 from django.db import models
+from django.db.models import Q, UniqueConstraint, CheckConstraint
 from django.conf import settings
 from django.contrib.auth.models import Group
 from multiselectfield import MultiSelectField
 from .jalali import Persian
-from .igg import extract_combined_allele_risk, analyze_uam_status
+from .igg import extract_combined_allele_risk, analyze_uam_status, compute_uam_max_mfi
 
 def upload_recipient_pdf_path(instance, filename):
     ext = Path(filename).suffix.lower()
@@ -385,6 +386,7 @@ class Recipient(models.Model):
         if self.class_i_pdf and self.class_ii_pdf:
             result = extract_combined_allele_risk(self.class_i_pdf.path, self.class_ii_pdf.path)
             uam_list, warning_list = analyze_uam_status(result)
+            max_mfi_by_base = compute_uam_max_mfi(result, uam_list)
 
             self.hla_a_uam.clear()
             self.hla_b_uam.clear()
@@ -392,28 +394,43 @@ class Recipient(models.Model):
             self.hla_drb_uam.clear()
             self.hla_dqb1_uam.clear()
             self.uam_warnings.all().delete()
+            self.uam_mfi_values.all().delete()
 
             for hla in uam_list:
                 try:
+                    hla_obj = None
+
                     if hla.startswith("A*"):
-                        obj, created = HlaA.objects.get_or_create(value=hla, defaults={'type': '3'})
-                        self.hla_a_uam.add(obj)
+                        hla_obj, created = HlaA.objects.get_or_create(value=hla, defaults={'type': '3'})
+                        self.hla_a_uam.add(hla_obj)
+                        field = 'hla_a'
 
                     elif hla.startswith("B*"):
-                        obj, created = HlaB.objects.get_or_create(value=hla, defaults={'type': '3'})
-                        self.hla_b_uam.add(obj)
+                        hla_obj, created = HlaB.objects.get_or_create(value=hla, defaults={'type': '3'})
+                        self.hla_b_uam.add(hla_obj)
+                        field = 'hla_b'
 
                     elif hla.startswith("DRB1*"):
-                        obj, created = HlaDRB1.objects.get_or_create(value=hla, defaults={'type': '3'})
-                        self.hla_drb1_uam.add(obj)
+                        hla_obj, created = HlaDRB1.objects.get_or_create(value=hla, defaults={'type': '3'})
+                        self.hla_drb1_uam.add(hla_obj)
+                        field = 'hla_drb1'
 
                     elif hla in ["DRB3", "DRB4", "DRB5"]:
-                        obj, created = HlaDRB.objects.get_or_create(value=hla)
-                        self.hla_drb_uam.add(obj)
+                        hla_obj, created = HlaDRB.objects.get_or_create(value=hla)
+                        self.hla_drb_uam.add(hla_obj)
+                        field = 'hla_drb'
 
                     elif hla.startswith("DQB1*"):
-                        obj, created = HlaDQB1.objects.get_or_create(value=hla, defaults={'type': '3'})
-                        self.hla_dqb1_uam.add(obj)
+                        hla_obj, created = HlaDQB1.objects.get_or_create(value=hla, defaults={'type': '3'})
+                        self.hla_dqb1_uam.add(hla_obj)
+                        field = 'hla_dqb1'
+
+                    else:
+                        continue
+
+                    mfi = max_mfi_by_base.get(hla)
+                    if mfi is not None:
+                        RecipientUAMMFI.objects.create(recipient=self, mfi=mfi, **{field: hla_obj})
 
                 except Exception:
                     continue
@@ -531,3 +548,49 @@ class HistoryCall(models.Model):
 
                 except Exception:
                     continue
+
+class RecipientUAMMFI(models.Model):
+    recipient = models.ForeignKey(Recipient, on_delete=models.CASCADE, related_name='uam_mfi_values', verbose_name='گیرنده')
+
+    hla_a = models.ForeignKey(HlaA, on_delete=models.CASCADE, null=True, blank=True, related_name='uam_mfi_values')
+    hla_b = models.ForeignKey(HlaB, on_delete=models.CASCADE, null=True, blank=True, related_name='uam_mfi_values')
+    hla_drb1 = models.ForeignKey(HlaDRB1, on_delete=models.CASCADE, null=True, blank=True, related_name='uam_mfi_values')
+    hla_drb = models.ForeignKey(HlaDRB, on_delete=models.CASCADE, null=True, blank=True, related_name='uam_mfi_values')
+    hla_dqb1 = models.ForeignKey(HlaDQB1, on_delete=models.CASCADE, null=True, blank=True, related_name='uam_mfi_values')
+
+    mfi = models.PositiveIntegerField(verbose_name='MFI', help_text='بیشترین MFI بین allele های این HLA')
+    participates_in_filter = models.BooleanField(default=True, verbose_name='شرکت در فیلترینگ')
+
+    class Meta:
+        verbose_name = 'تیتر MFI برای HLA UAM'
+        verbose_name_plural = 'تیترهای MFI برای HLA UAM'
+        constraints = [
+            CheckConstraint(
+                check=(
+                    Q(hla_a__isnull=False, hla_b__isnull=True, hla_drb1__isnull=True, hla_drb__isnull=True, hla_dqb1__isnull=True) |
+                    Q(hla_a__isnull=True, hla_b__isnull=False, hla_drb1__isnull=True, hla_drb__isnull=True, hla_dqb1__isnull=True) |
+                    Q(hla_a__isnull=True, hla_b__isnull=True, hla_drb1__isnull=False, hla_drb__isnull=True, hla_dqb1__isnull=True) |
+                    Q(hla_a__isnull=True, hla_b__isnull=True, hla_drb1__isnull=True, hla_drb__isnull=False, hla_dqb1__isnull=True) |
+                    Q(hla_a__isnull=True, hla_b__isnull=True, hla_drb1__isnull=True, hla_drb__isnull=True, hla_dqb1__isnull=False)
+                ),
+                name='recipientuammfi_exactly_one_hla',
+            ),
+            *[
+                UniqueConstraint(
+                    fields=['recipient', f],
+                    condition=Q(**{f'{f}__isnull': False}),
+                    name=f'recipientuammfi_unique_{f}',
+                )
+                for f in ['hla_a', 'hla_b', 'hla_drb1', 'hla_drb', 'hla_dqb1']
+            ],
+        ]
+
+    @property
+    def hla(self):
+        for f in ['hla_a', 'hla_b', 'hla_drb1', 'hla_drb', 'hla_dqb1']:
+            obj = getattr(self, f)
+            if obj is not None:
+                return obj
+
+    def __str__(self):
+        return f'{self.recipient.full_name} - {self.hla}: {self.mfi}'

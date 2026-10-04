@@ -87,7 +87,13 @@
                         {% for donor in donors %}
                         <tr id="tr">
                             <td class="align-middle text-center">
-                                <span class="text-secondary text-xs font-weight-bold">{{ donor.id }}</span>
+                                <span class="text-secondary text-xs font-weight-bold">
+                                    {{ donor.id }}
+                                    {% if donor.is_delisted_match %}
+                                    <br>
+                                    <span class="badge bg-gradient-danger">Delisted</span>
+                                    {% endif %}
+                                </span>
                             </td>
                             <td class="align-middle text-center">
                                 <span class="text-secondary text-xs font-weight-bold">
