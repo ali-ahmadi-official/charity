@@ -383,7 +383,7 @@ class Recipient(models.Model):
         super().save(*args, **kwargs)
 
     def process_uam_data(self):
-        if self.class_i_pdf and self.class_ii_pdf:
+        if self.class_i_pdf and self.class_ii_pdf and self.read_uam_from == "2":
             result = extract_combined_allele_risk(self.class_i_pdf.path, self.class_ii_pdf.path)
             uam_list, warning_list = analyze_uam_status(result)
             max_mfi_by_base = compute_uam_max_mfi(result, uam_list)

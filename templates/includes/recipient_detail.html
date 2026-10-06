@@ -89,11 +89,13 @@
                             <td class="align-middle text-center">
                                 <span class="text-secondary text-xs font-weight-bold">
                                     {{ donor.id }}
-                                    {% if donor.is_delisted_match %}
-                                    <br>
-                                    <span class="badge bg-gradient-danger">Delisted</span>
-                                    {% endif %}
                                 </span>
+                                {% if donor.is_delisted_match %}
+                                <br>
+                                <a title="See Delisted HLA" style="cursor:pointer;" onclick="showDiv('delisted_{{ donor.id }}_{{ donor.get_status_display }}')">
+                                    <span class="badge bg-gradient-danger text-xs">Delisted</span>
+                                </a>
+                                {% endif %}
                             </td>
                             <td class="align-middle text-center">
                                 <span class="text-secondary text-xs font-weight-bold">
@@ -218,16 +220,36 @@
                                 <div class="form-control">{{ recipient.hla_dqb1_2 }}</div>
                                 <div class="form-control c6">Recipient</div>
 
-                                <div class="form-control" id="hla_a_first_{{ donor.id }}_{{ donor.get_status_display }}">{{ donor.hla_a_1 }}</div>
-                                <div class="form-control" id="hla_a_second_{{ donor.id }}_{{ donor.get_status_display }}">{{ donor.hla_a_2 }}</div>
-                                <div class="form-control" id="hla_b_first_{{ donor.id }}_{{ donor.get_status_display }}">{{ donor.hla_b_1 }}</div>
-                                <div class="form-control" id="hla_b_second_{{ donor.id }}_{{ donor.get_status_display }}">{{ donor.hla_b_2 }}</div>
-                                <div class="form-control" id="hla_drb1_first_{{ donor.id }}_{{ donor.get_status_display }}">{{ donor.hla_drb1_1 }}</div>
-                                <div class="form-control" id="hla_drb1_second_{{ donor.id }}_{{ donor.get_status_display }}">{{ donor.hla_drb1_2 }}</div>
-                                <div class="form-control" id="hla_drb_first_{{ donor.id }}_{{ donor.get_status_display }}">{{ donor.hla_drb_1 }}</div>
-                                <div class="form-control" id="hla_drb_second_{{ donor.id }}_{{ donor.get_status_display }}">{{ donor.hla_drb_2 }}</div>
-                                <div class="form-control" id="hla_dqb1_first_{{ donor.id }}_{{ donor.get_status_display }}">{{ donor.hla_dqb1_1 }}</div>
-                                <div class="form-control" id="hla_dqb1_second_{{ donor.id }}_{{ donor.get_status_display }}">{{ donor.hla_dqb1_2 }}</div>
+                                <div class="form-control" id="hla_a_first_{{ donor.id }}_{{ donor.get_status_display }}"
+                                    {% if 'hla_a_1' in donor.delisted_slots %}style="color: #FFFFFF; background-color: #C5172E"{% endif %}>{{ donor.hla_a_1 }}
+                                </div>
+                                <div class="form-control" id="hla_a_second_{{ donor.id }}_{{ donor.get_status_display }}"
+                                    {% if 'hla_a_2' in donor.delisted_slots %}style="color: #FFFFFF; background-color: #C5172E"{% endif %}>{{ donor.hla_a_2 }}
+                                </div>
+                                <div class="form-control" id="hla_b_first_{{ donor.id }}_{{ donor.get_status_display }}"
+                                    {% if 'hla_b_1' in donor.delisted_slots %}style="color: #FFFFFF; background-color: #C5172E"{% endif %}>{{ donor.hla_b_1 }}
+                                </div>
+                                <div class="form-control" id="hla_b_second_{{ donor.id }}_{{ donor.get_status_display }}"
+                                    {% if 'hla_b_2' in donor.delisted_slots %}style="color: #FFFFFF; background-color: #C5172E"{% endif %}>{{ donor.hla_b_2 }}
+                                </div>
+                                <div class="form-control" id="hla_drb1_first_{{ donor.id }}_{{ donor.get_status_display }}"
+                                    {% if 'hla_drb1_1' in donor.delisted_slots %}style="color: #FFFFFF; background-color: #C5172E"{% endif %}>{{ donor.hla_drb1_1 }}
+                                </div>
+                                <div class="form-control" id="hla_drb1_second_{{ donor.id }}_{{ donor.get_status_display }}"
+                                    {% if 'hla_drb1_2' in donor.delisted_slots %}style="color: #FFFFFF; background-color: #C5172E"{% endif %}>{{ donor.hla_drb1_2 }}
+                                </div>
+                                <div class="form-control" id="hla_drb_first_{{ donor.id }}_{{ donor.get_status_display }}"
+                                    {% if 'hla_drb_1' in donor.delisted_slots %}style="color: #FFFFFF; background-color: #C5172E"{% endif %}>{{ donor.hla_drb_1 }}
+                                </div>
+                                <div class="form-control" id="hla_drb_second_{{ donor.id }}_{{ donor.get_status_display }}"
+                                    {% if 'hla_drb_2' in donor.delisted_slots %}style="color: #FFFFFF; background-color: #C5172E"{% endif %}>{{ donor.hla_drb_2 }}
+                                </div>
+                                <div class="form-control" id="hla_dqb1_first_{{ donor.id }}_{{ donor.get_status_display }}"
+                                    {% if 'hla_dqb1_1' in donor.delisted_slots %}style="color: #FFFFFF; background-color: #C5172E"{% endif %}>{{ donor.hla_dqb1_1 }}
+                                </div>
+                                <div class="form-control" id="hla_dqb1_second_{{ donor.id }}_{{ donor.get_status_display }}"
+                                    {% if 'hla_dqb1_2' in donor.delisted_slots %}style="color: #FFFFFF; background-color: #C5172E"{% endif %}>{{ donor.hla_dqb1_2 }}
+                                </div>
                                 <div class="form-control c6">Donor</div>
 
                                 <div style="display: none;" id="hla_a_first_{{ donor.id }}_{{ donor.get_status_display }}_type">{{ donor.hla_a_1.get_type_display }}</div>
@@ -271,6 +293,24 @@
                                     <div class="form-control">{{ creg.donor }}</div>
                                     <div class="form-control">{{ creg.recipient }}</div>
                                     <div class="form-control">{{ creg.group }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="fixed-div creg-grid hidden-div" id="delisted_{{ donor.id }}_{{ donor.get_status_display }}" style="display:none;">
+                                <button class="close-btn" onclick="hideAllDivs()">
+                                    <svg style="margin: 0; padding: 0;" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                                        fill="currentColor" class="bi bi-x-lg" viewBox="0 0 16 16">
+                                        <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8z" />
+                                    </svg>
+                                </button>
+
+                                <div class="form-control mt-4" style="border-color:#C5172E; color:#C5172E; grid-column:1 / span 4;">
+                                    Delisted HLA UAM
+                                </div>
+
+                                {% for hla in donor.delisted_hla_list %}
+                                    <div class="form-control" style="border-color:#16C47F; color:#16C47F;">
+                                        {{ hla.value }} <small>({{ hla.mfi }})</small>
+                                    </div>
                                 {% endfor %}
                             </div>
                             <td class="align-middle text-center">

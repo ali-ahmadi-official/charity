@@ -238,9 +238,8 @@ class RecipientCreateView(LoginRequiredMixin, CreateView):
 
         self.object.creator_groups.set(self.request.user.groups.all())
 
-        if form.cleaned_data.get("read_uam_from") == "2":
-            self.object.process_uam_data()
-            self.object.save()
+        self.object.process_uam_data()
+        self.object.save()
 
         return response
 
@@ -275,8 +274,7 @@ class RecipientUpdateView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         response = super().form_valid(form)
 
-        if form.cleaned_data.get('read_uam_from') == '2':
-            self.object.process_uam_data()
+        self.object.process_uam_data()
 
         return response
 

@@ -271,7 +271,7 @@
     <div class="col-12">
         <div class="alert bg-white border border-info rounded-3" role="alert">
             <p>
-                در حال حاضر هیچ اهداکننده‌ی مناسبی یافت نشد. اما با delist کردن آنتی‌ژن‌های زیر (کمترین تیتر):
+                با delist کردن آنتی‌ژن‌های زیر (کمترین تیتر):
                 <br>
                 <strong>
                     {% for item in delisting_suggestion.uam_list %}
@@ -279,7 +279,7 @@
                     {% endfor %}
                 </strong>
                 <br>
-                می‌توان <strong>{{ delisting_suggestion.donor_count }}</strong> اهداکننده جدید پیدا کرد.
+                می‌توان <strong>{{ delisting_suggestion.added_count }}</strong> اهداکننده جدید پیدا کرد.
             </p>
             <form method="post" action="{% url 'recipient_uam_filter_impact' pk=recipient.id %}">
                 {% csrf_token %}

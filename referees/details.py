@@ -10,7 +10,7 @@ from .creg import donor_creg_filter, recipient_creg_filter
 
 HLA_FIELDS = ['hla_a', 'hla_b', 'hla_drb1', 'hla_drb', 'hla_dqb1']
 
-def compute_delisting_suggestion(request, recipient, main_cadaver_donor_list, main_living_donor_list, max_k=10):
+def compute_delisting_suggestion(request, recipient, main_cadaver_donor_list, main_living_donor_list, baseline_count, max_k=10):
     candidates = list(
         recipient.uam_mfi_values.filter(participates_in_filter=True).order_by('mfi', 'id')
     )
@@ -39,14 +39,24 @@ def compute_delisting_suggestion(request, recipient, main_cadaver_donor_list, ma
             donor_count = len(context['donors'])
             transaction.set_rollback(True)
 
-        if donor_count > 0:
+        if donor_count > baseline_count:
             return {
                 'uam_list': [{'value': m.hla.value, 'mfi': m.mfi} for m in subset],
                 'donor_count': donor_count,
+                'added_count': donor_count - baseline_count,
                 'checkbox_values': [f'{field}:{hla_id}' for field, hla_id in selections],
             }
 
     return None
+
+def get_delisted_uam_ids(recipient):
+    delisted = defaultdict(dict)  # {field: {hla_id: mfi}}
+    for m in recipient.uam_mfi_values.filter(participates_in_filter=False):
+        for f in HLA_FIELDS:
+            hla_id = getattr(m, f'{f}_id')
+            if hla_id:
+                delisted[f][hla_id] = m.mfi
+    return delisted
 
 def build_delisted_match_exists(recipient):
     delisted_mfi = RecipientUAMMFI.objects.filter(
@@ -421,6 +431,33 @@ def recipient_detail(request, recipient, main_cadaver_donor_list, main_living_do
     living_donor_list = living_donor_list.annotate(is_delisted_match=delisted_exists)
     donors_list = list(chain(cadaver_donor_list, living_donor_list))
 
+    delisted_ids = get_delisted_uam_ids(recipient)
+
+    delisted_ids = get_delisted_uam_ids(recipient)
+
+    for donor in donors_list:
+        donor.delisted_hla_list = []
+        donor.delisted_slots = set()
+
+        donor_hla_fields = [
+            ('hla_a', 'hla_a_1', donor.hla_a_1), ('hla_a', 'hla_a_2', donor.hla_a_2),
+            ('hla_b', 'hla_b_1', donor.hla_b_1), ('hla_b', 'hla_b_2', donor.hla_b_2),
+            ('hla_drb1', 'hla_drb1_1', donor.hla_drb1_1), ('hla_drb1', 'hla_drb1_2', donor.hla_drb1_2),
+            ('hla_drb', 'hla_drb_1', donor.hla_drb_1), ('hla_drb', 'hla_drb_2', donor.hla_drb_2),
+            ('hla_dqb1', 'hla_dqb1_1', donor.hla_dqb1_1), ('hla_dqb1', 'hla_dqb1_2', donor.hla_dqb1_2),
+        ]
+
+        seen_values = set()
+        for field, slot, hla_obj in donor_hla_fields:
+            if hla_obj and hla_obj.id in delisted_ids.get(field, {}):
+                donor.delisted_slots.add(slot)
+                if hla_obj.value not in seen_values:
+                    seen_values.add(hla_obj.value)
+                    donor.delisted_hla_list.append({
+                        'value': hla_obj.value,
+                        'mfi': delisted_ids[field][hla_obj.id],
+                    })
+
     hla_warnings = [hla_warning.hla_base for hla_warning in recipient.uam_warnings.all()]
     donors_warning_list = []
 
@@ -634,9 +671,10 @@ def recipient_detail(request, recipient, main_cadaver_donor_list, main_living_do
         desensitized_p = 0
 
     delisting_suggestion = None
-    if suggest_delisting and not filtered_donors_list:
+    if suggest_delisting:
         delisting_suggestion = compute_delisting_suggestion(
-            request, recipient, main_cadaver_donor_list, main_living_donor_list
+            request, recipient, main_cadaver_donor_list, main_living_donor_list,
+            baseline_count=len(filtered_donors_list)
         )
 
     context = {
